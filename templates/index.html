@@ -332,7 +332,8 @@ function scan(index){
             if (res.success) {
 			$(`#progress-${index}`).addClass('d-none');
 			 $(`textarea[name="docs[${index}][details]"]`).val(res.text);
-              //  document.getElementById('result').innerHTML = `<pre>${res.text}</pre>`;
+			 $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
+              //  document.getElementById('result').innerHTML = `<pre>${res.text.text}</pre>`;
             } else {
 			$(`#progress-${index}`).addClass('d-none');
              //   document.getElementById('result').innerHTML = '❌ خطأ: ' + res.error;

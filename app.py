@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify,send_from_directory
 from werkzeug.utils import secure_filename
 import os
 import uuid
@@ -46,37 +46,63 @@ def read_doc():
         file.save(path)
 
         # قراءة النص من الصورة
-        text = read_text_from_image(path, lang='ara')
+        #text = read_text_from_image(path, lang='ara')
+        result = read_text_from_image(path, lang='ara')
+        if 'error' in result:
+         return jsonify({'success': True, 'text': esult['error']})
+         print(result['error'])
+        else:
+         print("النص:", result['text'])
+         print("تم حفظ الصورة في:", result['processed_image_path'])
+         return jsonify({'success': True, 'text': result['text'],'processed_image_path':result['processed_image_path']})
 
-        return jsonify({'success': True, 'text': text})
-
-
-
-def read_text_from_image(image_path, lang='eng+ara'):
+@app.route('/processed_images/<filename>')
+def serve_processed_image(filename):
+    return send_from_directory('processed_images', filename)
+    
+def read_text_from_image(image_path, lang='eng+ara', save_processed=True, output_dir='processed_images'):
     try:
-        # قراءة الصورة باستخدام OpenCV
+        # إنشاء مجلد الإخراج إذا لم يكن موجوداً
+        if save_processed and not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # قراءة الصورة
         img = cv2.imread(image_path)
 
-        # تحويل الصورة إلى رمادية
+        # تحويل إلى رمادي
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # تطبيق Threshold لتحسين التباين
-        _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+        # Threshold لتحسين التباين
+        _, thresh = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY)
 
-        # (اختياري) قص المنطقة التي تحتوي على رقم الحوالة فقط
-        # تأكد من تعديل القيم بناءً على موقع الرقم بدقة
-        roi = thresh[75:115, 580:850]  # تقريبًا موقع رقم الحوالة في الصورة
+        # قص منطقة رقم الحوالة فقط
+        roi = thresh[75:115, 580:850]  # عدل القيم إذا لزم الأمر
 
-        # تحويل الصورة إلى صيغة PIL لاستخدام pytesseract
-        roi_pil = Image.fromarray(roi)
+        # حفظ الصورة بعد المعالجة (ROI)
+        processed_image_path = None
+        if save_processed:
+            filename =f"{uuid.uuid4()}.png"
+            processed_image_path = os.path.join(output_dir, filename)
+            cv2.imwrite(processed_image_path, thresh)
 
-        # استخراج النص باستخدام pytesseract
-        text = pytesseract.image_to_string(roi_pil, lang=lang)
-        return text.strip()
-    
+        # تحويل إلى PIL للصيغة المتوافقة مع pytesseract
+        roi_pil = Image.fromarray(thresh)
+
+        # التعرف على النص
+        text = pytesseract.image_to_string(roi_pil, lang=lang).strip()
+
+        # إرجاع النص ومسار الصورة
+        return {
+            'text': text,
+            'processed_image_path': processed_image_path
+        }
+
     except Exception as e:
-        return f"خطأ في قراءة الصورة: {str(e)}"
-
+        return {
+            'text': '',
+            'error': f"خطأ في قراءة الصورة: {str(e)}",
+            'processed_image_path': None
+        }
 
 
 
