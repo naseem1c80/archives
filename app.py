@@ -7,6 +7,9 @@ import pytesseract
 from scanner import scan_document
 import mysql.connector
 import cv2
+from pdf2image import convert_from_path
+import easyocr
+import PyPDF2
 app = Flask(__name__)
 
 # إعداد الاتصال بقاعدة البيانات
@@ -31,8 +34,123 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 def index():
     return render_template('index.html')
 
+
+
+
+
+# السماح بامتدادات الملفات
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_text_from_image(image_path, lang='ara'):
+    try:
+        # معالجة الصورة وتحسينها قبل OCR
+        img = cv2.imread(image_path)
+        if img is None:
+            return {'error': 'تعذر قراءة ملف الصورة'}
+            
+        # تحسين الصورة لتحسين دقة OCR
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, processed_img = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+        
+        # حفظ الصورة المعالجة
+        processed_path = os.path.join(app.config['UPLOAD_FOLDER'], f"processed_{os.path.basename(image_path)}")
+        cv2.imwrite(processed_path, processed_img)
+        
+        # استخراج النص باستخدام EasyOCR
+        reader = easyocr.Reader([lang])
+        results = reader.readtext(processed_img)
+        extracted_text = [text[1] for text in results]
+        
+        return {
+            'text': '\n'.join(extracted_text),
+            'processed_image_path': processed_path
+        }
+        
+    except Exception as e:
+        return {'error': f'حدث خطأ أثناء معالجة الصورة: {str(e)}'}
+
+def extract_text_from_pdf(pdf_path, lang='ara'):
+    try:
+        # المحاولة أولاً باستخراج النص مباشرة من PDF
+        text = ""
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            for page in reader.pages:
+               text += page.extract_text() or ""
+        
+        # إذا كان النص المباشر كافياً
+        if len(text.strip()) > 50:
+            return {'text': text}
+        
+        # إذا كان PDF ممسوحاً ضوئياً (صور)
+        images = convert_from_path(pdf_path)
+        extracted_text = ""
+        
+        for i, img in enumerate(images):
+            # حفظ الصورة مؤقتاً
+            temp_img_path = os.path.join(app.config['UPLOAD_FOLDER'], f"temp_page_{i}.jpg")
+            img.save(temp_img_path, 'JPEG')
+            
+            # استخراج النص من الصورة
+            result = read_text_from_image(temp_img_path, lang)
+            if 'text' in result:
+                extracted_text += result['text'] + "\n"
+            
+            # حذف الصورة المؤقتة
+            os.remove(temp_img_path)
+        
+        return {'text': extracted_text.strip()}
+        
+    except Exception as e:
+        return {'error': f'حدث خطأ أثناء معالجة PDF: {str(e)}'}
+    
+
 @app.route('/read-doc', methods=['POST'])
 def read_doc():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'لم يتم إرسال الملف'})
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'اسم الملف غير موجود'})
+
+    if file and allowed_file(file.filename):
+        try:
+            # حفظ الملف المرفق
+            filename = secure_filename(f"{uuid.uuid4()}.{file.filename.rsplit('.', 1)[1].lower()}")
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            # تحديد نوع الملف ومعالجته
+            if filename.lower().endswith('.pdf'):
+                result = extract_text_from_pdf(file_path, lang='ara')
+            else:
+                result = read_text_from_image(file_path, lang='ara')
+            
+            # حذف الملف الأصلي بعد المعالجة
+            os.remove(file_path)
+            
+            if 'error' in result:
+                return jsonify({'success': False, 'error': result['error']})
+            
+            return jsonify({
+                'success': True,
+                'text': result['text'],
+                'processed_image_path': result.get('processed_image_path', '')
+            })
+            
+        except Exception as e:
+            return jsonify({'success': False, 'error': f'حدث خطأ أثناء المعالجة: {str(e)}'})
+    
+    return jsonify({'success': False, 'error': 'نوع الملف غير مدعوم'})
+
+
+@app.route('/read-docs', methods=['POST'])
+def read_docs():
     if 'file' not in request.files:
         return jsonify({'success': False, 'error': 'لم يتم إرسال الملف'})
 
@@ -49,7 +167,7 @@ def read_doc():
         #text = read_text_from_image(path, lang='ara')
         result = read_text_from_image(path, lang='ara')
         if 'error' in result:
-         return jsonify({'success': True, 'text': esult['error']})
+         return jsonify({'success': True, 'text': result['error']})
          print(result['error'])
         else:
          print("النص:", result['text'])
@@ -59,7 +177,10 @@ def read_doc():
 @app.route('/processed_images/<filename>')
 def serve_processed_image(filename):
     return send_from_directory('processed_images', filename)
-    
+
+
+
+
 def read_text_from_image(image_path, lang='eng+ara', save_processed=True, output_dir='processed_images'):
     try:
         # إنشاء مجلد الإخراج إذا لم يكن موجوداً
@@ -89,7 +210,7 @@ def read_text_from_image(image_path, lang='eng+ara', save_processed=True, output
         roi_pil = Image.fromarray(thresh)
 
         # التعرف على النص
-        text = pytesseract.image_to_string(roi_pil, lang=lang).strip()
+        text = pytesseract.image_to_string(image_path, lang=lang).strip()
 
         # إرجاع النص ومسار الصورة
         return {

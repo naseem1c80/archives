@@ -20,7 +20,7 @@
     margin-top: 10px;
     border-radius: 10px;
     background-color: #fff;
-    max-height: 300px;
+    /*max-height: 300px;*/
     overflow: auto;
 }
 .preview-box img {
@@ -150,7 +150,7 @@ function createDocBlock(index) {
 				 <div class="progress mt-2 d-none" id="progress-${index}">
         <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress-bar-${index}">0%</div>
     </div>
-                <textarea type="text" name="docs[${index}][details]"  class="form-control"></textarea>
+                <textarea type="text" name="docs[${index}][details]" rowspan="10"  class="form-control"></textarea>
             </div>
 			
             <button type="button" class="btn btn-danger btn-sm remove-doc mt-2">🗑️ إزالة المستند</button>
