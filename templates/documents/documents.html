@@ -1,0 +1,174 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">
+                                     إدارة المستندات  
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> إدارة المستندات  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                    <div class="card">
+                        <div class="card-header">
+                         
+
+                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
+    <h5>
+                        إدارة المستندات   
+                            </h5>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openAddModal()">إضافة مستند</button>
+    </div>
+                           
+                        </div>
+                        <div class="card-body table-border-style">
+                            <div class="table-responsive">
+                             
+      <table class="table table-bordered table-striped text-center"  dir="rtl">
+        <thead class="table-success">
+          <tr>
+            <th>الاسم </th>
+            <th>رقم السند</th>
+            <th> الموظف</th>
+            <th>الحالة</th>
+                 <th>التاريخ</th>
+            <th>العمليات</th>
+          </tr>
+        </thead>
+        <tbody id="userTable"></tbody>
+      </table>
+   
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="userForm" onsubmit="submitUser(event)">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">إضافة مستخدم</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="userId">
+          <div class="mb-3">
+            <label>الاسم </label>
+            <input type="text" id="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>رقم</label>
+            <input type="text" id="phone" class="form-control" required>
+          </div>
+          <div class="mb-3" id="passwordField">
+            <label>كلمة المرور</label>
+            <input type="password" id="password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>الصلاحية</label>
+            <select id="role" class="form-control" required>
+              <option value="admin">مدير</option>
+              <option value="user">موظف</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+   function loaddocuments() {
+    axios.get("{{ url_for('documents_blueprint.getdocuments') }}").then(res => {
+      userTable.innerHTML = "";
+      res.data.forEach(user => {
+        userTable.innerHTML += `
+          <tr>
+            <td>${user.name}</td>
+            <td>${user.number_doc}</td>
+            <td>${user.user_id }</td>
+            <td>${user.verify_user ? 'موثق' : 'تحت المراجعة'}</td>
+           <td>${user.created_at}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclic="openEditModal(${user.id}, '${user.name}', '${user.number_doc}', '${user.role}')">تعديل</button>
+              <button class="btn btn-sm btn-danger" onclick="delete_document(${user.id})">حذف</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+  function submitUser(e) {
+    e.preventDefault();
+    const id = document.getElementById("userId").value;
+    const data = {
+      name: document.getElementById("name").value,
+      phone: document.getElementById("phone").value,
+      role: document.getElementById("role").value,
+    };
+    if (!id) {
+      data.password = document.getElementById("password").value;
+      axios.post("/api/documents", data).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+        loaddocuments();
+      });
+    } else {
+      axios.put(`/api/documents/${id}`, data).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+        loaddocuments();
+      });
+    }
+  }
+
+  function delete_document(id) {
+    if (confirm("هل أنت متأكد من حذف هذا السند؟")) {
+      axios.post(`/documents/${id}/delete`).then(() => loaddocuments());
+    }
+  }
+
+  window.onload = loaddocuments;
+</script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
