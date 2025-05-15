@@ -1,0 +1,477 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center" dir="rtl">
+                        <div class="col-md-12">
+                            <div class="page-header-title" >
+                                <h5 class="m-b-10">
+                                     إدارة المستندات  📂
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> إدارة المستندات  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+
+    <link hre="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f4f4; }
+        .card { box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 1rem; }
+        .btn-scan { background-color: #198754; color: white; }
+        .btn-scan:hover { background-color: #157347; }
+        .preview { max-width: 100%; border-radius: 10px; margin-top: 15px; }
+		
+		.preview-box {
+    border: 2px dashed #aaa;
+    padding: 10px;
+    text-align: center;
+    margin-top: 10px;
+    border-radius: 10px;
+    background-color: #fff;
+    max-height: 300px;
+    overflow: auto;
+}
+.preview-box img {
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+    </style>
+
+
+
+
+
+
+  <form id="multi-form" enctype="multipart/form-data">
+           
+    <div class="card p-4 mx-auto" style="max-width: 800px;">
+        <h2 class="text-center mb-4"> نظام أرشفة المستندات</h2>
+      
+     <div class="mb-2">
+                <label>رقم المستند</label>
+                <input type="text" name="doc_id" class="form-control" id="doc_id">
+            </div>
+            
+     <div class="mb-2">
+                <label>رقم الحوالة</label>
+                <input type="text" name="transfer_number" class="form-control" id="transfer_number">
+            </div>
+     <div class="mb-2">
+                <label>اسم المرسل </label>
+                <input type="text" name="sender_name" class="form-control" id="sender_name">
+            </div>
+     <div class="mb-2">
+                <label>اسم المستلم </label>
+                <input type="text" name="recipient_name" class="form-control" id="recipient_name">
+            </div>
+     <div class="mb-2">
+                <label>التاريخ  </label>
+                <input type="date" name="date" class="form-control" id="date">
+            </div>    
+
+
+			 </div>
+			 
+			
+		   <div id="documents-container">
+                <!-- يتم ملؤه ديناميكياً -->
+            </div>
+            <div class="text-end my-3">
+                <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة مستند جديد</button>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-scan">💾 حفظ كل المستندات</button>
+            </div>
+      
+        <div id="result" class="mt-4"></div>
+       
+   
+	  </form>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+let docIndex = 0;
+function createDocBlock(index) {
+    return `  <div class="card p-4 mx-auto border rounded p-3 mb-4 document-block" style="max-width: 800px;">
+        <div clas="border rounded p-3 mb-4 document-block">
+            <h5 class="mb-3">مستند رقم ${index + 1}</h5>
+       
+            <div class="mb-2">
+                <label>المصدر</label>
+                <select name="docs[${index}][source]" class="form-select source-select" data-index="${index}">
+                    <option value="scan">المسح الضوئي</option>
+                    <option value="upload">رفع ملف</option>
+                </select>
+            </div>
+            <div class="mb-2 upload-block d-none">
+                <label>اختيار ملف</label>
+                <input type="file" onchange="loadfile(this)" name="docs[${index}][file]" class="form-control file-input" data-index="${index}">
+            </div>
+			 <div id="result-${index}" class="mt-4 d-none"><div class="alert"></div> <button onclick="scan(${index})">scan</button></div>
+            <div class="preview-box" id="preview-${index}">
+                <em class="text-muted">لا توجد صورة بعد.</em>
+            </div>
+			
+			    <div class="mb-2">
+                <label>تفاصيل المستند</label>
+				 <div class="progress mt-2 d-none" id="progress-${index}">
+        <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress-bar-${index}">0%</div>
+    </div>
+                <textarea type="text" name="docs[${index}][details]"  class="form-control" colspan="10"></textarea>
+            <pre id="pre-${index}"></pre>
+                      <pre id="pre2-${index}"></pre>
+            </div>
+			
+            <button type="button" class="btn btn-danger btn-sm remove-doc mt-2">🗑️ إزالة المستند</button>
+        </div>
+        </div>
+    `;
+}
+
+
+function updateHandlers() {
+    $('.source-select').off('change').on('change', function () {
+        const index = $(this).data('index');
+        const block = $(this).closest('.document-block');
+        if ($(this).val() === 'upload') {
+            block.find('.upload-block').removeClass('d-none');
+			block.find(`#result-${index}`).addClass('d-none');
+        } else {
+		scan(index);
+            block.find(`#result-${index}`).removeClass('d-none');
+            block.find('.upload-block').addClass('d-none');
+        }
+    });
+
+    $('.remove-doc').off('click').on('click', function () {
+        $(this).closest('.document-block').remove();
+    });
+}
+
+//$('.file-input').off('change').on('change', 
+function  loadfile(f) {
+	//alert(JSON.stringify(f)+"");
+    const index =$(f).data('index'); 
+    const file = f.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+		 $(`#progress-${index}`).removeClass('d-none');
+            $(`#preview-${index}`).html(`<img src="${e.target.result}" alt="Preview">`);
+			 // extractTextFromImage(file, index);
+			  uploadDocument(file, index);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+//);
+
+function extractTextFromImage(file, index) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        Tesseract.recognize(
+            e.target.result,
+            'ara+en', // اللغة العربية
+            {  logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const pct = Math.round(m.progress * 100);
+                        $(`#progress-bar-${index}`).css('width', `${pct}%`).text(`${pct}%`);
+                    }
+                }
+            }
+        
+		
+		
+		).then(({ data: { text } }) => {
+		$(`#progress-${index}`).addClass('d-none'); // إخفاء الشريط بعد الانتهاء
+            // تحليل النص واستخلاص البيانات
+           			$(`#pre2-${index}`).html(text);
+            console.log("OCR Text:", text);
+            const nameMatch = text.match(/الاسم[:\-]?\s*(.+)/);
+            const idMatch = text.match(/رقم[:\-]?\s*(\d+)/);
+console.log('idMatch',idMatch);
+           $(`textarea[name="docs[${index}][details]"]`).val(text);
+            if (nameMatch) $(`input[name="docs[${index}][name]"]`).val(nameMatch[1]);
+            if (idMatch) $(`input[name="docs[${index}][id]"]`).val(idMatch[1]);
+        }).catch(() => {
+            $(`#progress-${index}`).addClass('d-none');
+            alert("فشل في قراءة البيانات من السند.");
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+
+
+$('#add-doc').on('click', function () {
+    $('#documents-container').append(createDocBlock(docIndex));
+    updateHandlers();
+    docIndex++;
+});
+
+$('#multi-form').on('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    $('#result').html('⏳ جاري حفظ المستندات...');
+
+    $.ajax({
+        url: '/save-docs',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            if (res.success) {
+                $('#result').html('<h5>✅ تم حفظ المستندات بنجاح</h5>');
+                $('#multi-form')[0].reset();
+                $('#documents-container').empty();
+                docIndex = 0;
+            } else {
+                $('#result').html('❌ خطأ: ' + res.message);
+            }
+        },
+        error: function () {
+            $('#result').html('❌ فشل الاتصال بالخادم.');
+        }
+    });
+});
+
+// أول مستند تلقائياً
+$('#add-doc').click();
+
+
+function scan(index){
+        $(`#result-${index}`).find('.alert').html('جاري المسح للعرض فقط...');
+
+        $.ajax({
+            url: '/scan',
+            type: 'POST',
+            data: {},  // بدون بيانات
+            success: function (response) {
+                if (response.success) {
+                    $('#result').html(`
+                        <h5>عرض المستند 🖼️</h5>
+                        <img src="${response.image_url}" class="preview">
+                    `);
+                } else {
+                    $(`#result-${index}`).find('.alert').html('خطأ: ' + response.error);
+                }
+            },
+            error: function () {
+                $(`#result-${index}`).find('.alert').html('فشل الاتصال بالخادم.');
+            }
+        });
+    }
+	
+	
+	
+	
+	
+	
+	function uploadDocument(file,index) {
+ //   const fileInput = document.getElementById('doc-file');
+   // const file = fileInput.files[0];
+
+    if (!file) {
+        alert('يرجى اختيار صورة سند');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/read-doc', true);
+
+    // عند التقدم
+    xhr.upload.addEventListener('progress', function (e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+			 $(`#progress-bar-${index}`).css('width', `${percent}%`).text(`${percent}%`);
+            //const progressBar = document.getElementById('uploadProgress');
+            //progressBar.style.width = percent + '%';
+           // progressBar.innerText = percent + '%';
+        }
+    });
+
+    // عند الانتهاء
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+			$(`#progress-${index}`).addClass('d-none');
+			$(`#pre-${index}`).html(res.text);
+			convert(res.text);
+			 $(`textarea[name="docs[${index}][details]"]`).val(res.text);
+			 $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
+              //  document.getElementById('result').innerHTML = `<pre>${res.text.text}</pre>`;
+            } else {
+			$(`#progress-${index}`).addClass('d-none');
+             //   document.getElementById('result').innerHTML = '❌ خطأ: ' + res.error;
+            }
+        } else {
+		$(`#progress-${index}`).addClass('d-none');
+           // document.getElementById('result').innerHTML = '❌ حدث خطأ أثناء رفع الملف.';
+        }
+    };
+
+    xhr.onerror = function () {
+	$(`#progress-${index}`).addClass('d-none');
+        document.getElementById('result').innerHTML = '❌ فشل الاتصال بالخادم.';
+    };
+
+    xhr.send(formData);
+}
+	
+	
+	
+	function convert(text){
+	  // استخراج البيانات بالتعابير النمطية
+const remittanceNumber = text.match(/رقم الحوالة\/\s*\|?\s*(\d+)/)?.[1] || "غير موجود";
+const senderName = text.match(/اسم المرسل\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiverName = text.match(/اسم المستلم\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiptNumber = text.match(/رقم السند\s*\/\s*(\d+)/)?.[1] || "غير موجود";
+const date = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/)?.[1] || "غير موجود";
+transfer_number
+            doc_id
+            
+            
+            $("#sender_name").val(senderName);
+            $("#recipient_name").val(receiverName);
+            $("#transfer_number").val(remittanceNumber);
+            $("#date").val(date);
+            $("#doc_id").val(receiptNumber);
+// طباعة النتائج
+console.log("رقم الحوالة:", remittanceNumber);
+console.log("اسم المرسل:", senderName);
+console.log("اسم المستلم:", receiverName);
+console.log("رقم السند:", receiptNumber);
+console.log("التاريخ:", date);
+	}
+</script>
+</body>
+</html>
+
+
+    <script>
+	$(document).ready(function () {
+    // زر الحفظ
+    $('#scan-form').on('submit', function (e) {
+        e.preventDefault();
+        $('#result').html('جاري المسح والحفظ...');
+
+        $.ajax({
+            url: '/scan_save',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function (response) {
+                if (response.success) {
+                    $('#result').html(`
+                        <h5>تم حفظ المستند بنجاح ✅</h5>
+                        <p>الاسم: ${response.name}</p>
+                        <p>رقم المستند: ${response.doc_id}</p>
+                        <img src="${response.image_url}" class="preview">
+                        <br><a href="${response.image_url}" download class="btn btn-outline-success mt-3">💾 تحميل المستند</a>
+                    `);
+                } else {
+                    $('#result').html('خطأ: ' + response.error);
+                }
+            },
+            error: function () {
+                $('#result').html('حدث خطأ غير متوقع.');
+            }
+        });
+    });
+
+    // زر العرض فقط
+    $('#view-btn').on('click', function () {
+        $('#result').html('جاري المسح للعرض فقط...');
+
+        $.ajax({
+            url: '/scan',
+            type: 'POST',
+            data: {},  // بدون بيانات
+            success: function (response) {
+                if (response.success) {
+                    $('#result').html(`
+                        <h5>عرض المستند 🖼️</h5>
+                        <img src="${response.image_url}" class="preview">
+                    `);
+                } else {
+                    $('#result').html('خطأ: ' + response.error);
+                }
+            },
+            error: function () {
+                $('#result').html('فشل الاتصال بالخادم.');
+            }
+        });
+    });
+});
+	</script>
+
+
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+
+                
+                
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

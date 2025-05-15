@@ -6,7 +6,10 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
+
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- [ Main Content ] start -->
     <section class="pcoded-main-container">
         <div class="pcoded-content">
@@ -41,14 +44,49 @@
     <h5>
                         إدارة المستندات   
                             </h5>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openAddModal()">إضافة مستند</button>
+      <a href="/create_document" class="btn btn-success" target="_blank" onlick="openAddModal()">إضافة مستند</a>
     </div>
                            
                         </div>
                         <div class="card-body table-border-style">
-                            <div class="table-responsive">
                              
-      <table class="table table-bordered table-striped text-center"  dir="rtl">
+        <!-- فلترة البحث -->
+        <div class="search-box p-3 mb-4">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 ابحث...">
+                </div>
+                <div class="col-md-2">
+                    <select id="docType" class="form-select">
+                        <option value="">كل الأنواع</option>
+                        <option value="تقرير">تقرير</option>
+                        <option value="عقد">عقد</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="date" id="docDate" class="form-control date-input">
+                </div>
+                <div class="col-md-2">
+                    <select id="docStatus" class="form-select">
+                        <option value="">كل الحالات</option>
+                        <option value="1">متحقق</option>
+                        <option value="0">غير متحقق</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button class="btn btn-primary" id="refreshBtn">
+                        <i class="fas fa-sync"></i> تحديث البيانات
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+
+    <div class="table-responsive">
+                        
+
+      <table class="table table-bordered table-striped text-center"  dir="rtl" id="mainTable">
         <thead class="table-success">
           <tr>
             <th>الاسم </th>
@@ -77,48 +115,161 @@
     </section>
     <!-- [ Main Content ] end -->
 
-<!-- Modal -->
-<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form id="userForm" onsubmit="submitUser(event)">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalTitle">إضافة مستخدم</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="userId">
-          <div class="mb-3">
-            <label>الاسم </label>
-            <input type="text" id="name" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label>رقم</label>
-            <input type="text" id="phone" class="form-control" required>
-          </div>
-          <div class="mb-3" id="passwordField">
-            <label>كلمة المرور</label>
-            <input type="password" id="password" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label>الصلاحية</label>
-            <select id="role" class="form-control" required>
-              <option value="admin">مدير</option>
-              <option value="user">موظف</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">حفظ</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+     <script>
+        // إعدادات التطبيق
+        const appConfig = {
+            apiUrl: "{{ url_for('documents_blueprint.getdocuments') }}",
+            token: 'Bearer your_token_here',
+            pageSize: 10
+        };
+
+        // تهيئة التطبيق
+        $(document).ready(function() {
+            initEventListeners();
+            loadData();
+        });
+
+        // إدارة الأحداث
+        function initEventListeners() {
+            $('#refreshBtn').click(loadData);
+            $('#searchInput').on('input', debounce(loadData, 300));
+            $('.form-control, .form-select').change(loadData);
+        }
+
+        // تحميل البيانات
+        function loadData() {
+            showLoading();
+            
+            $.ajax({
+                url: appConfig.apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                data: getFilters(),
+                success: function(response) {
+                    if(response.status === 'success') {
+                        renderTable(response.data);
+                    } else {
+                        showError(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    showError(xhr.responseJSON?.message || 'خطأ في الاتصال بالسيرفر');
+                },
+                complete: hideLoading
+            });
+        }
+
+        // عرض البيانات في الجدول
+        function renderTable(data) {
+          alert(JSON.stringify(data));
+            const tbody = $('#mainTable tbody');
+            tbody.empty();
+
+            if(data.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            لا توجد بيانات متاحة
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            data.forEach(doc => {
+                tbody.append(`
+                    <tr>
+            <td>${doc.name}</td>
+            <td>${doc.number_doc}</td>
+            <td>${doc.user_id }</td>
+            <td>${doc.verify_user ? 'موثق' : 'تحت المراجعة'}</td>
+           <td>${doc.created_at}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclic="openEditModal(${doc.id}, '${doc.name}', '${doc.number_doc}', '${doc.role}')">تعديل</button>
+              <button class="btn btn-sm btn-danger" onclick="delete_document(${doc.id})">حذف</button>
+            </td>
+          </tr>
+                `);
+            });
+
+            // إضافة أحداث الأزرار
+            $('.view-btn').click(function() {
+                const docId = $(this).data('id');
+                viewDocument(docId);
+            });
+        }
+
+        // معالجة الفلاتر
+        function getFilters() {
+            return {
+                search: $('#searchInput').val(),
+                type: $('#docType').val(),
+                date: $('#docDate').val(),
+                status: $('#docStatus').val(),
+                limit: appConfig.pageSize
+            };
+        }
+
+        // تنسيق التاريخ
+        function formatDate(dateStr) {
+            if(!dateStr) return 'بدون تاريخ';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // عرض التفاصيل
+        function viewDocument(docId) {
+            $.ajax({
+                url: `${appConfig.apiUrl}/${docId}`,
+                type: 'GET',
+                headers: { 'Authorization': appConfig.token },
+                success: function(doc) {
+                    // يمكن إضافة عرض التفاصيل في مودال
+                    alert(`تفاصيل الوثيقة: ${doc.name}\nالوصف: ${doc.description}`);
+                }
+            });
+        }
+
+        // إدارة التحميل
+        function showLoading() {
+            $('#loading').show();
+        }
+
+        function hideLoading() {
+            $('#loading').hide();
+        }
+
+        // إدارة الأخطاء
+        function showError(message) {
+            $('#mainTable tbody').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-danger py-4">
+                        ⚠️ ${message}
+                    </td>
+                </tr>
+            `);
+        }
+
+        // منع الطلبات المتكررة
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+    </script>
 
 <script>
-   function loaddocuments() {
+   function loadDatas() {
     axios.get("{{ url_for('documents_blueprint.getdocuments') }}").then(res => {
       userTable.innerHTML = "";
       res.data.forEach(user => {
@@ -138,35 +289,15 @@
       });
     });
   }
-  function submitUser(e) {
-    e.preventDefault();
-    const id = document.getElementById("userId").value;
-    const data = {
-      name: document.getElementById("name").value,
-      phone: document.getElementById("phone").value,
-      role: document.getElementById("role").value,
-    };
-    if (!id) {
-      data.password = document.getElementById("password").value;
-      axios.post("/api/documents", data).then(() => {
-        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-        loaddocuments();
-      });
-    } else {
-      axios.put(`/api/documents/${id}`, data).then(() => {
-        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-        loaddocuments();
-      });
-    }
-  }
+  
 
   function delete_document(id) {
     if (confirm("هل أنت متأكد من حذف هذا السند؟")) {
-      axios.post(`/documents/${id}/delete`).then(() => loaddocuments());
+      axios.post(`/documents/${id}/delete`).then(() => loadData());
     }
   }
 
-  window.onload = loaddocuments;
+  window.onload = loadData;
 </script>
 {% endblock content %}
 

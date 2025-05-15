@@ -14,6 +14,51 @@ from enum import Enum
 class CURRENCY_TYPE(Enum):
     usd = 'usd'
     eur = 'eur'
+class Files(db.Model):
+
+    __tablename__ = 'files'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    doc_id = db.Column(db.Integer, default=0)
+    path_file = db.Column(db.Text, nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
+
+    def __init__(self, **kwargs):
+        super(Files, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return f"{self.name} / ${self.price}"
+
+    @classmethod
+    def find_by_id(cls, _id: int) -> "Document":
+        return cls.query.filter_by(id=_id).first() 
+
+    @classmethod
+    def get_list(cls):
+        return cls.query.all()
+
+    def save(self) -> None:
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)
+
+    def delete(self) -> None:
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)
+        return
 
 class Document(db.Model):
 
@@ -71,3 +116,49 @@ class Document(db.Model):
             error = str(e.__dict__['orig'])
             raise InvalidUsage(error, 422)
         return
+      
+class Branch(db.Model):
+
+    __tablename__ = 'branchs'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    branch_number = db.Column(db.Integer, default=0)
+    address = db.Column(db.Text, nullable=True)
+    phone = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
+
+    def __init__(self, **kwargs):
+        super(Branch, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return f"{self.name}"
+
+    @classmethod
+    def find_by_id(cls, _id: int) -> "branch":
+        return cls.query.filter_by(id=_id).first() 
+
+    @classmethod
+    def get_list(cls):
+        return cls.query.all()
+
+    def save(self) -> None:
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)
+
+    def delete(self) -> None:
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)
+        return      

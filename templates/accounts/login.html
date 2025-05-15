@@ -35,14 +35,17 @@
 								{% endif %}
 							</div>
 
-							<h4 class="mb-3 f-w-400">Sign IN</h4>
+							<h4 class="mb-3 f-w-400">
+								تسجيل الدخول
+							</h4>
 							<span class="mb-2 text-muted">
 								{% if msg %}
 									<span class="text-danger">
 										{{ msg | safe }}
 									</span>
 								{% else %}
-									Add your credentials
+									أضف بيانات الاعتماد الخاصة بك
+
 								{% endif %} 
 							</span>
 
@@ -61,11 +64,13 @@
 									{{ form.password(placeholder="Password", class="form-control", type="password") }}
 								</div>
 
-								<button type="submit" name="login" class="btn btn-block btn-primary mt-2 mb-4">Sign In</button>
+								<button type="submit" name="login" class="btn btn-block btn-primary mt-2 mb-4"> 
+									دخول
+								</button>
 							
 							</form>
 
-							<p class="mb-2">Don't have an account? <a href="{{ url_for('authentication_blueprint.register') }}" class="f-w-400">Sign UP</a></p>
+							<p class="mb-2 " style="display:none">Don't have an account? <a href="{{ url_for('authentication_blueprint.register') }}" class="f-w-400">Sign UP</a></p>
 						</div>
 					</div>
 				</div>

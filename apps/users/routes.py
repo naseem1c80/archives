@@ -4,8 +4,12 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from apps.users import blueprint
-from flask import render_template,jsonify
-from apps.models import Document
+from flask import render_template, redirect, request, url_for,jsonify
+from flask_login import (
+    current_user,
+    login_user,
+    logout_user
+)
 from apps.authentication.models import Users
 
 @blueprint.route('/users')

@@ -1,0 +1,187 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">
+                                     إدارة الفروع  
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> إدارة الفروع  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                    <div class="card">
+                        <div class="card-header">
+                         
+
+                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
+    <h5>
+                        إدارة الفروع   
+                            </h5>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#branchModal" onclick="openAddModal()">إضافة فرع</button>
+    </div>
+                           
+                        </div>
+                        <div class="card-body table-border-style">
+                            <div class="table-responsive">
+                             
+      <table class="table table-bordered table-striped text-center"  dir="rtl">
+        <thead class="table-success">
+          <tr>
+            <th>الاسم </th>
+
+            <th> رقم الفرع</th>
+            <th> الهاتف</th>
+            <th> العنوان</th>
+                 <th>التاريخ</th>
+            <th>العمليات</th>
+          </tr>
+        </thead>
+        <tbody id="branchTable"></tbody>
+      </table>
+   
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+<!-- Modal -->
+<div class="modal fade" id="branchModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="branchForm" onsubmit="submitbranch(event)">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">إضافة فرع</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="branchId">
+          <div class="mb-3">
+            <label>الاسم </label>
+            <input type="text" id="name" class="form-control" required>
+          </div>
+                    <div class="mb-3">
+            <label>رقم الفرع</label>
+            <input type="number" id="branch_number" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>رقم الهاتف</label>
+            <input type="number" id="phone" class="form-control" required>
+          </div>
+          <div class="mb-3" id="addressField">
+            <label>العنوان </label>
+            <input type="address" id="address" class="form-control" required>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+   function loadbranchs() {
+    axios.get("{{ url_for('branchs_blueprint.getbranchs') }}").then(res => {
+      branchTable.innerHTML = "";
+      res.data.forEach(branch => {
+        branchTable.innerHTML += `
+          <tr>
+            <td>${branch.name}</td>
+            <td>${branch.branch_number}</td>
+            <td>${branch.phone }</td>
+            <td>${branch.address}</td>
+           <td>${branch.created_at}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="openEditModal(${branch.id}, '${branch.name}', '${branch.branch_number}','${branch.phone}', '${branch.address}')">تعديل</button>
+              <button class="btn btn-sm btn-danger" onclick="delete_branch(${branch.id})">حذف</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+  
+  function openEditModal(id, name,branch_number, phone, address) {
+    document.getElementById("modalTitle").innerText = "تعديل الفرع";
+    document.getElementById("branchId").value = id;
+    document.getElementById("name").value = name;
+    document.getElementById("phone").value = phone;
+    document.getElementById("address").value = address;
+    document.getElementById("branch_number").value = branch_number;
+    
+    const modal = new bootstrap.Modal(document.getElementById("branchModal"));
+    modal.show();
+  }
+  function submitbranch(e) {
+    e.preventDefault();
+    const id = document.getElementById("branchId").value;
+    const data = {
+      name: document.getElementById("name").value,
+      branch_number: document.getElementById("branch_number").value,
+      phone: document.getElementById("phone").value,
+      address: document.getElementById("address").value,
+    };
+    console.log("databranch",data);
+    if (!id) {
+      
+      axios.post("/add_branch", data).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById("branchModal")).hide();
+        loadbranchs();
+      });
+    } else {
+      axios.put(`/update_branch/${id}`, data).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById("branchModal")).hide();
+        loadbranchs();
+      });
+    }
+  }
+
+  function delete_document(id) {
+    if (confirm("هل أنت متأكد من حذف هذا السند؟")) {
+      axios.post(`/branch/${id}/delete`).then(() => loadbranchs());
+    }
+  }
+
+  window.onload = loadbranchs;
+</script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

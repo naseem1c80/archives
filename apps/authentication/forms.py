@@ -4,14 +4,14 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, TelField
 from wtforms.validators import  DataRequired
 
 # login and registration
 
 
 class LoginForm(FlaskForm):
-    phone = StringField('phone',
+    phone = TelField('phone',
                          id='phone_login',
                          validators=[DataRequired()])
     password = PasswordField('Password',
