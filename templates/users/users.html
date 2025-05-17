@@ -76,6 +76,32 @@
     </section>
     <!-- [ Main Content ] end -->
 
+
+
+<div id="loadingOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1055;
+  display: none;
+">
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+    <span class="visually-hidden">جارٍ التحميل...</span>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
 <!-- Modal -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -86,6 +112,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <div id="res_data"></div>
           <input type="hidden" id="userId">
           <div class="mb-3">
             <label>الاسم الكامل</label>
@@ -93,12 +120,21 @@
           </div>
           <div class="mb-3">
             <label>رقم الهاتف</label>
-            <input type="text" id="phone" class="form-control" required>
+            <input type="text" id="phone" maxlength="15" class="form-control" required>
           </div>
           <div class="mb-3" id="passwordField">
             <label>كلمة المرور</label>
             <input type="password" id="password" class="form-control" required>
           </div>
+     
+          <div class="mb-3">
+  <label>الفرع</label>
+  <select id="branch" class="form-control" required>
+    <option value="">جاري التحميل...</option>
+  </select>
+</div>
+       
+       
           <div class="mb-3">
             <label>الصلاحية</label>
             <select id="role" class="form-control" required>
@@ -106,6 +142,8 @@
               <option value="user">موظف</option>
             </select>
           </div>
+
+
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
@@ -115,6 +153,45 @@
     </div>
   </div>
 </div>
+<script>
+  // دالة لجلب الفروع من الـ API
+  async function loadBranches() {
+    const branchSelect = document.getElementById('branch');
+    branchSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+    
+    try {
+      const response = await fetch("{{ url_for('branchs_blueprint.getbranchs') }}"); // غيّر الرابط حسب API الخاص بك
+      const branches = await response.json();
+
+      // ملء القائمة المنسدلة
+      branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+      branches.forEach(branch => {
+        const option = document.createElement('option');
+        option.value = branch.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = branch.name;
+        branchSelect.appendChild(option);
+      });
+    } catch (error) {
+      branchSelect.innerHTML = '<option value="">فشل التحميل</option>';
+      console.error('خطأ في تحميل الفروع:', error);
+    }
+  }
+
+  // عند فتح المودال، نقوم بتحميل الفروع
+  document.getElementById('userModal').addEventListener('show.bs.modal', function () {
+    loadBranches();
+  });
+
+function showLoading() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+
+</script>
 
 <script>
   const userTable = document.getElementById("userTable");
@@ -156,6 +233,7 @@
     document.getElementById("full_name").value = name;
     document.getElementById("phone").value = phone;
     document.getElementById("role").value = role;
+    document.getElementById("branch").value = 1;
     document.getElementById("passwordField").style.display = "none";
     const modal = new bootstrap.Modal(document.getElementById("userModal"));
     modal.show();
@@ -163,29 +241,86 @@
 
   function submitUser(e) {
     e.preventDefault();
+        document.getElementById('res_data').innerHTML='';
+    showLoading();
     const id = document.getElementById("userId").value;
     const data = {
       full_name: document.getElementById("full_name").value,
       phone: document.getElementById("phone").value,
+      branch_id: document.getElementById("branch").value,
       role: document.getElementById("role").value,
     };
     if (!id) {
       data.password = document.getElementById("password").value;
-      axios.post("/api/users", data).then(() => {
-        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-        loadUsers();
-      });
+      axios.post("/add_user", data).then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });
     } else {
-      axios.put(`/api/users/${id}`, data).then(() => {
-        bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-        loadUsers();
-      });
+      axios.put(`/api/users/${id}`, data)
+ 
+ .then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });
+        //bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+        //hideLoading();
+        //loadUsers();
+      
     }
   }
 
   function disableUser(id) {
     if (confirm("هل أنت متأكد من إغلاق هذا الحساب؟")) {
-      axios.post(`/api/users/${id}/disable`).then(() => loadUsers());
+      axios.post(`/api/users/${id}/disable`).then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });//then(() => loadUsers());
     }
   }
 

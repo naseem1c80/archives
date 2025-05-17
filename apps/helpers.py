@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 import os, re, uuid
 from colorama import Fore, Style
-from apps.authentication.models import Users
+from apps.models import Users
 from apps.config import Config
 from marshmallow import ValidationError
 from apps.messages import Messages

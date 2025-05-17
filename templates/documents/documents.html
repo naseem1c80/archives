@@ -91,7 +91,12 @@
           <tr>
             <th>الاسم </th>
             <th>رقم السند</th>
+            <th>رقم الحوالة</th>
+             <th> رقم الحساب</th>
+            <th> المرسل</th>
+             <th> المستلم</th>
             <th> الموظف</th>
+            <th> الفرع</th>
             <th>الحالة</th>
                  <th>التاريخ</th>
             <th>العمليات</th>
@@ -165,7 +170,7 @@
 
         // عرض البيانات في الجدول
         function renderTable(data) {
-          alert(JSON.stringify(data));
+          //alert(JSON.stringify(data));
             const tbody = $('#mainTable tbody');
             tbody.empty();
 
@@ -185,7 +190,13 @@
                     <tr>
             <td>${doc.name}</td>
             <td>${doc.number_doc}</td>
-            <td>${doc.user_id }</td>
+            
+            <td>${doc.transfer_number} </td>
+             <td> ${doc.account_number} </td>
+            <td> ${doc.sender_name}</td>
+             <td> ${doc.recipient_name}</td>
+            <td>${doc.user_name }</td>
+            <td>${doc.branch_name }</td>
             <td>${doc.verify_user ? 'موثق' : 'تحت المراجعة'}</td>
            <td>${doc.created_at}</td>
             <td>

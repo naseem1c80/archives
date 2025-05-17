@@ -5,30 +5,40 @@ Copyright (c) 2019 - present AppSeed.us
 
 from apps.documents import blueprint
 
-from apps.models import Document
+from apps.models import Document,Files,Branch,Users
 from PIL import Image
 import pytesseract
 #from scanner import scan_document
 import mysql.connector
 import os
 import uuid
+
+from apps import db, login_manager
 from flask_cors import cross_origin
 import PyPDF2
 from pdf2image import convert_from_bytes
 from flask import render_template, request, redirect, url_for, flash, jsonify, session,send_from_directory
 from flask_login import  current_user
+from flask_login import login_required
+
+from datetime import datetime
+from flask import current_app
 from apps.inc.Convert import convert_pdf_to_images
 from werkzeug.utils import secure_filename
+
+from apps.inc.scanner import scan_document
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 SCAN_IMAGE='E:\scan_image'
 @blueprint.route('/documents')
+@login_required
 def documents():
     #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('documents/documents.html')
 
 
 @blueprint.route('/create_document')
+@login_required
 def create_document():
     #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('documents/create_document.html')
@@ -50,50 +60,82 @@ def upload_file():
     file.save(os.path.join(UPLOAD_FOLDER, filename))
     return f'تم حفظ الملف باسم: {filename}'
 '''
-
-@blueprint.route('/getdocuments', methods=['GET','OPTIONS'])
+@blueprint.route('/getdocuments', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def getdocuments():
     try:
-        # Get 'limit' from query parameters, default to None
+        # Get query parameters
         limit = request.args.get('limit', type=int)
+        offset = request.args.get('offset', type=int)
+        search = request.args.get('search', type=str)
 
-        # Fetch documents, apply limit if provided
-        query = Document.query
+        # Base query with LEFT JOINs
+        query = db.session.query(Document).\
+            outerjoin(Users, Document.user_id == Users.id).\
+            outerjoin(Files, Document.id == Files.doc_id).\
+            outerjoin(Branch, Document.branch_id == Branch.id)
+
+        # Apply search filter if provided
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                db.or_(
+                    Document.name.ilike(search_term),
+                    Document.number_doc.ilike(search_term),
+                    Users.name.ilike(search_term),
+                    Files.description.ilike(search_term),
+                    Branch.name.ilike(search_term)
+                )
+            )
+
+        # Apply limit and offset
         if limit:
             query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
+
         documents = query.all()
 
         # Build response
-        response = [{
-            "id": doc.id,
-            "name": doc.name,
-            "number_doc": doc.number_doc,
-            "verify_user": doc.verify_user,
-            "created_at": doc.created_at.isoformat() if doc.created_at else None
-        } for doc in documents]
+        response = []
+        for doc in documents:
+            response.append({
+                "id": doc.id,
+                "name": doc.name,
+                "number_doc": doc.number_doc,
+                "account_number":doc.account_number,
+                "transfer_number":doc.transfer_number,
+                "sender_name":doc.sender_name,
+                "recipient_name":doc.recipient_name,
+                "user_id": doc.user_id,
+                "user_name": doc.user.full_name if doc.user else None,
+                "branch_id": doc.branch_id,
+                "branch_name": doc.branch.name if doc.branch else None,
+                "verify_user": doc.verify_user,
+                "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                "files": [file.description for file in doc.files] if hasattr(doc, 'files') else []
+            })
 
-        return jsonify({"status":'success','data':response})
+        return jsonify({"status": "success", "data": response})
 
     except Exception as e:
-        return jsonify({"error": f"Internal server error{e}"}), 500
-'''
-@blueprint.route('/getdocuments',methods=['OPTIONS','GET'])
-def getdocuments():
-    documents = Document.query.all()
-    return jsonify([{
-        "id": u.id,
-        "name": u.name,
-        "number_doc": u.number_doc,
-        "verify_user": u.verify_user,
-        "created_at": u.created_at
-    } for u in documents])
-   
-'''   
-   
-    #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
-    #return render_template('documents/documents.html')
+        return jsonify({"error": f"Internal server error: {e}"}), 500
 
+
+@blueprint.route('/scan', methods=['POST','GET'])
+def scan():
+    try:
+        name =""# request.form.get('name', '')
+        doc_id =""# request.form.get('doc_id', '')
+        image_path = scan_document()
+        return jsonify({
+            'success': True,
+            'image_url':  image_path,
+            'name': name,
+            'doc_id': doc_id
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @blueprint.route('/read-doc', methods=['POST'])
 def read_doc():
@@ -127,7 +169,7 @@ def read_doc():
             return jsonify({'success': False, 'message': 'نوع الملف غير مدعوم'})
 
         # قراءة النص من الصورة
-        result = read_text_from_image(path, lang='ara')
+        result = read_text_from_image(path, lang='ara+en')
 
         if 'error' in result:
             return jsonify({'success': False, 'message': result['error']})
@@ -160,114 +202,154 @@ def read_text_from_image(image_path, lang='ara+en'):
     #except Exception as e:
         #return f"خطأ في قراءة الصورة: {str(e)}"
 
-# السماح بامتدادات الملفات
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
-'''
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def extract_text_from_image(image_path, lang='ara'):
+
+
+
+
+
+@blueprint.route('/save-docs', methods=['POST'])
+def save_docs():
     try:
-        # معالجة الصورة وتحسينها قبل OCR
-        img = cv2.imread(image_path)
-        if img is None:
-            return {'error': 'تعذر قراءة ملف الصورة'}
-            
-        # تحسين الصورة لتحسين دقة OCR
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        _, processed_img = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-        
-        # حفظ الصورة المعالجة
-        processed_path = os.path.join(app.config['UPLOAD_FOLDER'], f"processed_{os.path.basename(image_path)}")
-        cv2.imwrite(processed_path, processed_img)
-        
-        # استخراج النص باستخدام EasyOCR
-        reader = easyocr.Reader([lang])
-        results = reader.readtext(processed_img)
-        extracted_text = [text[1] for text in results]
-        
+        all_docs = []
+        inserted_id = 0
+        ressave = save_document()
+
+        if ressave['success']:
+            inserted_id = int(ressave['document_id'])
+
+            # استخراج التاريخ
+            now = datetime.now()
+            year = now.strftime('%Y')
+            month = now.strftime('%m')
+
+            # استخراج branch_id من form أو من المستخدم الحالي
+            branch_id = request.form.get('branch_id') or str(getattr(current_user, 'branch_id', 'unknown'))
+
+            # مسار التخزين الأساسي
+            base_dir = os.path.join('static', 'uploads', year, month, branch_id)
+            os.makedirs(base_dir, exist_ok=True)
+
+            for key in request.form:
+                if key.startswith('docs[') and key.endswith('][source]'):
+                    index = key.split('[')[1].split(']')[0]
+                    source = request.form.get(f'docs[{index}][source]')
+                    details = request.form.get(f'docs[{index}][details]')
+
+                    filename = f"{uuid.uuid4().hex}.png"
+                    full_path = os.path.join(base_dir, filename)
+
+                    if source == 'scan':
+                        scan_document(full_path)
+                    elif source == 'upload':
+                        file = request.files.get(f'docs[{index}][file]')
+                        if file and file.filename:
+                            file.save(full_path)
+                        else:
+                            continue  # تخطي إذا لم يتم رفع الملف
+
+                    all_docs.append({
+                        'doc_id': inserted_id,
+                        'file_path': '/' + full_path.replace('\\', '/'),
+                        'details': details
+                    })
+
+            if all_docs:
+                res = insert_files(all_docs)
+            return jsonify({'success': True, 'docs': all_docs})
+
+        else:
+            return ressave
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+'''
+@blueprint.route('/save-docs', methods=['POST'])
+def save_docs():
+    try:
+        all_docs = []
+        inserted_id=0
+        ressave =save_document()
+        #print(f'ressave{ressave.success}')
+        if ressave['success']:
+          inserted_id=int(ressave['document_id'])
+          for key in request.form:
+            if key.startswith('docs[') and key.endswith('][source]'):
+                index = key.split('[')[1].split(']')[0]
+                doc_id = request.form.get(f'docs[{index}][id]')
+                source = request.form.get(f'docs[{index}][source]')
+                details = request.form.get(f'docs[{index}][details]')
+
+                filename = f"ah{uuid.uuid4()}.png"
+                full_path = os.path.join('static/uploads', filename)
+                if source == 'scan':
+                  scan_document(full_path)
+                elif source == 'upload':
+                  file = request.files.get(f'docs[{index}][file]')
+                  if file and file.filename:
+                         file.save(full_path)
+                  else:
+                         continue  # skip if no file provided
+                  all_docs.append({
+                    #'name_file': name,
+                    'doc_id': inserted_id,
+                    'file_path': '/' + full_path.replace('\\', '/'),
+                    'details': details
+                 })
+                res=insert_files(all_docs)
+                return jsonify({'success': True, 'docs': all_docs})
+        else:
+          return ressave
+    except Exception as e:
+        return jsonify({'success': False, 'errory': str(e)})
+'''
+def insert_files(docs):
+    print(f"Received form data:{current_user.id if current_user.is_authenticated else 0} {docs}")
+    for doc in docs:
+      fi=Files(name="new",doc_id=doc["doc_id"],description=doc["details"],
+        path_file=doc["file_path"])
+        # حفظ التغييرات وإغلاق الاتصال
+    fi.save()
+    return jsonify({'docs':'add all document'})
+
+
+
+
+
+def save_document():
+    #print(request.form.to_dict())
+    try:
+        # طباعة الطلب للتصحيح
+        print(f"Received form data:{current_user.branch_id} {current_user.id if current_user.is_authenticated else 0} {request.form}")
+
+        # إنشاء المستند
+        doc = Document(
+            name=request.form.get('name', 'مستند بدون اسم'),
+            recipient_name=request.form.get('recipient_name'),
+            transfer_number=request.form.get('transfer_number'),
+            sender_name=request.form.get('sender_name'),
+            number_doc=request.form.get('number_doc'),
+            account_number=request.form.get('account_number', '000'),
+            user_id=current_user.id if current_user.is_authenticated else 0,
+            branch_id=current_user.branch_id if current_user.is_authenticated else 0,
+            verify_user=0,
+            description=request.form.get('description', '')
+        )
+
+        # الحفظ
+        doc.save()
+
         return {
-            'text': '\n'.join(extracted_text),
-            'processed_image_path': processed_path
+            "success": True,
+            "message": "تم حفظ المستند بنجاح",
+            "document_id": doc.id
         }
-        
+
     except Exception as e:
-        return {'error': f'حدث خطأ أثناء معالجة الصورة: {str(e)}'}
+        return {
+            "success": False,
+            "message": "حدث خطأ أثناء الحفظ",
+            "error": str(e)
+        }
 
-def extract_text_from_pdf(pdf_path, lang='ara'):
-    try:
-        # المحاولة أولاً باستخراج النص مباشرة من PDF
-        text = ""
-        with open(pdf_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-               text += page.extract_text() or ""
-        
-        # إذا كان النص المباشر كافياً
-        if len(text.strip()) > 50:
-            return {'text': text}
-        
-        # إذا كان PDF ممسوحاً ضوئياً (صور)
-        images = convert_from_path(pdf_path)
-        extracted_text = ""
-        
-        for i, img in enumerate(images):
-            # حفظ الصورة مؤقتاً
-            temp_img_path = os.path.join(SCAN_IMAGE, f"temp_page_{i}.jpg")
-            img.save(temp_img_path, 'JPEG')
-            
-            # استخراج النص من الصورة
-            result = read_text_from_image(temp_img_path, lang)
-            
-            if 'text' in result:
-                extracted_text += result['text'] + "\n"
-            
-            # حذف الصورة المؤقتة
-            os.remove(temp_img_path)
-        
-        return {'text': extracted_text.strip()}
-        
-    except Exception as e:
-        return {'error': f'حدث خطأ أثناء معالجة PDF: {str(e)}'}
-    
 
-@blueprint.route('/read-doc', methods=['POST'])
-def read_doc():
-    if 'file' not in request.files:
-        return jsonify({'success': False, 'error': 'لم يتم إرسال الملف'})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'success': False, 'error': 'اسم الملف غير موجود'})
-
-    if file and allowed_file(file.filename):
-        try:
-            # حفظ الملف المرفق
-            filename = secure_filename(f"{uuid.uuid4()}.{file.filename.rsplit('.', 1)[1].lower()}")
-            file_path = os.path.join(SCAN_IMAGE, filename)
-            file.save(file_path)
-            
-            # تحديد نوع الملف ومعالجته
-            if filename.lower().endswith('.pdf'):
-                result = extract_text_from_pdf(file_path, lang='ara')
-            else:
-                result = read_text_from_image(file_path, lang='ara')
-            
-            # حذف الملف الأصلي بعد المعالجة
-            #os.remove(file_path)
-            
-            if 'error' in result:
-                return jsonify({'success': False, 'error': result['error']})
-            
-            return jsonify({
-                'success': True,
-                'text': result['text'],
-                'processed_image_path': result.get('processed_image_path', '')
-            })
-            
-        except Exception as e:
-            return jsonify({'success': False, 'error': f'حدث خطأ أثناء المعالجة: {str(e)}'})
-    
-    return jsonify({'success': False, 'error': 'نوع الملف غير مدعوم'})
-'''

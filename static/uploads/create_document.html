@@ -13,11 +13,11 @@
             <!-- [ breadcrumb ] start -->
             <div class="page-header">
                 <div class="page-block">
-                    <div class="row align-items-center" dir="rtl">
+                    <div class="row align-items-center">
                         <div class="col-md-12">
-                            <div class="page-header-title" >
+                            <div class="page-header-title">
                                 <h5 class="m-b-10">
-                                     إدارة المستندات  📂
+                                     إدارة المستندات  
                                 </h5>
                             </div>
                             <ul class="breadcrumb">
@@ -77,60 +77,40 @@
   <form id="multi-form" enctype="multipart/form-data">
            
     <div class="card p-4 mx-auto" style="max-width: 800px;">
-        
-
-
-
- <div class="row mb-3">
-      <div class="col-md-6">
-        <label for="doc_id">رقم المستند</label>
-        <input type="text" name="doc_id" class="form-control" id="doc_id">
-      </div>
-      <div class="col-md-6">
-        <label for="transfer_number">رقم الحوالة</label>
-        <input type="text" name="transfer_number" class="form-control" id="transfer_number">
-      </div>
-    </div>
-
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label for="sender_name">اسم المرسل</label>
-        <input type="text" name="sender_name" class="form-control" id="sender_name">
-      </div>
-      <div class="col-md-6">
-        <label for="recipient_name">اسم المستلم</label>
-        <input type="text" name="recipient_name" class="form-control" id="recipient_name">
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label for="date">التاريخ</label>
-      <input type="date" name="date" class="form-control" id="date">
-    </div>
-
-
-
-
-
-
-
-
-
+        <h2 class="text-center mb-4">📂 نظام أرشفة المستندات</h2>
       
+     <div class="mb-2">
+                <label>رقم المستند</label>
+                <input type="text" name="doc_id" class="form-control" id="doc_id">
+            </div>
+            
+     <div class="mb-2">
+                <label>رقم الحوالة</label>
+                <input type="text" name="transfer_number" class="form-control" id="transfer_number">
+            </div>
+     <div class="mb-2">
+                <label>اسم المرسل </label>
+                <input type="text" name="sender_name" class="form-control" id="sender_name">
+            </div>
+     <div class="mb-2">
+                <label>اسم المستلم </label>
+                <input type="text" name="recipient_name" class="form-control" id="recipient_name">
+            </div>
+     <div class="mb-2">
+                <label>التاريخ  </label>
+                <input type="date" name="date" class="form-control" id="date">
+            </div>    
+
 
 			 </div>
 			 
 			
-		   <div id="documents-container" class="row mb-3">
+		   <div id="documents-container">
                 <!-- يتم ملؤه ديناميكياً -->
             </div>
             <div class="text-end my-3">
                 <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة مستند جديد</button>
             </div>
-    <div class="text-center">
-      <button type="submit" class="btn btn-primary">حفظ</button>
-    </div>
-
             <div class="d-grid">
                 <button type="submit" class="btn btn-scan">💾 حفظ كل المستندات</button>
             </div>
@@ -147,7 +127,7 @@
 <script>
 let docIndex = 0;
 function createDocBlock(index) {
-    return `  <div class="card p-4 mx-auto border rounded p-3 mb-4 document-block col-md-6 " style="max-width: 500px;">
+    return `  <div class="card p-4 mx-auto border rounded p-3 mb-4 document-block" style="max-width: 800px;">
         <div clas="border rounded p-3 mb-4 document-block">
             <h5 class="mb-3">مستند رقم ${index + 1}</h5>
        
@@ -162,11 +142,10 @@ function createDocBlock(index) {
                 <label>اختيار ملف</label>
                 <input type="file" onchange="loadfile(this)" name="docs[${index}][file]" class="form-control file-input" data-index="${index}">
             </div>
-			 <div id="result-${index}" class="mt-4 d-non"><div class="alert"></div> <span  class="btn btn-sm btn-primary " onclick="scan(${index})">scan</span></div>
+			 <div id="result-${index}" class="mt-4 d-none"><div class="alert"></div> <button onclick="scan(${index})">scan</button></div>
             <div class="preview-box" id="preview-${index}">
                 <em class="text-muted">لا توجد صورة بعد.</em>
             </div>
-			
 			
 			    <div class="mb-2 mt-4 cdetails">
                 <label>تفاصيل المستند</label>
@@ -189,7 +168,8 @@ function createDocBlock(index) {
         </div>
     `;
 }
-
+//$(document).ready(function(){
+  
 
 //$("#show_details_doc").click(
   function show_details_doc(index,e){
@@ -204,6 +184,7 @@ function createDocBlock(index) {
   //if($(this).)
   det.slideToggle();
 }
+//});
 function updateHandlers() {
     $('.source-select').off('change').on('change', function () {
         const index = $(this).data('index');
@@ -325,13 +306,10 @@ function scan(index){
             data: {},  // بدون بيانات
             success: function (response) {
                 if (response.success) {
-                    
-            $(`#preview-${index}`).html(`<img src="${response.image_url}" alt="Preview">`);
-                    /*$('#result').html(`
+                    $('#result').html(`
                         <h5>عرض المستند 🖼️</h5>
-
                         <img src="${response.image_url}" class="preview">
-                    `);*/
+                    `);
                 } else {
                     $(`#result-${index}`).find('.alert').html('خطأ: ' + response.error);
                 }
@@ -463,7 +441,7 @@ console.log("التاريخ:", date);
     });
 
     // زر العرض فقط
-    $('#view-btns').on('click', function () {
+    $('#view-btn').on('click', function () {
         $('#result').html('جاري المسح للعرض فقط...');
 
         $.ajax({

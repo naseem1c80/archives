@@ -12,7 +12,7 @@ from flask_dance.contrib.google import google, make_google_blueprint # type: ign
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage # type: ignore
 from sqlalchemy.orm.exc import NoResultFound # type: ignore
 from apps.config import Config
-from .models import Users, db, OAuth
+from apps.models import Users, db, OAuth
 from flask import redirect, url_for # type: ignore
 from flask import flash # type: ignore
 

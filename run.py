@@ -38,7 +38,14 @@ with app.app_context():
 
         # fallback to SQLite
         basedir = os.path.abspath(os.path.dirname(__file__))
-        app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://u804311892_archives:Ah#630540@193.203.184.99:3306/u804311892_archives'# SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
+        DB_ENGINE   = os.getenv('DB_ENGINE'   , None)
+        DB_USERNAME = os.getenv('DB_USERNAME' , None)
+        DB_PASS     = os.getenv('DB_PASS'     , None)
+        DB_HOST     = os.getenv('DB_HOST'     , None)
+        DB_PORT     = os.getenv('DB_PORT'     , None)
+        DB_NAME     = os.getenv('DB_NAME'     , None)
+        app.config['SQLALCHEMY_DATABASE_URI']  = f'mysql+pymysql://{DB_USERNAME}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        #app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://u804311892_archives:Ah#630540@193.203.184.99:3306/u804311892_archives'# SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
 
         print('> Fallback to SQLite ')
         db.create_all()

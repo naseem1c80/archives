@@ -4,7 +4,7 @@ import os
 import uuid
 from PIL import Image
 import pytesseract
-from scanner import scan_document
+from apps.inc.scanner import scan_document
 import mysql.connector
 import cv2
 from pdf2image import convert_from_path

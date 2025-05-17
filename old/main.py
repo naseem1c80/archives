@@ -1,5 +1,5 @@
 import os
-from scanner import scan_document
+from apps.inc.scanner import scan_document
 from barcode_reader import read_barcode
 from archiver import image_to_pdf
 from database import init_db, save_record
