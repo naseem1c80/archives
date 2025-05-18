@@ -6,7 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 from apps.users import blueprint
 
 from apps import db, login_manager
-from flask import render_template, redirect, request, url_for,jsonify
+from flask import render_template, redirect, request, url_for,jsonify,flash
 from werkzeug.security import generate_password_hash # type: ignore
 from flask_login import (
     current_user,
@@ -23,6 +23,7 @@ def users():
 @blueprint.route('/getusers')
 def getusers():
     users = Users.query.all()
+    return jsonify([user.to_dict() for user in users])
     return jsonify([{
         "id": u.id,
         "full_name": u.full_name,
@@ -94,7 +95,7 @@ def set_permissions():
     user_id = request.form['user_id']
     selected_permissions = request.form.getlist('permissions')
 
-    user = User.query.get(user_id)
+    user = Users.query.get(user_id)
     if user and user.role:
         user.role.permissions = selected_permissions
         db.session.commit()
@@ -102,4 +103,31 @@ def set_permissions():
     else:
         flash("حدث خطأ أثناء تحديث الصلاحيات", "danger")
 
-    return redirect(url_for('admin_panel'))
+    return redirect(url_for('users_blueprint.users'))
+
+
+@blueprint.route("/save_permissions/<int:user_id>", methods=["POST"])
+def save_permissions(user_id):
+    try:
+        user = Users.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
+
+        # استرجاع الصلاحيات المحددة من النموذج
+        selected_permissions = request.form.getlist('permissions')
+
+        # تأكد من أن لدى المستخدم دور يمكننا تعديل صلاحياته
+        if not user.role:
+            return jsonify({'success': False, 'message': 'لا يمكن تعديل صلاحيات مستخدم بدون دور'}), 400
+
+        # تحديث صلاحيات الدور مباشرة (يفترض أن role.permissions هو حقل JSON)
+        user.role.permissions = selected_permissions
+        db.session.commit()
+
+        flash("تم تحديث صلاحيات المستخدم بنجاح", "success")
+        return redirect(url_for('users_blueprint.users', user_id=user.id))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"حدث خطأ: {str(e)}", "danger")
+        return redirect(url_for('users_blueprint.user_permission', user_id=user.id))

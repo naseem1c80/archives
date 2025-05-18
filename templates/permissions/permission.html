@@ -17,12 +17,12 @@
                         <div class="col-md-12">
                             <div class="page-header-title">
                                 <h5 class="m-b-10">
-                                     إدارة المستخدمين  
+                                     صلاحيات الموظف  
                                 </h5>
                             </div>
                             <ul class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
-                                <li class="breadcrumb-item"><a href="#"> إدارة المستخدمين  </a></li>
+                                <li class="breadcrumb-item"><a href="#"> صلاحيات الموظف  </a></li>
                             </ul>
                         </div>
                     </div>
@@ -39,36 +39,56 @@
 
                                 <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
     <h5>
-                        إدارة المستخدمين   
+                        صلاحيات الموظف   
                             </h5>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openAddModal()">إضافة مستخدم</button>
     </div>
-                            <span class="d-block m-t-5">use class <code>table</code> inside table element</span>
-                        </div>
+                           </div>
                         <div class="card-body table-border-style">
                           
 
-<form action="/admin/set-permissions" method="post">
-  <label for="user">اختر المستخدم:</label>
-  <select name="user_id" id="user" required>
-    {% for user in users %}
-      <option value="{{ user.id }}">{{ user.username }}</option>
-    {% endfor %}
-  </select>
+    <form action="{{ url_for('users_blueprint.save_permissions', user_id=user.id) }}" method="post">
+      <div class="card p-4 shadow-sm">
 
-  <fieldset>
-    <legend>حدد الصلاحيات:</legend>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="permissions" value="add_document"
+                 {% if 'add_document' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">إضافة مستند</label>
+        </div>
 
-    <label><input type="checkbox" name="permissions" value="add_document"> إضافة مستند</label><br>
-    <label><input type="checkbox" name="permissions" value="verify_document"> توثيق مستند</label><br>
-    <label><input type="checkbox" name="permissions" value="add_user"> إضافة مستخدم</label><br>
-    <label><input type="checkbox" name="permissions" value="reset_password"> تعديل كلمة المرور</label><br>
-    <label><input type="checkbox" name="permissions" value="add_branch"> إضافة فروع</label><br>
-    <label><input type="checkbox" name="permissions" value="view_reports"> عرض التقارير</label><br>
-  </fieldset>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="permissions" value="verify_document"
+                 {% if 'verify_document' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">توثيق مستند</label>
+        </div>
 
-  <button type="submit">حفظ الصلاحيات</button>
-</form>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="permissions" value="add_user"
+                 {% if 'add_user' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">إضافة مستخدم</label>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="permissions" value="reset_password"
+                 {% if 'reset_password' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">تعديل كلمة المرور</label>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="permissions" value="add_branch"
+                 {% if 'add_branch' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">إضافة فروع</label>
+        </div>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="permissions" value="view_reports"
+                 {% if 'view_reports' in user.role.permissions %}checked{% endif %}>
+          <label class="form-check-label">عرض التقارير</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">حفظ الصلاحيات</button>
+        <a href="{{ url_for('users_blueprint.users') }}" class="btn btn-secondary">رجوع</a>
+      </div>
+    </form>
   </div>
                     </div>
                 </div>
@@ -264,7 +284,7 @@ function hideLoading() {
         alert(JSON.stringify(res.data));
         if(res.data.success){
       bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      loadUsers(); // إعادة تحميل قائمة الموظف
       hideLoading();
         }
         else{
@@ -286,7 +306,7 @@ function hideLoading() {
         alert(JSON.stringify(res.data));
         if(res.data.success){
       bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      loadUsers(); // إعادة تحميل قائمة الموظف
       hideLoading();
         }
         else{
@@ -314,7 +334,7 @@ function hideLoading() {
         alert(JSON.stringify(res.data));
         if(res.data.success){
       bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      loadUsers(); // إعادة تحميل قائمة الموظف
       hideLoading();
         }
         else{

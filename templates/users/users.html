@@ -46,7 +46,21 @@
                             <span class="d-block m-t-5">use class <code>table</code> inside table element</span>
                         </div>
                         <div class="card-body table-border-style">
-                            <div class="table-responsive">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+                          <div class="table-responsive">
                              
       <table class="table table-bordered table-striped text-center"  dir="rtl">
         <thead class="table-success">
@@ -210,6 +224,9 @@ function hideLoading() {
             <td>
               <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id}, '${user.full_name}', '${user.phone}', '${user.role}')">تعديل</button>
               <button class="btn btn-sm btn-danger" onclick="disableUser(${user.id})">إغلاق</button>
+               <a href="/user_permission/${user.id}" class="btn btn-sm btn-success">
+                الصلاحيات
+                </a>
             </td>
           </tr>
         `;

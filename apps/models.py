@@ -192,12 +192,26 @@ class Users(db.Model, UserMixin):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     role = db.relationship('Role', backref='users')
 
+
+    readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
     def has_permission(self, perm):
         return perm in self.role.permissions
 
-    readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
-
-def __init__(self, **kwargs):
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'phone': self.phone,
+            'full_name': self.full_name,
+            'branch_id': self.branch_id,
+            'created_at': self.created_at,
+            'active': self.active,
+            'role': {
+                'id': self.role.id,
+                'name': self.role.name,
+                'permissions': self.role.permissions
+            } if self.role else None
+        }
+    def __init__(self, **kwargs):
         for property, value in kwargs.items():
             # depending on whether value is an iterable or not, we must
             # unpack it's value (when **kwargs is request.form, some values
@@ -211,22 +225,22 @@ def __init__(self, **kwargs):
 
             setattr(self, property, value)
 
-def __repr__(self):
+    def __repr__(self):
         return str(self.phone)
 
-@classmethod
-def find_by_email(cls, email: str) -> "Users":
+    @classmethod
+    def find_by_email(cls, email: str) -> "Users":
         return cls.query.filter_by(email=email).first()
 
-@classmethod
-def find_by_phone(cls, phone: str) -> "Users":
+    @classmethod
+    def find_by_phone(cls, phone: str) -> "Users":
         return cls.query.filter_by(phone=phone).first()
     
-@classmethod
-def find_by_id(cls, _id: int) -> "Users":
+    @classmethod
+    def find_by_id(cls, _id: int) -> "Users":
         return cls.query.filter_by(id=_id).first()
    
-def save(self) -> None:
+    def save(self) -> None:
         try:
             db.session.add(self)
             db.session.commit()
@@ -237,7 +251,7 @@ def save(self) -> None:
             error = str(e.__dict__['orig'])
             raise IntegrityError(error, 422)
     
-def delete_from_db(self) -> None:
+    def delete_from_db(self) -> None:
         try:
             db.session.delete(self)
             db.session.commit()
