@@ -3,7 +3,7 @@ import io
 
 # Path to your service account key JSON
 import os
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "my-service-account.json"
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "my-service-account.json"
 
 def detect_labels(path):
     """Detects labels in the image."""
