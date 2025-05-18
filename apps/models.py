@@ -79,29 +79,21 @@ class Document(db.Model):
     recipient_name= db.Column(db.String(255), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     number_doc = db.Column(db.Integer,default=0)
+    status = db.Column(db.Integer,default=0)
     verify_user = db.Column(db.Integer,db.ForeignKey('users.id'))
     branch_id= db.Column(db.Integer,  db.ForeignKey('branchs.id'))
     description = db.Column(db.Text, nullable=True)
+    document_type_id = db.Column(db.Integer, db.ForeignKey('document_types.id'), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
 
     # Define relationships
     user = db.relationship("Users", foreign_keys=[user_id], backref="documents", lazy=True)
     verifier = db.relationship("Users", foreign_keys=[verify_user], backref="verified_documents", lazy=True)
     branch = db.relationship("Branch", backref="documents", lazy=True)
-    files = db.relationship("Files", backref="document", lazy=True)
+    files = db.relationship("Files", backref="documents", lazy=True)
+        # علاقة مع المستندات
+    type_document = db.relationship('DocumentType', backref='documents', lazy=True)
 
-
-    '''
-    id            = db.Column(db.Integer,      primary_key=True)
-    name          = db.Column(db.String(128),  nullable=False)
-    info          = db.Column(db.Text,         nullable=True)
-    price         = db.Column(db.Integer,      nullable=False)
-    currency      = db.Column(db.Enum(CURRENCY_TYPE), default=CURRENCY_TYPE.usd, nullable=False)
-
-    date_created  = db.Column(db.DateTime,     default=dt.datetime.utcnow())
-    date_modified = db.Column(db.DateTime,     default=db.func.current_timestamp(),
-                                               onupdate=db.func.current_timestamp())
-    '''
     def __init__(self, **kwargs):
         super(Document, self).__init__(**kwargs)
 
@@ -194,21 +186,16 @@ class Users(db.Model, UserMixin):
     full_name = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(15), unique=True, nullable=False)  # Updated field
     password= db.Column(db.String(255), nullable=False)
-    role = db.Column(db.Integer, default=0)
     branch_id = db.Column(db.Integer, default=0)
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
-    readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
-'''
-    id            = db.Column(db.Integer, primary_key=True)
-    phone      = db.Column(db.String(64), unique=True)
-    email         = db.Column(db.String(64), unique=True)
-    password      = db.Column(db.LargeBinary)
-    bio           = db.Column(db.Text(), nullable=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    role = db.relationship('Role', backref='users')
 
-    oauth_github  = db.Column(db.String(100), nullable=True)
-    oauth_google  = db.Column(db.String(100), nullable=True)
-'''
+    def has_permission(self, perm):
+        return perm in self.role.permissions
+
+    readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
 
 def __init__(self, **kwargs):
         for property, value in kwargs.items():
@@ -274,3 +261,23 @@ def request_loader(request):
 class OAuth(OAuthConsumerMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="cascade"), nullable=False)
     user = db.relationship(Users)
+
+
+
+class Role(db.Model):
+    
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+    permissions = db.Column(db.JSON)  # قائمة بالصلاحيات كـ JSON أو كـ علاقات منفصلة
+
+
+
+class DocumentType(db.Model):
+    __tablename__ = 'document_types'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
+
+
+   

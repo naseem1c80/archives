@@ -20,11 +20,9 @@
  المستندات المؤرشفة
 
                             </h6>
-                            <h2 class="text-end text-white"><i class="feather icon-file-text float-start"></i><span>
-                               0
-
+                            <h2 class="text-end text-white"><i class="feather icon-file-text float-start"></i><span  id="status_all_count">
                             </span></h2>
-                            <p class="m-b-0">
+                            <p class="m-b-0  d-none">
                                 هذا الشهر
                                 <span class="float-end"> 0</span></p>
                         </div>
@@ -36,9 +34,9 @@
                             <h6 class="text-white">
                                 موثق
                             </h6>
-                            <h2 class="text-end text-white"><i class="feather icon-tag float-start"></i><span>0</span>
+                            <h2 class="text-end text-white"><i class="feather icon-award float-start"></i>  <span id="status_1_count">0</span> 
                             </h2>
-                            <p class="m-b-0">
+                            <p class="m-b-0 d-none">
                                  هذا الشهر
                                 <span class="float-end">0</span></p>
                         </div>
@@ -51,25 +49,27 @@
                                 قيد المراجعة
                             </h6>
                             <h2 class="text-end text-white"><i
-                                    class="feather icon-repeat float-start"></i><span>0</span></h2>
-                            <p class="m-b-0">
+                                    class="feather icon-repeat float-start"></i><span id="status_0_count">0</span></h2>
+                            <p class="m-b-0  d-none">
                                  هذا الشهر
                                 <span class="float-end">0</span></p>
                         </div>
                     </div>
                 </div>
-                   <!-- 
+                    
                 <div class="col-md-6 col-xl-3">
                     <div class="card bg-c-red order-card">
                         <div class="card-body">
-                            <h6 class="text-white">Total Profit</h6>
+                            <h6 class="text-white">
+                                مرتجع
+                            </h6>
                             <h2 class="text-end text-white"><i
-                                    class="feather icon-award float-start"></i><span>9,562</span></h2>
-                            <p class="m-b-0">This Month<span class="float-end">542</span></p>
+                                    class="feather icon-repeat float-start"></i><span id="status_2_count">0</span></h2>
+                            <p class="m-b-0  d-none">This Month<span class="float-end">0</span></p>
                         </div>
                     </div>
                 </div>
--->
+
 
                 <!-- order-card end -->
                 <!-- users visite start 
@@ -1625,6 +1625,31 @@
             <!-- [ Main Content ] end -->
         </div>
     </div>
+
+<script>
+    getreport();
+    function getreport(){
+        $.ajax({
+            url: '/report/documents',
+            type: 'GET',
+            data: {},  // بدون بيانات
+            success: function (response) {
+                if (response.success) {
+                    $('#status_all_count').html(`${response.status_all_count}`);
+                    $('#status_0_count').html(`${response.status_0_count}`);
+                        $('#status_1_count').html(`${response.status_1_count}`);
+                        $('#status_2_count').html(`${response.status_2_count}`);
+                } else {
+                    $('#result').html('خطأ: ' + response.error);
+                }
+            },
+            error: function () {
+                $('#result').html('فشل الاتصال بالخادم.');
+            }
+        });
+    }
+                            
+</script>
     <!-- [ Main Content ] end -->
 
 {% endblock content %}

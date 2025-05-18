@@ -1,0 +1,339 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">
+                                     إدارة المستخدمين  
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> إدارة المستخدمين  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                    <div class="card">
+                        <div class="card-header">
+                         
+
+                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
+    <h5>
+                        إدارة المستخدمين   
+                            </h5>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openAddModal()">إضافة مستخدم</button>
+    </div>
+                            <span class="d-block m-t-5">use class <code>table</code> inside table element</span>
+                        </div>
+                        <div class="card-body table-border-style">
+                          
+
+<form action="/admin/set-permissions" method="post">
+  <label for="user">اختر المستخدم:</label>
+  <select name="user_id" id="user" required>
+    {% for user in users %}
+      <option value="{{ user.id }}">{{ user.username }}</option>
+    {% endfor %}
+  </select>
+
+  <fieldset>
+    <legend>حدد الصلاحيات:</legend>
+
+    <label><input type="checkbox" name="permissions" value="add_document"> إضافة مستند</label><br>
+    <label><input type="checkbox" name="permissions" value="verify_document"> توثيق مستند</label><br>
+    <label><input type="checkbox" name="permissions" value="add_user"> إضافة مستخدم</label><br>
+    <label><input type="checkbox" name="permissions" value="reset_password"> تعديل كلمة المرور</label><br>
+    <label><input type="checkbox" name="permissions" value="add_branch"> إضافة فروع</label><br>
+    <label><input type="checkbox" name="permissions" value="view_reports"> عرض التقارير</label><br>
+  </fieldset>
+
+  <button type="submit">حفظ الصلاحيات</button>
+</form>
+  </div>
+                    </div>
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+
+
+<div id="loadingOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1055;
+  display: none;
+">
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+    <span class="visually-hidden">جارٍ التحميل...</span>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="userForm" onsubmit="submitUser(event)">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">إضافة مستخدم</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="res_data"></div>
+          <input type="hidden" id="userId">
+          <div class="mb-3">
+            <label>الاسم الكامل</label>
+            <input type="text" id="full_name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>رقم الهاتف</label>
+            <input type="text" id="phone" maxlength="15" class="form-control" required>
+          </div>
+          <div class="mb-3" id="passwordField">
+            <label>كلمة المرور</label>
+            <input type="password" id="password" class="form-control" required>
+          </div>
+     
+          <div class="mb-3">
+  <label>الفرع</label>
+  <select id="branch" class="form-control" required>
+    <option value="">جاري التحميل...</option>
+  </select>
+</div>
+       
+       
+          <div class="mb-3">
+            <label>الصلاحية</label>
+            <select id="role" class="form-control" required>
+              <option value="admin">مدير</option>
+              <option value="user">موظف</option>
+            </select>
+          </div>
+
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  // دالة لجلب الفروع من الـ API
+  async function loadBranches() {
+    const branchSelect = document.getElementById('branch');
+    branchSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+    
+    try {
+      const response = await fetch("{{ url_for('branchs_blueprint.getbranchs') }}"); // غيّر الرابط حسب API الخاص بك
+      const branches = await response.json();
+
+      // ملء القائمة المنسدلة
+      branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+      branches.forEach(branch => {
+        const option = document.createElement('option');
+        option.value = branch.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = branch.name;
+        branchSelect.appendChild(option);
+      });
+    } catch (error) {
+      branchSelect.innerHTML = '<option value="">فشل التحميل</option>';
+      console.error('خطأ في تحميل الفروع:', error);
+    }
+  }
+
+  // عند فتح المودال، نقوم بتحميل الفروع
+  document.getElementById('userModal').addEventListener('show.bs.modal', function () {
+    loadBranches();
+  });
+
+function showLoading() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+
+</script>
+
+<script>
+  const userTable = document.getElementById("userTable");
+  let currentId = null;
+
+  function loadUsers() {
+    axios.get("{{ url_for('users_blueprint.getusers') }}").then(res => {
+      userTable.innerHTML = "";
+      res.data.forEach(user => {
+        userTable.innerHTML += `
+          <tr>
+            <td>${user.full_name}</td>
+            <td>${user.phone}</td>
+            <td>${user.role === 'admin' ? 'مدير' : 'موظف'}</td>
+            <td>${user.active ? 'نشط' : 'مغلق'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id}, '${user.full_name}', '${user.phone}', '${user.role}')">تعديل</button>
+              <button class="btn btn-sm btn-danger" onclick="disableUser(${user.id})">إغلاق</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  function openAddModal() {
+    document.getElementById("modalTitle").innerText = "إضافة مستخدم";
+    document.getElementById("userId").value = "";
+    document.getElementById("full_name").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("passwordField").style.display = "block";
+    document.getElementById("role").value = "user";
+  }
+
+  function openEditModal(id, name, phone, role) {
+    document.getElementById("modalTitle").innerText = "تعديل مستخدم";
+    document.getElementById("userId").value = id;
+    document.getElementById("full_name").value = name;
+    document.getElementById("phone").value = phone;
+    document.getElementById("role").value = role;
+    document.getElementById("branch").value = 1;
+    document.getElementById("passwordField").style.display = "none";
+    const modal = new bootstrap.Modal(document.getElementById("userModal"));
+    modal.show();
+  }
+
+  function submitUser(e) {
+    e.preventDefault();
+        document.getElementById('res_data').innerHTML='';
+    showLoading();
+    const id = document.getElementById("userId").value;
+    const data = {
+      full_name: document.getElementById("full_name").value,
+      phone: document.getElementById("phone").value,
+      branch_id: document.getElementById("branch").value,
+      role: document.getElementById("role").value,
+    };
+    if (!id) {
+      data.password = document.getElementById("password").value;
+      axios.post("/add_user", data).then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });
+    } else {
+      axios.put(`/api/users/${id}`, data)
+ 
+ .then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });
+        //bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+        //hideLoading();
+        //loadUsers();
+      
+    }
+  }
+
+  function disableUser(id) {
+    if (confirm("هل أنت متأكد من إغلاق هذا الحساب؟")) {
+      axios.post(`/api/users/${id}/disable`).then((res) => {
+       
+        alert(JSON.stringify(res.data));
+        if(res.data.success){
+      bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+      loadUsers(); // إعادة تحميل قائمة المستخدمين
+      hideLoading();
+        }
+        else{
+         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
+        }
+    })
+    .catch((error) => {
+      console.error("حدث خطأ:", error);
+      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+    })
+    .finally(() => {
+      hideLoading();
+    });//then(() => loadUsers());
+    }
+  }
+
+  window.onload = loadUsers;
+</script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+/0{% block javascripts %}{% endblock javascripts %}

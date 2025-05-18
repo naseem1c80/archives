@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة أنواع المستندات</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body class="p-4" dir="rtl">
+
+<div class="container">
+    <h2 class="mb-4 text-center">أنواع المستندات</h2>
+
+    <!-- زر إضافة -->
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addModal">إضافة نوع</button>
+
+    <!-- جدول الأنواع -->
+    <table class="table table-bordered text-center">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in types %}
+            <tr data-id="{{ t.id }}">
+                <td>{{ loop.index }}</td>
+                <td class="type-name">{{ t.name }}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="{{ t.id }}" data-name="{{ t.name }}" data-bs-toggle="modal" data-bs-target="#editModal">تعديل</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal: إضافة -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="addForm" class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">إضافة نوع مستند</h5></div>
+      <div class="modal-body">
+        <input name="name" class="form-control" placeholder="اسم النوع" required>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" type="submit">حفظ</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: تعديل -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="editForm" class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">تعديل نوع المستند</h5></div>
+      <div class="modal-body">
+        <input type="hidden" name="id">
+        <input name="name" class="form-control" placeholder="اسم النوع" required>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" type="submit">تحديث</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+$(function () {
+    // إضافة نوع
+    $("#addForm").submit(function (e) {
+        e.preventDefault();
+        $.post("/document_types/add", $(this).serialize(), function (data) {
+            if (data.success) location.reload();
+            else alert(data.message);
+        });
+    });
+
+    // فتح نافذة التعديل مع البيانات
+    $(".edit-btn").click(function () {
+        const id = $(this).data("id");
+        const name = $(this).data("name");
+        $("#editForm input[name=id]").val(id);
+        $("#editForm input[name=name]").val(name);
+    });
+
+    // تحديث النوع
+    $("#editForm").submit(function (e) {
+        e.preventDefault();
+        const id = $("#editForm input[name=id]").val();
+        $.post("/document_types/update/" + id, $(this).serialize(), function (data) {
+            if (data.success) location.reload();
+            else alert(data.message);
+        });
+    });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

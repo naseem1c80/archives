@@ -72,3 +72,34 @@ def update_user(user_id):
      return jsonify({'success': False, 'message': str(e)})
 
     return jsonify(success=True)
+
+
+
+@blueprint.route("/user_permission/<int:user_id>", methods=["GET"])
+def user_permission(user_id):
+    try:
+        user = Users.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
+
+        return render_template('permissions/permission.html', user=user)
+    except Exception as e:
+     return jsonify({'success': False, 'message': str(e)})
+
+    return jsonify(success=True)
+
+
+@blueprint.route('/admin/set-permissions', methods=['POST'])
+def set_permissions():
+    user_id = request.form['user_id']
+    selected_permissions = request.form.getlist('permissions')
+
+    user = User.query.get(user_id)
+    if user and user.role:
+        user.role.permissions = selected_permissions
+        db.session.commit()
+        flash("تم تحديث صلاحيات المستخدم بنجاح", "success")
+    else:
+        flash("حدث خطأ أثناء تحديث الصلاحيات", "danger")
+
+    return redirect(url_for('admin_panel'))

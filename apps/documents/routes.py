@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from apps.documents import blueprint
 
-from apps.models import Document,Files,Branch,Users
+from apps.models import Document,Files,Branch,Users,DocumentType
 from PIL import Image
 import pytesseract
 #from scanner import scan_document
@@ -25,7 +25,7 @@ from datetime import datetime
 from flask import current_app
 from apps.inc.Convert import convert_pdf_to_images
 from werkzeug.utils import secure_filename
-
+from sqlalchemy import func
 from apps.inc.scanner import scan_document
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -308,8 +308,8 @@ def insert_files(docs):
     for doc in docs:
       fi=Files(name="new",doc_id=doc["doc_id"],description=doc["details"],
         path_file=doc["file_path"])
-        # حفظ التغييرات وإغلاق الاتصال
-    fi.save()
+      # حفظ التغييرات وإغلاق الاتصال
+      fi.save()
     return jsonify({'docs':'add all document'})
 
 
@@ -321,6 +321,7 @@ def save_document():
     try:
         # طباعة الطلب للتصحيح
         print(f"Received form data:{current_user.branch_id} {current_user.id if current_user.is_authenticated else 0} {request.form}")
+
 
         # إنشاء المستند
         doc = Document(
@@ -353,3 +354,72 @@ def save_document():
         }
 
 
+@blueprint.route("/report/documents", methods=["GET"])
+def get_documents_report():
+    try:
+        counts = (
+            db.session.query(Document.status, func.count(Document.id))
+            .filter(Document.status.in_([0, 1, 2]))
+            .group_by(Document.status)
+            .all()
+        )
+        #all=db.session.query(Document.status, func.count(Document.id)).all()
+        # إجمالي كل المستندات (بغض النظر عن الحالة)
+        total_documents = db.session.query(func.count(Document.id)).scalar()
+        # تحويل النتائج إلى dict
+        result = {0: 0, 1: 0, 2: 0}  # تأكد من ظهور كلا الحالتين حتى لو إحداهما صفر
+        for status, count in counts:
+            result[status] = count
+
+        return jsonify({
+            'success': True,
+            'status_all_count': total_documents,
+            'status_0_count': result[0],
+            'status_1_count': result[1],
+            'status_2_count': result[2]
+           
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    
+
+
+
+
+
+#from flask import Blueprint, render_template, request, jsonify
+#from .models import db, 
+
+#blueprint = Blueprint("document_types", __name__)
+
+@blueprint.route("/document_types", methods=["GET"])
+def view_document_types():
+    types = DocumentType.query.all()
+    return render_template("document_types/document_types.html", types=types)
+
+@blueprint.route("/document_types/add", methods=["POST"])
+def add_document_type():
+    try:
+        name = request.form.get("name")
+        if not name:
+            return jsonify(success=False, message="الاسم مطلوب")
+        new_type = DocumentType(name=name)
+        db.session.add(new_type)
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, message=str(e))
+
+@blueprint.route("/document_types/update/<int:type_id>", methods=["POST"])
+def update_document_type(type_id):
+    try:
+        name = request.form.get("name")
+        doc_type = DocumentType.query.get(type_id)
+        if not doc_type:
+            return jsonify(success=False, message="النوع غير موجود")
+        doc_type.name = name
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, message=str(e))
