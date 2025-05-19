@@ -133,10 +133,10 @@
   position: absolute;
   user-select: none;
   cursor: default;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   background: red;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
   color: white;
   display: inline-flex;
   justify-content: center;
@@ -149,46 +149,6 @@
 
 
 
-.notification-container {
-  &:before {
-    // triangle
-    content: "";
-    position: absolute;
-    top: 1px;
-    right: 0;
-    width: 0;
-    height: 0; 
-    transform: translate(-1rem, -100%);
-    border-left: .75rem solid transparent;
-    border-right: .75rem solid transparent;
-    border-bottom: .75rem solid white;
-  }
-  cursor: default;
-  position: absolute;
-  z-index: 999;
-  top: 0;
-  right: ($h-gutter*5);
-  width: 400px;
-  font-weight: 300;
-  background: white;
-  border-radius: 0.5rem;
-  box-sizing: border-box;
-  box-shadow: $container-shadow;
- 
-   em {
-     margin-right: $v-gutter;
-     font-weight: 700;
-     font-size: 115%;
-     color: #b5c4d2;
-     vertical-align: bottom;
-     display: inline-block;
-  }
-
-  animation-name: dropPanel;
-  animation-iteration-count: 1;
-  animation-timing-function: all;
-  animation-duration: .75s;
-}
 
 @keyframes dropPanel {
   0% {
