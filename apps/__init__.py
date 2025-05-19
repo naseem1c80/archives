@@ -9,10 +9,14 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 import pymysql
+from flask_socketio import SocketIO
+
+
+
 pymysql.install_as_MySQLdb()
 db = SQLAlchemy()
 login_manager = LoginManager()
-
+socketio = SocketIO(cors_allowed_origins="*")
 def register_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
@@ -37,7 +41,7 @@ def create_app(config):
     print(' > STATIC_FOLDER:    ' + STATIC_FOLDER)
 
     app = Flask(__name__, static_url_path=static_prefix, template_folder=TEMPLATES_FOLDER, static_folder=STATIC_FOLDER)
-
+    socketio.init_app(app)
     app.config.from_object(config)
     register_extensions(app)
     register_blueprints(app)

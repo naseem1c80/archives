@@ -65,6 +65,7 @@
       <table class="table table-bordered table-striped text-center"  dir="rtl">
         <thead class="table-success">
           <tr>
+            <th>Logo </th>
             <th>الاسم الكامل</th>
             <th>رقم الهاتف</th>
             <th>الصلاحية</th>
@@ -215,8 +216,13 @@ function hideLoading() {
     axios.get("{{ url_for('users_blueprint.getusers') }}").then(res => {
       userTable.innerHTML = "";
       res.data.forEach(user => {
+      
+
         userTable.innerHTML += `
           <tr>
+            <td><img src="/get_imgae_user/${user.id}"
+            class="img-radius wid-40"
+                                alt="User-Profile-Image"></td>
             <td>${user.full_name}</td>
             <td>${user.phone}</td>
             <td>${user.role === 'admin' ? 'مدير' : 'موظف'}</td>

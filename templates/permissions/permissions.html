@@ -1,0 +1,658 @@
+
+   {% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+     
+        
+      
+        
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: var(--light-color);
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .permission-item:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            margin-left: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .permission-item label {
+            font-size: 15px;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        
+        .btnw{
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn i {
+            margin-left: 8px;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .action-buttons button {
+            margin-left: 5px;
+        }
+        
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex-grow: 1;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        
+        .search-box button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        
+        @media (max-width: 768px) {
+           
+            
+            .main-content {
+                margin-right: 70px;
+            }
+            
+            .permission-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+
+
+ <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">
+                                     صلاحيات الموظف  
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> صلاحيات الموظف  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                    
+
+      
+        <!-- رسائل التنبيه -->
+        <div id="alert-success" class="alert alert-success"></div>
+        <div id="alert-danger" class="alert alert-danger"></div>
+
+        <!-- بطاقة إضافة صلاحية جديدة -->
+        <div class="card">
+            <div class="card-title"  dir="rtl" id="form-title">إضافة صلاحية جديدة</div>
+            <form id="permission-form">
+                <div class="form-group">
+                    <label for="role-name">اسم الصلاحية</label>
+                    <input type="text" id="role-name" class="form-control" placeholder="أدخل اسم الصلاحية">
+                </div>
+                
+                <div class="form-group">
+                    <label>الصلاحيات المتاحة</label>
+                    <div class="permission-grid">
+                        <div class="permission-item">
+                            <input type="checkbox" id="add_document" value="add_document">
+                            <label for="add_document">إضافة مستند</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="add_branch" value="add_branch">
+                            <label for="add_branch">إضافة فرع</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="add_user" value="add_user">
+                            <label for="add_user">إضافة مستخدم</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="verify_document" value="add_documentation">
+                            <label for="verify_document">إضافة التوثيق</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="manage_archive" value="manage_archive">
+                            <label for="manage_archive">إدارة الأرشيف</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="add_document_types" value="add_document_types">
+                            <label for="add_document_types">إضافة أنواع المستندات</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="edit_document" value="edit_document">
+                            <label for="edit_document">تعديل المستندات</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="delete_document" value="delete_document">
+                            <label for="delete_document">حذف المستندات</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="view_reports" value="view_reports">
+                            <label for="view_reports">عرض التقارير</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="manage-settings" value="manage_settings">
+                            <label for="manage-settings">إدارة الإعدادات</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="approve-documents" value="approve_documents">
+                            <label for="approve-documents">اعتماد المستندات</label>
+                        </div>
+                        
+                        <div class="permission-item">
+                            <input type="checkbox" id="export_data" value="export_data">
+                            <label for="export_data">تصدير البيانات</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" id="save-permission-btn" class="btn btn-primary"><i class="fas fa-save"></i> حفظ الصلاحية</button>
+                <button type="button" id="cancel-edit-btn" class="btn btn-danger" style="display: none;"><i class="fas fa-times"></i> إلغاء التعديل</button>
+            </form>
+        </div>
+
+        <!-- بطاقة عرض الصلاحيات -->
+        <div class="card">
+            <div  dir="rtl" class="card-title">قائمة الصلاحيات</div>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" class="form-control" placeholder="ابحث عن صلاحية...">
+                <button id="search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="permissions-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الصلاحية</th>
+                            <th>عدد الصلاحيات</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permissions-list">
+                        <!-- سيتم ملؤها بواسطة JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+ 
+
+
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+
+    <script>
+        // بيانات وهمية للعرض
+        let permissionsData = [];
+
+        // متغير لتخزين معرف الصلاحية التي يتم تعديلها
+        let currentEditingId = null;
+
+        // عرض التاريخ الحالي
+        function displayCurrentDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+       
+        }
+
+        // عرض رسالة نجاح
+        function showSuccess(message) {
+            const alert = document.getElementById('alert-success');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // عرض رسالة خطأ
+        function showError(message) {
+            const alert = document.getElementById('alert-danger');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // عرض قائمة الصلاحيات
+        function renderPermissionsList() {
+            const tbody = document.getElementById('permissions-list');
+            tbody.innerHTML = '';
+            
+            permissionsData.forEach(role => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', role.id);
+                
+                // اسم الصلاحية
+                const nameTd = document.createElement('td');
+                nameTd.textContent = role.name;
+                
+                // عدد الصلاحيات
+                const countTd = document.createElement('td');
+                countTd.textContent = role.permissions.length;
+                
+                // الحالة
+                const statusTd = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = `badge ${role.active ? 'badge-success' : 'badge-primary'}`;
+                badge.textContent = role.active ? 'نشط' : 'غير نشط';
+                statusTd.appendChild(badge);
+                
+                // الإجراءات
+                const actionsTd = document.createElement('td');
+                actionsTd.className = 'action-buttons';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-sm btn-primary';
+                editBtn.innerHTML = '<i class="fas fa-edit"></i> تعديل';
+                editBtn.onclick = () => editPermission(role.id);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-sm btn-danger';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+                deleteBtn.onclick = () => deletePermission(role.id);
+                
+                actionsTd.appendChild(editBtn);
+                actionsTd.appendChild(deleteBtn);
+                
+                tr.appendChild(nameTd);
+                tr.appendChild(countTd);
+                tr.appendChild(statusTd);
+                tr.appendChild(actionsTd);
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // إضافة صلاحية جديدة
+        function savePermission(e) {
+            e.preventDefault();
+            
+            const roleName = document.getElementById('role-name').value.trim();
+            
+            if (!roleName) {
+                showError('الرجاء إدخال اسم الصلاحية');
+                return;
+            }
+            
+            // جمع الصلاحيات المحددة
+            const checkboxes = document.querySelectorAll('.permission-item input[type="checkbox"]');
+            const selectedPermissions = [];
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedPermissions.push(checkbox.id);
+                }
+            });
+            
+            if (selectedPermissions.length === 0) {
+                showError('الرجاء اختيار صلاحية واحدة على الأقل');
+                return;
+            }
+            
+
+
+
+
+
+            if (currentEditingId) {
+                
+fetch('/role', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    id: currentEditingId,  // existing role ID
+    name: roleName,
+    permissions: selectedPermissions
+  })
+})
+.then(res => res.json())
+.then(data => getRoles());
+          
+            } else {
+          
+                
+fetch('/role', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: roleName,
+                    permissions: selectedPermissions,
+                  
+  })
+})
+.then(res => res.json())
+.then(data =>getRoles());
+
+                
+               // permissionsData.push(newPermission);
+                
+                // إعادة عرض القائمة
+               // renderPermissionsList();
+                
+                // عرض رسالة نجاح
+                showSuccess('تم إضافة الصلاحية بنجاح');
+            }
+            
+            // إعادة تعيين النموذج
+            resetPermissionForm();
+        }
+
+        // تعديل صلاحية
+        function editPermission(id) {
+            const role = permissionsData.find(r => r.id === id);
+            if (!role) return;
+            
+            currentEditingId = id;
+            
+            // تغيير عنوان النموذج
+            document.getElementById('form-title').textContent = `تعديل الصلاحية: ${role.name}`;
+            
+            // تعبئة النموذج بالبيانات
+            document.getElementById('role-name').value = role.name;
+            
+            // تحديد الصلاحيات
+            const checkboxes = document.querySelectorAll('.permission-item input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = role.permissions.includes(checkbox.id);
+            });
+            
+            // تغيير زر الحفظ
+            document.getElementById('save-permission-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الصلاحية';
+            
+            // إظهار زر الإلغاء
+            document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+            
+            // عرض رسالة
+            showSuccess(`جاري تعديل الصلاحية: ${role.name}`);
+        }
+
+   
+
+        // إلغاء التعديل
+        function cancelEdit() {
+            resetPermissionForm();
+            showSuccess('تم إلغاء التعديل');
+        }
+
+        // إعادة تعيين النموذج
+        function resetPermissionForm() {
+            document.getElementById('permission-form').reset();
+            document.getElementById('form-title').textContent = 'إضافة صلاحية جديدة';
+            document.getElementById('save-permission-btn').innerHTML = '<i class="fas fa-save"></i> حفظ الصلاحية';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+            currentEditingId = null;
+        }
+
+        // حذف صلاحية
+        function deletePermission(id) {
+            if (confirm('هل أنت متأكد من حذف هذه الصلاحية؟')) {
+                permissionsData = permissionsData.filter(r => r.id !== id);
+                renderPermissionsList();
+                showSuccess('تم حذف الصلاحية بنجاح');
+                
+                // إذا كان الصف المحذوف هو الذي يتم تعديله، نعيد تعيين النموذج
+                if (currentEditingId === id) {
+                    resetPermissionForm();
+                }
+            }
+        }
+
+        // البحث عن صلاحيات
+        function searchPermissions() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('#permissions-list tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // تهيئة الصفحة عند التحميل
+        document.addEventListener('DOMContentLoaded', () => {
+            displayCurrentDate();
+            renderPermissionsList();
+            
+            // أحداث النموذج
+            document.getElementById('permission-form').addEventListener('submit', savePermission);
+            
+            // حدث البحث
+            document.getElementById('search-btn').addEventListener('click', searchPermissions);
+            document.getElementById('search-input').addEventListener('keyup', searchPermissions);
+            
+            // حدث إلغاء التعديل
+            document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+        });
+    </script>
+     <script>
+        getRoles();
+    function getRoles(){
+        fetch('/get_roles')
+            .then(response => response.json())
+            .then(data => {
+                permissionsData= data.roles;
+                       renderPermissionsList();
+              //  const rolesList = document.getElementById('rolesList');
+             /*   data.roles.forEach(role => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${role.id}, Name: ${role.name}, Permissions: ${JSON.stringify(role.permissions)}`;
+                    rolesList.appendChild(li);
+                });*/
+            })
+            .catch(error => console.error('Error loading roles:', error));
+        }
+            </script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+/0{% block javascripts %}{% endblock javascripts %}

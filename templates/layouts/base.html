@@ -25,6 +25,9 @@
 <script>eruda.init();</script>
 <style>
   form{direction: rtl; text-align: right;}
+th,td,button{
+  font-size: 10px;
+}
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -51,6 +54,28 @@
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}{% endblock javascripts %}
     
+    <!-- أضف مكتبة Socket.IO -->
+<script sr="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+
+<script>
+   /* const userId = "{{current_user.id }}";
+    const socket = io();
+
+    socket.on('connect', () => {
+        console.log('Connected to WebSocket');
+    });
+
+    socket.on('new_notification', (data) => {
+        if (parseInt(data.user_id) === userId) {
+            const list = document.getElementById('notificationsList');
+            const li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-warning';
+            li.innerText = data.message + ' (جديد)';
+            list.prepend(li);
+        }
+    });*/
+</script>
+
 </body>
 </html>
 

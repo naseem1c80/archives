@@ -67,6 +67,22 @@ class Files(db.Model):
             raise InvalidUsage(error, 422)
         return
 
+
+
+
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    from_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    message = db.Column(db.String(200))
+    seen = db.Column(db.Boolean, default=False)
+   
+    user = db.relationship("Users", foreign_keys=[user_id], back_populates="notifications", lazy=True)
+    from_user = db.relationship("Users", foreign_keys=[from_id], back_populates="from_notifications", lazy=True)
+
+
 class Document(db.Model):
 
     __tablename__ = 'documents'
@@ -191,6 +207,11 @@ class Users(db.Model, UserMixin):
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     role = db.relationship('Role', backref='users')
+    #notifications = db.relationship('Notification', backref='users')
+      # Define both relationships explicitly
+        # FIXED: back_populates name must match the corresponding property
+    notifications = db.relationship("Notification", foreign_keys='Notification.user_id', back_populates="user", lazy=True)
+    from_notifications = db.relationship("Notification", foreign_keys='Notification.from_id', back_populates="from_user", lazy=True)
 
 
     readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
@@ -292,6 +313,3 @@ class DocumentType(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
-
-
-   
