@@ -7,7 +7,7 @@
 
 {% block content %}
 
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script sr="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- [ Main Content ] start -->
@@ -86,24 +86,82 @@
     <div class="table-responsive">
                         
 
-      <table class="table table-bordered table-striped text-center"  dir="rtl" id="mainTable">
+<table class="table table-striped table-bordered" id="list"  
+                               data-toggle="table"
+                               data-url="{{
+                               url_for('documents_blueprint.getdocuments') }}"
+                               data-pagination="true"
+                               data-side-pagination="server"
+                               data-page-list="[10, 20, 30 , 40 , 50, 100, 200]"
+                               data-search="true"
+                               data-show-refresh="true"
+                               data-show-toggle="true"
+                               data-sort-name="id"
+                               data-sort-order="asc">
+                            <thead>
+                            <tr>
+
+     <!-- <table class="table table-bordered table-striped text-center"  dir="rtl" id="mainTable">
         <thead class="table-success">
-          <tr>
-            <th>الاسم </th>
-            <th>رقم السند</th>
-            <th>رقم الحوالة</th>
-             <th> رقم الحساب</th>
-            <th> المرسل</th>
-             <th> المستلم</th>
-            <th> الموظف</th>
-            <th> الفرع</th>
-            <th>الحالة</th>
-                 <th>التاريخ</th>
-            <th>العمليات</th>
+          <tr>-->
+
+							
+                           
+                                <th class="text-center py-1 px-2"
+                                data-field="id" data-align="center"
+                                data-sortable="true">ID</th>
+                                
+
+            <th  data-field="name" data-sortable="true">الاسم </th>
+            <th data-field="number_doc" data-sortable="true">رقم السند</th>
+            <th data-field="transfer_number" data-sortable="true">رقم الحوالة</th>
+             <th data-field="account_number" data-sortable="true"> رقم الحساب</th>
+            <th data-field="sender_name" data-align="center"
+                                data-sortable="true"> المرسل</th>
+             <th data-field="recipient_name" data-align="center"
+                                data-sortable="true"> المستلم</th>
+            <th data-field="user_name" data-align="center"
+                                data-sortable="true"> الموظف</th>
+            <th data-field="branch_name" data-align="center"
+                                data-sortable="true"> الفرع</th>
+            <th data-field="status" data-align="center" class="text-center py-1 px-2"
+                                data-sortable="true">الحالة</th>
+                 <th class="text-center py-1 px-2" data-field="created_at" data-align="center"
+                                data-sortable="true">التاريخ</th>
+<th data-align="center"     data-formatter="getactionuser"
+data-events="actionEvents" width="100px"  class="text-center py-1 px-2"> action
+</th>
+						
+                         
           </tr>
         </thead>
-        <tbody id="userTable"></tbody>
+        <!--<tbody id="userTable"></tbody>-->
       </table>
+   
+   <!-- Pagination -->
+
+    
+
+
+
+
+
+<script>
+
+    
+    function getactionuser(value,row,index){
+			    
+			    return [`<div style="width:140px"><button class="btn btn-sm btn-primary"
+			    onclic="openEditModal(${row['id']}, '${row['name']}', '${row['number_doc']}',
+			    '${row['role']}')"> <i class="feather icon-edit"></i></button>
+              <button class="btn btn-sm btn-danger"
+              onclick="delete_document(${row['id']})"> <i class="feather icon-trash"></i></button> 
+              <button class="btn btn-sm btn-success view-profile-btn" data-id="${row['id']}"   > <i class="feather icon-eye"></i></button></div>`];
+			}
+</script>
+
+
+   
    
                             </div>
                         </div>
@@ -120,11 +178,45 @@
     </section>
     <!-- [ Main Content ] end -->
 
+<!-- Modal -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="documentModalLabel">بروفايل المستند</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+      </div>
+      <div class="modal-body" id="documentModalBody">
+        <!-- يتم تحميل محتوى المستند هنا -->
+        <div class="text-center p-4">جاري التحميل...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).on('click', '.view-profile-btn', function () {
+    const docId = $(this).data('id');
+    $('#documentModalBody').html('<div class="text-center p-4">جاري التحميل...</div>');
 
+    $.get('/document/' + docId, function (html) {
+        $('#documentModalBody').html(html);
+        $('#documentModal').modal('show');
+    }).fail(function () {
+        $('#documentModalBody').html('<div class="alert alert-danger">فشل في تحميل البيانات</div>');
+    });
+});
+</script>
     <script sr="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
      <script>
+       
+       let currentPage = 1;
+    let limit = 10;
+    let data = [];
+    let sortBy = 'id';
+    let sortOrder = 'asc'; // or 'desc'
         // إعدادات التطبيق
         const appConfig = {
             apiUrl: "{{ url_for('documents_blueprint.getdocuments') }}",
@@ -135,120 +227,36 @@
         // تهيئة التطبيق
         $(document).ready(function() {
             initEventListeners();
-            loadData();
+            loadData(1);
         });
 
         // إدارة الأحداث
         function initEventListeners() {
             $('#refreshBtn').click(loadData);
-            $('#searchInput').on('input', debounce(loadData, 300));
-            $('.form-control, .form-select').change(loadData);
+            $('#searchInput').on('input', debounce(function(){
+              loadData(1);}, 300));
+            $('.form-control, .form-select').change(function(){
+              loadData(1);});
         }
 
-        // تحميل البيانات
-        function loadData() {
-            showLoading();
-            
-            $.ajax({
-                url: appConfig.apiUrl,
-                type: 'GET',
-                dataType: 'json',
-                data: getFilters(),
-                success: function(response) {
-                    if(response.status === 'success') {
-                        renderTable(response.data);
-                    } else {
-                        showError(response.message);
-                    }
-                },
-                error: function(xhr) {
-                    showError(xhr.responseJSON?.message || 'خطأ في الاتصال بالسيرفر');
-                },
-                complete: hideLoading
-            });
-        }
 
         // عرض البيانات في الجدول
-        function renderTable(data) {
-          //alert(JSON.stringify(data));
-            const tbody = $('#mainTable tbody');
-            tbody.empty();
-
-            if(data.length === 0) {
-                tbody.html(`
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">
-                            لا توجد بيانات متاحة
-                        </td>
-                    </tr>
-                `);
-                return;
-            }
-
-            data.forEach(doc => {
-                tbody.append(`
-                    <tr>
-            <td>${doc.name}</td>
-            <td>${doc.number_doc}</td>
-            
-            <td>${doc.transfer_number} </td>
-             <td> ${doc.account_number} </td>
-            <td> ${doc.sender_name}</td>
-             <td> ${doc.recipient_name}</td>
-            <td>${doc.user_name }</td>
-            <td>${doc.branch_name }</td>
-            <td>${doc.verify_user ? 'موثق' : 'تحت المراجعة'}</td>
-           <td>${doc.created_at}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclic="openEditModal(${doc.id}, '${doc.name}', '${doc.number_doc}', '${doc.role}')">تعديل</button>
-              <button class="btn btn-sm btn-danger" onclick="delete_document(${doc.id})">حذف</button>
-            </td>
-          </tr>
-                `);
-            });
-
-            // إضافة أحداث الأزرار
-            $('.view-btn').click(function() {
-                const docId = $(this).data('id');
-                viewDocument(docId);
-            });
-        }
+        function renderTable() {
 
         // معالجة الفلاتر
-        function getFilters() {
+        function getFilters(offset=0) {
             return {
                 search: $('#searchInput').val(),
                 type: $('#docType').val(),
                 date: $('#docDate').val(),
                 status: $('#docStatus').val(),
-                limit: appConfig.pageSize
+                limit: limit,
+                offset:offset,
+                sort_by:sortBy,
+                sort_order:sortOrder
             };
         }
-
-        // تنسيق التاريخ
-        function formatDate(dateStr) {
-            if(!dateStr) return 'بدون تاريخ';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('ar-EG', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-
-        // عرض التفاصيل
-        function viewDocument(docId) {
-            $.ajax({
-                url: `${appConfig.apiUrl}/${docId}`,
-                type: 'GET',
-                headers: { 'Authorization': appConfig.token },
-                success: function(doc) {
-                    // يمكن إضافة عرض التفاصيل في مودال
-                    alert(`تفاصيل الوثيقة: ${doc.name}\nالوصف: ${doc.description}`);
-                }
-            });
-        }
-
+        
         // إدارة التحميل
         function showLoading() {
             $('#loading').show();
@@ -277,38 +285,38 @@
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
+        
+        function renderPagination(total, limit, currentPage) {
+        const totalPages = Math.ceil(total / 10);
+        const pagination = document.getElementById("paginationControls");
+        pagination.innerHTML = "";
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            if (i === currentPage) btn.classList.add("active");
+            btn.onclick = () => {
+              loadData(i);
+               // fetchDocuments(i);
+            };
+            li.appendChild(btn);
+            pagination.appendChild(li);
+        }
+    }
     </script>
 
 <script>
-   function loadDatas() {
-    axios.get("{{ url_for('documents_blueprint.getdocuments') }}").then(res => {
-      userTable.innerHTML = "";
-      res.data.forEach(user => {
-        userTable.innerHTML += `
-          <tr>
-            <td>${user.name}</td>
-            <td>${user.number_doc}</td>
-            <td>${user.user_id }</td>
-            <td>${user.verify_user ? 'موثق' : 'تحت المراجعة'}</td>
-           <td>${user.created_at}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclic="openEditModal(${user.id}, '${user.name}', '${user.number_doc}', '${user.role}')">تعديل</button>
-              <button class="btn btn-sm btn-danger" onclick="delete_document(${user.id})">حذف</button>
-            </td>
-          </tr>
-        `;
-      });
-    });
-  }
+   
   
 
   function delete_document(id) {
     if (confirm("هل أنت متأكد من حذف هذا السند؟")) {
-      axios.post(`/documents/${id}/delete`).then(() => loadData());
+      axios.post(`/documents/${id}/delete`).then(() => loadData(1));
     }
   }
 
-  window.onload = loadData;
+//  window.onload = loadData;
 </script>
 {% endblock content %}
 

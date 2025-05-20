@@ -23,6 +23,7 @@ import eventlet
 import re
 from flask_login import login_required
 @blueprint.route('/send_notification', methods=['POST'])
+@login_required
 def send_notification():
     user_id = request.form['user_id']
     from_id = current_user.id
@@ -46,6 +47,7 @@ def users():
     return render_template('users/users.html')
 
 @blueprint.route('/getusers')
+@login_required
 def getusers():
     users = Users.query.all()
     return jsonify([user.to_dict() for user in users])
@@ -60,11 +62,14 @@ def getusers():
     #return render_template('users/users.html')
 
 @blueprint.route('/add_user', methods=['GET', 'POST'])
+@login_required
 def add_user():
     try:
      data=request.json
      phone = data['phone']
-     print(data)
+     role_id=data['role_id']
+     
+     print(jsonify({'success': False, 'message':'', 'branch_id':data['branch_id'],'full_name':data['full_name'],'phone':data['phone'],'password':generate_password_hash(data['password'])}))
         #email = request.form['email']
 
         # Check usename exists
@@ -73,7 +78,7 @@ def add_user():
         return jsonify({'message':'اسم المستخدم او رقم الهاتف موجود مسبقاً',
                                    'success':False})
 
-     user = Users(branch_id=data['branch_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password'])) 
+     user = Users(branch_id=data['branch_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id) 
         #user = Users(**request.form)
      db.session.add(user)
      db.session.commit()     #user.save()
@@ -83,6 +88,7 @@ def add_user():
 
 
 @blueprint.route("/api/users/<int:user_id>", methods=["PUT"])
+@login_required
 def update_user(user_id):
     try:
     #if current_user.role != 1:
@@ -91,17 +97,18 @@ def update_user(user_id):
      data = request.json
      user.full_name = data["full_name"]
      user.branch_id = data["branch_id"]
-     user.role = data["role"]
+     user.role_id = data["role"]
      db.session.commit()
      return  jsonify({'message':'تم تحديث الحساب بنجاح','success':True})
     except Exception as e:
-     return jsonify({'success': False, 'message': str(e)})
+     return jsonify({'success': False, 'message': str(e),'ss':'ssee'})
 
     return jsonify(success=True)
 
 
 
 @blueprint.route("/permissions", methods=["GET"])
+@login_required
 def user_permission():
     try:
         return render_template('permissions/permissions.html')
@@ -114,6 +121,7 @@ def user_permission():
 
 
 @blueprint.route('/get_roles')
+@login_required
 def get_roles():
     roles = Role.query.all()
     data = [{
@@ -126,6 +134,7 @@ def get_roles():
 
  
 @blueprint.route('/role', methods=['POST', 'PUT'])
+@login_required
 def save_or_update_role():
     data = request.get_json()
 
@@ -163,6 +172,7 @@ def save_or_update_role():
    
 
 @blueprint.route('/admin/set-permissions', methods=['POST'])
+@login_required
 def set_permissions():
     user_id = request.form['user_id']
     selected_permissions = request.form.getlist('permissions')
@@ -179,6 +189,7 @@ def set_permissions():
 
 
 @blueprint.route("/save_permissions/<int:user_id>", methods=["POST"])
+@login_required
 def save_permissions(user_id):
     try:
         user = Users.query.get(user_id)
@@ -207,11 +218,14 @@ def save_permissions(user_id):
 
 
 @blueprint.route('/profile/<int:user_id>')
+@login_required
 def profile(user_id):
-    user = Users.query.get_or_404(user_id)
+    user = Users.query.get_or_404(user_id).to_dict()
+    print(f'****user**{user}')
     return render_template("users/profile.html", user=user)
 
 @blueprint.route('/update_password', methods=['POST'])
+@login_required
 def update_password():
     user_id = request.form['user_id']
     new_password = request.form['new_password']

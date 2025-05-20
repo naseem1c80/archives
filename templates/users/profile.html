@@ -40,13 +40,8 @@
                         <div class="card-header">
                          
 
-                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
-    <h5>
-                        إدارة المستخدمين   
-                            </h5>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openAddModal()">إضافة مستخدم</button>
-    </div>
-                            <span class="d-block m-t-5">use class <code>table</code> inside table element</span>
+
+
                         </div>
                         <div class="card-body table-border-style">
 
@@ -68,13 +63,13 @@
     body {
       background-color: #e9eff5;
     }
-    .profile-card {
+    .profile-car{
       max-width: 700px;
-      margin: 50px auto;
+      //margin: 50px auto;
       background-color: white;
       border-radius: 10px;
       padding: 30px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      //box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .profile-img {
       width: 120px;
@@ -86,36 +81,41 @@
   </style>
 
 <div class="container">
-  <div class="profile-card row">
+  <div class="profile-car row">
     <div class="col-md-4 text-center border-end">
-      <img src="/get_imgae_user/1" alt="Profile" class="profile-img">
-      <h5>Richard Hendricks</h5>
+      <img src="/get_imgae_user/{{user.id}}"   class="profile-img img-radius wid-40"
+                                alt="User-Profile-Image">
+      <h5>{{user.full_name}}</h5>
+
     </div>
+
     <div class="col-md-8">
       <form>
         <div class="mb-3">
           <label class="form-label">Email</label>
-          <input type="email" class="form-control" value="richard@fusionauth.io">
+          <input type="phone" class="form-control" value="{{user.phone}}">
         </div>
-        <div class="mb-3">
-          <label class="form-label">First name</label>
-          <input type="text" class="form-control" value="Richard">
-        </div>
+      
         <div class="mb-3">
           <label class="form-label">Last name</label>
-          <input type="text" class="form-control" value="Hendricks">
+          <input type="text" class="form-control" value="{{user.full_name}}">
         </div>
         <div class="form-check form-switch mb-3">
           <input class="form-check-input" type="checkbox" id="changePassword" checked>
-          <label class="form-check-label" for="changePassword">Change password</label>
+          <label class="form-check-label" for="changePassword">
+            تغيير كلمة المرور
+          </label>
         </div>
         <div class="mb-3">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-control" placeholder="Password">
+          <label class="form-label">كلمة المرور</label>
+          <input type="password" class="form-control" placeholder="كلمة المرور">
         </div>
         <div class="mb-3">
-          <label class="form-label">Confirm password</label>
-          <input type="password" class="form-control" placeholder="Confirm password">
+          <label class="form-label">
+            تأكيد كلمة المرور
+          </label>
+          <input type="password" class="form-control" placeholder="تأكيد كلمة
+          المرور">
         </div>
         <button type="submit"  onclick="updatePassword('{{user.id}}')" class="btn btn-primary">
           <i class="bi bi-save"></i> Submit
@@ -171,7 +171,7 @@
 
     socket.on('/new_notification', (data) => {
           const li = document.createElement("li");
-      li.textContent = data.notifications;
+      li.textContent = data.notifications.message;
       document.getElementById("notifications").appendChild(li);
     
         /*if (parseInt(data.user_id) === userId) {
@@ -195,7 +195,7 @@
     //const msg = document.getElementById('inmsg');
       //socket.emit('/', );
      const msg = document.getElementById('inmsg').value;
-     alert(msg);
+     //alert(msg);
     //progress.classList.remove('d-none');
     //msg.innerHTML = '';
 
@@ -206,7 +206,7 @@
     })
     .then(res => res.json())
     .then(data => {
-        alert(JSON.stringify(data));
+        //alert(JSON.stringify(data));
     })
     .catch(err => {
        
@@ -262,22 +262,51 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="container mt-4">
     
 <style>
-  body {
+  bodyy {
     font-family: 'Cairo', sans-serif;
     background: #f9f9f9;
 }
-.card {
+.cardy {
     border-radius: 1rem;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.btn-primary {
+.btn-primaryy {
     background-color: #007bff;
     border: none;
 }
 
 </style>
     <div class="card p-3 mb-3">
-        <strong>البريد:</strong> {{ user.email }}<br>
+
+
+<h1>{{ _("Welcome to the Multilingual App") }}</h1>
+
+    <p>{{ _("Choose your language:") }}</p>
+    <a href="/set_language/en">English</a> | 
+    <a href="/set_language/ar">العربية</a>
+
+    <h3>{{ _("Permissions") }}:</h3>
+    <ul>
+        {% set permissions = ["add_document", "verify_document", "add_user", "reset_password", "add_branch", "view_reports"] %}
+        {% for p in permissions %}
+            <li>{{ _(p) }}</li>
+        {% endfor %}
+    </ul>
+
+
+
+
+<h3>الصلاحيات:</h3>
+<ul>
+{% if user.role %}
+  {% for permission in user.role.permissions %}
+    <li>{{ _(permission) }}</li>
+  {% endfor %}
+{% else %}
+  <li>لا توجد صلاحيات</li>
+{% endif %}
+</ul>
+
         <strong>الصلاحيات:</strong> {{ user.role }}
     </div>
 

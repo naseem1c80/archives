@@ -35,7 +35,16 @@
                 <div class="col-md-18">
                     <div class="card">
                         <div class="card-header">
-                         
+                            
+    <!-- رسائل التنبيه -->
+        <div id="alert-success" class="alert alert-success">
+             إدارة المستخدمين   
+        </div>
+        <div id="alert-danger" class="alert alert-danger">
+             إدارة المستخدمين   
+        </div>
+
+
 
                                 <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
     <h5>
@@ -139,7 +148,7 @@
           </div>
           <div class="mb-3" id="passwordField">
             <label>كلمة المرور</label>
-            <input type="password" id="password" class="form-control" required>
+            <input type="password" id="password" class="form-control">
           </div>
      
           <div class="mb-3">
@@ -153,31 +162,70 @@
           <div class="mb-3">
             <label>الصلاحية</label>
             <select id="role" class="form-control" required>
-              <option value="admin">مدير</option>
-              <option value="user">موظف</option>
+              <option value="1">موظف</option>
+              <option value="2">مدير</option>
+              
             </select>
           </div>
 
 
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">حفظ</button>
-        </div>
+    
       </form>
+
+          <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary" onclick="$('#userForm').submit()">حفظ</button>
+        </div>
     </div>
   </div>
 </div>
 <script>
+let roles=[];
+let branches=[];
+   loadBranches();
+    loadRoles();
+
+
+
+ // دالة لجلب الفروع من الـ API
+  async function loadRoles() {
+    const roleSelect = document.getElementById('role');
+   
+    
+    try {
+      if(roles.length<1){
+            roleSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const response = await fetch("{{ url_for('users_blueprint.get_roles') }}"); // غيّر الرابط حسب API الخاص بك
+       roles = await response.json();
+
+      }
+      // ملء القائمة المنسدلة
+      roleSelect.innerHTML = '';
+      roles.roles.forEach(role => {
+        const option = document.createElement('option');
+        option.value = role.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = role.name;
+        roleSelect.appendChild(option);
+      });
+    } catch (error) {
+      roleSelect.innerHTML = '<option value="">فشل التحميل</option>';
+     showError('خطأ في تحميل الصلاحيات:');
+      console.error('خطأ في تحميل الصلاحيات:', error);
+    }
+  }
   // دالة لجلب الفروع من الـ API
   async function loadBranches() {
     const branchSelect = document.getElementById('branch');
-    branchSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+   
     
     try {
+      if(branches.length<1){
+            branchSelect.innerHTML = '<option value="">جاري التحميل...</option>';
       const response = await fetch("{{ url_for('branchs_blueprint.getbranchs') }}"); // غيّر الرابط حسب API الخاص بك
-      const branches = await response.json();
+       branches = await response.json();
 
+      }
       // ملء القائمة المنسدلة
       branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
       branches.forEach(branch => {
@@ -194,7 +242,7 @@
 
   // عند فتح المودال، نقوم بتحميل الفروع
   document.getElementById('userModal').addEventListener('show.bs.modal', function () {
-    loadBranches();
+ 
   });
 
 function showLoading() {
@@ -216,7 +264,7 @@ function hideLoading() {
     axios.get("{{ url_for('users_blueprint.getusers') }}").then(res => {
       userTable.innerHTML = "";
       res.data.forEach(user => {
-      
+      console.log('uysert',user);
 
         userTable.innerHTML += `
           <tr>
@@ -225,13 +273,23 @@ function hideLoading() {
                                 alt="User-Profile-Image"></td>
             <td>${user.full_name}</td>
             <td>${user.phone}</td>
-            <td>${user.role === 'admin' ? 'مدير' : 'موظف'}</td>
+            <td>${user.role.name}</td>
             <td>${user.active ? 'نشط' : 'مغلق'}</td>
             <td>
-              <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id}, '${user.full_name}', '${user.phone}', '${user.role}')">تعديل</button>
-              <button class="btn btn-sm btn-danger" onclick="disableUser(${user.id})">إغلاق</button>
-               <a href="/user_permission/${user.id}" class="btn btn-sm btn-success">
-                الصلاحيات
+              <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id}, '${user.full_name}', '${user.phone}', '${user.role.id}')">
+                                            <i class="feather
+                                            icon-edit"></i>
+              </button>
+              ${user.active ?
+              `<button class="btn btn-sm btn-danger" onclick="disableUser(${user.id})">
+                              <i class="feather icon-stop-circle"></i>
+              </button>`:`<button class="btn btn-sm btn-info" onclick="disableUser(${user.id})">
+                              <i class="feather icon-play-circle"></i>
+              </button>`}
+               <a href="/profile/${user.id}" class="btn btn-sm btn-success"
+               target="_blank">
+               
+                <i class="feather icon-eye"></i>
                 </a>
             </td>
           </tr>
@@ -247,7 +305,7 @@ function hideLoading() {
     document.getElementById("phone").value = "";
     document.getElementById("password").value = "";
     document.getElementById("passwordField").style.display = "block";
-    document.getElementById("role").value = "user";
+    document.getElementById("role").value = 1;
   }
 
   function openEditModal(id, name, phone, role) {
@@ -274,7 +332,13 @@ function hideLoading() {
       role: document.getElementById("role").value,
     };
     if (!id) {
-      data.password = document.getElementById("password").value;
+     var password = document.getElementById("password").value;
+     if (password.length <= 6) {
+        alert("يجب أن تكون كلمة المرور أطول من 6 أحرف");
+        return false; // يمنع إرسال النموذج أو المتابعة
+    }
+     data.password=password;
+
       axios.post("/add_user", data).then((res) => {
        
         alert(JSON.stringify(res.data));
@@ -289,7 +353,7 @@ function hideLoading() {
     })
     .catch((error) => {
       console.error("حدث خطأ:", error);
-      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
     })
     .finally(() => {
       hideLoading();
@@ -299,19 +363,21 @@ function hideLoading() {
  
  .then((res) => {
        
-        alert(JSON.stringify(res.data));
+        
         if(res.data.success){
+showSuccess(res.data.message);
       bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
       loadUsers(); // إعادة تحميل قائمة المستخدمين
       hideLoading();
         }
         else{
+          showError(res.data.message);
          document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
         }
     })
     .catch((error) => {
       console.error("حدث خطأ:", error);
-      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
     })
     .finally(() => {
       hideLoading();
@@ -339,7 +405,7 @@ function hideLoading() {
     })
     .catch((error) => {
       console.error("حدث خطأ:", error);
-      alert("فشل في العملية. الرجاء المحاولة مرة أخرى.");
+      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
     })
     .finally(() => {
       hideLoading();

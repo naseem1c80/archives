@@ -101,12 +101,18 @@ class Document(db.Model):
     description = db.Column(db.Text, nullable=True)
     document_type_id = db.Column(db.Integer, db.ForeignKey('document_types.id'), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
+    is_signature = db.Column(db.Boolean, default=True)
+    user_signature = db.Column(db.Integer, db.ForeignKey('users.id'))
+    signature = db.Column(db.Text, nullable=True)
+
 
     # Define relationships
     user = db.relationship("Users", foreign_keys=[user_id], backref="documents", lazy=True)
     verifier = db.relationship("Users", foreign_keys=[verify_user], backref="verified_documents", lazy=True)
     branch = db.relationship("Branch", backref="documents", lazy=True)
     files = db.relationship("Files", backref="documents", lazy=True)
+    signer = db.relationship("Users", foreign_keys=[user_signature], backref="signed_documents", lazy=True)
+
         # علاقة مع المستندات
     type_document = db.relationship('DocumentType', backref='documents', lazy=True)
 
@@ -241,8 +247,8 @@ class Users(db.Model, UserMixin):
                 # the ,= unpack of a singleton fails PEP8 (travis flake8 test)
                 value = value[0]
 
-            if property == 'password':
-                value = hash_pass(value)  # we need bytes here (not plain str)
+            #if property == 'password':
+                #value = hash_pass(value)  # we need bytes here (not plain str)
 
             setattr(self, property, value)
 

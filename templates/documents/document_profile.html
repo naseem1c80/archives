@@ -1,0 +1,99 @@
+
+
+    <style>
+        .document-box {
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .signature-box {
+            background-color: #e7f5ff;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .file-preview {
+            margin-bottom: 15px;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 500px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+    </style>
+
+
+    <h2 class="mb-4">بروفايل المستند</h2>
+
+    <div class="document-box mb-4">
+        <p><strong>رقم المستند:</strong> {{ document.id }}</p>
+        <p><strong>الاسم:</strong> {{ document.name }}</p>
+        <p><strong>رقم الحساب:</strong> {{ document.account_number }}</p>
+        <p><strong>المرسل:</strong> {{ document.sender_name }}</p>
+        <p><strong>المستلم:</strong> {{ document.recipient_name }}</p>
+        <p><strong>الوصف:</strong> {{ document.description }}</p>
+        <p><strong>نوع المستند:</strong> {{ document.type_document.name if document.type_document else 'غير محدد' }}</p>
+        <p><strong>الفرع:</strong> {{ document.branch.name if document.branch else 'غير محدد' }}</p>
+        <p><strong>تاريخ الإنشاء:</strong> {{ document.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    </div>
+
+    <div class="signature-box mb-4">
+        {% if document.is_signature %}
+            <p><strong>✅ تم التوقيع إلكترونيًا بواسطة المستخدم رقم {{ document.user_signature }}</strong></p>
+            <textarea readonly rows="3" class="form-control">{{ document.signature }}</textarea>
+        {% else %}
+            <p class="text-danger">⚠️ المستند غير موقع.</p>
+            <button id="signBtn" class="btn btn-primary">توقيع إلكتروني</button>
+        {% endif %}
+        <div id="signResult" class="mt-2"></div>
+    </div>
+
+    <h4>الملفات المرفقة</h4>
+    <div class="row">
+        {% for file in document.files %}
+            <div class="col-md-6 file-preview">
+                <h6>{{ file.name }}</h6>
+                {% if file.path_file.endswith('.pdf') %}
+                    <iframe src="{{ file.path_file}}"></iframe>
+                {% else %}
+                    <img src="{{file.path_file}}" alt="صورة">
+                {% endif %}
+            </div>
+        {% else %}
+            <p>لا توجد ملفات مرفقة.</p>
+        {% endfor %}
+    </div>
+
+   
+    <script>
+
+    
+    $('#verifyBtn').click(function() {
+        $.ajax({
+            url: '/verify-document/{{ document.id }}',
+            type: 'POST',
+            success: function(response) {
+                $('#result').html('<p style="color:green;">تم التوثيق بنجاح</p>');
+            },
+            error: function() {
+                $('#result').html('<p style="color:red;">فشل في التوثيق</p>');
+            }
+        });
+    });
+
+        $('#signBtn').click(function () {
+            $.post("/sign-document/{{ document.id }}", function (response) {
+                if (response.status === 'success') {
+                    $('#signResult').html('<div class="alert alert-success">' + response.message + '</div>');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    $('#signResult').html('<div class="alert alert-danger">حدث خطأ أثناء التوقيع</div>');
+                }
+            });
+        });
+    </script>

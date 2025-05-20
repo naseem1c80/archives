@@ -43,6 +43,38 @@ def create_document():
     #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('documents/create_document.html')
 
+@blueprint.route('/document/<int:doc_id>')
+def document_profile(doc_id):
+    document = Document.query.get_or_404(doc_id)
+    return render_template('documents/document_profile.html', document=document)
+
+@blueprint.route('/verify-document/<int:doc_id>', methods=['POST'])
+@login_required
+def verify_document(doc_id):
+    document = Document.query.get_or_404(doc_id)
+    document.status = 1  # تم التوثيق
+    document.verify_user = current_user.id
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'تم التوثيق'})
+
+
+
+
+@blueprint.route('/sign-document/<int:doc_id>', methods=['POST'])
+@login_required
+def sign_document(doc_id):
+    document = Document.query.get_or_404(doc_id)
+
+    data_to_sign = f"{document.id}-{document.name}-{document.account_number}-{current_user.id}"
+    signature_value = sign_data(data_to_sign)
+
+    document.signature = signature_value
+    document.is_signature = True
+    document.user_signature = current_user.id
+    document.status = 2  # أو أي حالة تعبر عن "تم التوقيع"
+
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'تم التوقيع الإلكتروني بنجاح'})
 
 
 '''
@@ -66,6 +98,95 @@ def getdocuments():
     try:
         # Get query parameters
         limit = request.args.get('limit', type=int)
+        sort_by = request.args.get('sort_by', 'id')
+        sort_order = request.args.get('sort_order', 'asc')
+
+        offset = request.args.get('offset', type=int)
+        search = request.args.get('search', type=str)
+        # Example of supported sorting fields:
+        sort_column_map = {
+          'id': Document.id,
+          'name': Document.name,
+          'number_doc': Document.number_doc,
+          'user_name': Users.full_name,
+          'branch_name': Branch.name
+}
+
+        # Base query with LEFT JOINs
+        base_query = db.session.query(Document).\
+            outerjoin(Users, Document.user_id == Users.id).\
+            outerjoin(Files, Document.id == Files.doc_id).\
+            outerjoin(Branch, Document.branch_id == Branch.id)
+
+        # Apply search filter if provided
+        if search:
+            search_term = f"%{search}%"
+            base_query = base_query.filter(
+                db.or_(
+                    Document.name.ilike(search_term),
+                    Document.number_doc.ilike(search_term),
+                    Users.full_name.ilike(search_term),
+                    Files.description.ilike(search_term),
+                    Branch.name.ilike(search_term)
+                )
+            )
+
+        # Get total count before pagination
+        total = base_query.count()
+
+        # Clone query for pagination
+        #paginated_query = base_query
+        #if offset:
+        
+        #if limit:
+        
+
+        if sort_by in sort_column_map:
+           column = sort_column_map[sort_by]
+        if sort_order == 'desc':
+          base_query = base_query.order_by(column.desc())
+        else:
+         base_query = base_query.order_by(column.asc())
+        base_query = base_query.limit(limit)
+        base_query = base_query.offset(offset)
+        documents = base_query.all()
+
+        # Build response
+        response = []
+        for doc in documents:
+            response.append({
+                "id": doc.id,
+                "name": doc.name,
+                "number_doc": doc.number_doc,
+                "account_number": doc.account_number,
+                "transfer_number": doc.transfer_number,
+                "sender_name": doc.sender_name,
+                "recipient_name": doc.recipient_name,
+                "user_id": doc.user_id,
+                "user_name": doc.user.full_name if doc.user else None,
+                "branch_id": doc.branch_id,
+                "branch_name": doc.branch.name if doc.branch else None,
+                "verify_user": doc.verify_user,
+                "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                "files": [file.description for file in doc.files] if hasattr(doc, 'files') else []
+            })
+
+        return jsonify({
+            "status": "success",
+            "rows": response,
+            "limit": limit,
+            "offset": offset,
+            "total": total
+        })
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {e}"}), 500
+
+def getdocumentyyy():
+    try:
+        # Get query parameters
+        limit = request.args.get('limit', type=int)
+        total=0
         offset = request.args.get('offset', type=int)
         search = request.args.get('search', type=str)
 
@@ -82,17 +203,17 @@ def getdocuments():
                 db.or_(
                     Document.name.ilike(search_term),
                     Document.number_doc.ilike(search_term),
-                    Users.name.ilike(search_term),
+                    Users.full_name.ilike(search_term),
                     Files.description.ilike(search_term),
                     Branch.name.ilike(search_term)
                 )
             )
-
+        total=query.length()
         # Apply limit and offset
-        if limit:
-            query = query.limit(limit)
-        if offset:
-            query = query.offset(offset)
+        #if limit:
+        query = query.limit(limit)
+        #if offset:
+        query = query.offset(offset)
 
         documents = query.all()
 
@@ -116,7 +237,8 @@ def getdocuments():
                 "files": [file.description for file in doc.files] if hasattr(doc, 'files') else []
             })
 
-        return jsonify({"status": "success", "data": response})
+        return jsonify({"status": "success", "data":
+        response,'limit':limit,'total':total})
 
     except Exception as e:
         return jsonify({"error": f"Internal server error: {e}"}), 500
@@ -203,11 +325,71 @@ def read_text_from_image(image_path, lang='ara+en'):
         #return f"خطأ في قراءة الصورة: {str(e)}"
 
 
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@blueprint.route('/save-docs', methods=['POST'])
+def save_docs():
+    try:
+        all_docs = []
+        inserted_id = 0
+        ressave = save_document()
+
+        if ressave['success']:
+            inserted_id = int(ressave['document_id'])
+
+            now = datetime.now()
+            year = now.strftime('%Y')
+            month = now.strftime('%m')
+
+            branch_id = request.form.get('branch_id') or str(getattr(current_user, 'branch_id', 'unknown'))
+
+            base_dir = os.path.join('static', 'uploads', year, month, branch_id)
+            os.makedirs(base_dir, exist_ok=True)
+
+            for key in request.form:
+                if key.startswith('docs[') and key.endswith('][source]'):
+                    index = key.split('[')[1].split(']')[0]
+                    source = request.form.get(f'docs[{index}][source]')
+                    details = request.form.get(f'docs[{index}][details]')
+
+                    filename = f"{uuid.uuid4().hex}.png"  # صيغة افتراضية
+                    full_path = os.path.join(base_dir, filename)
+
+                    if source == 'scan':
+                        scan_document(full_path)
+                    elif source == 'upload':
+                        file = request.files.get(f'docs[{index}][file]')
+                        if file and file.filename:
+                            if allowed_file(file.filename):
+                                ext = file.filename.rsplit('.', 1)[1].lower()
+                                filename = f"{uuid.uuid4().hex}.{ext}"
+                                full_path = os.path.join(base_dir, filename)
+                                file.save(full_path)
+                            else:
+                                continue  # تجاهل الملفات غير المدعومة
+                        else:
+                            continue  # لا يوجد ملف مرفوع
+
+                    all_docs.append({
+                        'doc_id': inserted_id,
+                        'file_path': '/' + full_path.replace('\\', '/'),
+                        'details': details
+                    })
+
+            if all_docs:
+                res = insert_files(all_docs)
+            return jsonify({'success': True, 'docs': all_docs})
+
+        else:
+            return ressave
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 
-
-
-
+'''
 @blueprint.route('/save-docs', methods=['POST'])
 def save_docs():
     try:
@@ -262,7 +444,7 @@ def save_docs():
             return ressave
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
+'''
 '''
 @blueprint.route('/save-docs', methods=['POST'])
 def save_docs():
