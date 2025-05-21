@@ -1,0 +1,136 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+        <div class="pcoded-content">
+
+
+
+<div class="container mt-4">
+  <h3>وثائق العملاء</h3>
+
+<a href="/add-customerdocument" class="btn btn-success mb-3">➕ إضافة وثيقة جديدة</a>
+
+  <table id="documentsTable" class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>رقم الهاتف</th>
+        <th>نوع الوثيقة</th>
+        <th>تاريخ الإصدار</th>
+        <th>تاريخ الانتهاء</th>
+        <th>الإجراء</th>
+      </tr>
+    </thead>
+    <tbody id="docsBody">
+      <!-- سيتم ملؤها بواسطة JavaScript -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal لعرض التفاصيل -->
+<div class="modal fade" id="viewDocModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تفاصيل الوثيقة</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="docDetails"></div>
+        <div class="row" id="docImages"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+function editDoc(id) {
+  fetch(`/api/customer-documents/${id}`)
+    .then(res => res.json())
+    .then(doc => {
+      document.getElementById("docId").value = doc.id;
+      document.getElementById("doc_full_name").value = doc.name;
+      document.getElementById("doc_phone").value = doc.phone;
+      document.getElementById("issue_date").value = doc.issue_date;
+      document.getElementById("expiry_date").value = doc.expiry_date;
+      document.getElementById("doc_type").value = doc.document_type;
+      document.getElementById("issue_place").value = doc.place_of_issue;
+      document.getElementById("doc_address").value = doc.address;
+      new bootstrap.Modal(document.getElementById("docModal")).show();
+    });
+}
+
+function loadDocuments() {
+  fetch("/api/customer-documents")
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById("docsBody");
+      tbody.innerHTML = "";
+      data.forEach(doc => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${doc.name}</td>
+          <td>${doc.phone}</td>
+          <td>${doc.document_type}</td>
+          <td>${doc.issue_date}</td>
+          <td>${doc.expiry_date}</td>
+          <td><button class="btn btn-sm btn-info" onclick="viewDoc(${doc.id})">عرض</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      $('#documentsTable').DataTable();
+    });
+}
+
+function viewDoc(id) {
+  fetch(`/api/customer-documents/${id}`)
+    .then(res => res.json())
+    .then(doc => {
+      document.getElementById("docDetails").innerHTML = `
+        <p><strong>الاسم:</strong> ${doc.name}</p>
+        <p><strong>الهاتف:</strong> ${doc.phone}</p>
+        <p><strong>نوع الوثيقة:</strong> ${doc.document_type}</p>
+        <p><strong>العنوان:</strong> ${doc.address || '-'}</p>
+        <p><strong>مكان الإصدار:</strong> ${doc.place_of_issue || '-'}</p>
+        <p><strong>تاريخ الإصدار:</strong> ${doc.issue_date}</p>
+        <p><strong>تاريخ الانتهاء:</strong> ${doc.expiry_date}</p>
+      `;
+
+      const imgContainer = document.getElementById("docImages");
+      imgContainer.innerHTML = "";
+      doc.images.forEach(img => {
+        imgContainer.innerHTML += `
+          <div class="col-md-3 mb-3">
+            <a href="/${img.image_path}" target="_blank">
+              <img src="/${img.image_path}" class="img-fluid img-thumbnail" alt="وثيقة">
+            </a>
+          </div>
+        `;
+      });
+
+      new bootstrap.Modal(document.getElementById("viewDocModal")).show();
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadDocuments);
+
+    </script>
+</div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

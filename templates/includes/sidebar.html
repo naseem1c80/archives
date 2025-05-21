@@ -25,6 +25,41 @@
 
 				
 				
+					<li class="nav-item pcoded-hasmenu">
+						<a href="#" class="nav-link "><span class="pcoded-micon"><i class="feather icon-layout"></i></span><span
+								class="pcoded-mtext">المستندات</span></a>
+						<ul class="pcoded-submenu">
+							<li><a href="{{ url_for('documents_blueprint.documents') }}">عرض</a></li>
+							
+							<li><a href="{{ url_for('documents_blueprint.create_document') }}">اظافة</a></li>
+						
+						
+							<li class="pcoded-hasmenu">
+								<a href="#">وثائق العملاء</a>
+								<ul class="pcoded-submenu">
+							<li><a href="{{ url_for('customers_blueprint.customers') }}">عرض</a></li>
+							
+							<li><a href="{{ url_for('customers_blueprint.add_customerdocument') }}">اظافة</a></li>
+								</ul>
+							</li>
+
+
+						</ul>
+					</li>
+
+
+
+
+
+						<li class="nav-item pcoded-menu-caption">
+						<label>الادارة</label>
+					</li>
+				
+				
+				
+				
+				
+				
 					<li class="nav-item">
 						<a href="{{ url_for('users_blueprint.users') }}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-users"></i></span><span
 								class="pcoded-mtext">
@@ -56,12 +91,30 @@
 
 					
 						<li class="nav-item">
-						<a href="{{ url_for('users_blueprint.user_permission') }}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-check-square"></i></span><span
+						<a href="{{ url_for('settings_blueprint.user_permission') }}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-check-square"></i></span><span
 								class="pcoded-mtext"> 
 							الصلاحيات
 							</span></a>
 					</li>
 
+				
+				
+				
+					<li class="nav-item pcoded-hasmenu">
+						<a href="#" class="nav-link "><span class="pcoded-micon"><i class="feather icon-menu"></i></span><span
+								class="pcoded-mtext">Menu levels</span></a>
+						<ul class="pcoded-submenu">
+							<li><a href="#">Menu Level 2.1</a></li>
+							<li class="pcoded-hasmenu">
+								<a href="#">Menu level 2.2</a>
+								<ul class="pcoded-submenu">
+									<li><a href="#">Menu level 3.1</a></li>
+									<li><a href="#">Menu level 3.2</a></li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				
 <!--
 					<li class="nav-item pcoded-menu-caption">
 						<label>table</label>

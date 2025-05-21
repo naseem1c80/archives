@@ -8,6 +8,10 @@ from flask import render_template, request,session,redirect
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 
+from apps.models import Users,Notification,Role
+from flask_login import login_required
+from jinja2 import TemplateNotFound
+
     
 @blueprint.route('/index')
 @login_required

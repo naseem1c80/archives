@@ -161,7 +161,7 @@
        
           <div class="mb-3">
             <label>الصلاحية</label>
-            <select id="role" class="form-control" required>
+            <select id="role" class="form-select tag-select" required>
               <option value="1">موظف</option>
               <option value="2">مدير</option>
               
@@ -181,6 +181,24 @@
   </div>
 </div>
 <script>
+$(document).ready(function() {
+    $('.tag-select').select2({
+        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        dir: "rtl",
+        width: 'resolve',
+        language: {
+            noResults: function () {
+                return "لا توجد نتائج";
+            },
+            searching: function () {
+                return "جاري البحث...";
+            }
+        }
+    });
+});
+</script>
+
+<script>
 let roles=[];
 let branches=[];
    loadBranches();
@@ -196,7 +214,7 @@ let branches=[];
     try {
       if(roles.length<1){
             roleSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('users_blueprint.get_roles') }}"); // غيّر الرابط حسب API الخاص بك
+      const response = await fetch("{{ url_for('settings_blueprint.get_roles') }}"); // غيّر الرابط حسب API الخاص بك
        roles = await response.json();
 
       }

@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} إضافة وثيقة عميل {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3 class="mb-4">إضافة وثيقة عميل</h3>
+
+  <form action="/add_customer_doc"  onsubmit="submitDocForm(event)" method="POST" enctype="multipart/form-data" >
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label>الاسم الكامل</label>
+        <input type="text" name="full_name" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label>رقم الهاتف</label>
+        <input type="text" name="phone" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label>تاريخ الإصدار</label>
+        <input type="date" name="issue_date" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label>تاريخ الانتهاء</label>
+        <input type="date" name="expiry_date" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label>نوع الوثيقة</label>
+        <input type="text" name="document_type" class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label>مكان الإصدار</label>
+        <input type="text" name="place_of_issue" class="form-control">
+      </div>
+
+      <div class="col-12">
+        <label>العنوان</label>
+        <textarea name="address" class="form-control" rows="2"></textarea>
+      </div>
+
+      <div class="col-12">
+        <label>تحميل صور الوثيقة (PNG أو PDF)</label>
+        <input type="file" name="files[]" class="form-control" accept=".png,.pdf" multiple>
+      </div>
+
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-primary">حفظ</button>
+        <a href="/documents" class="btn btn-secondary">إلغاء</a>
+      </div>
+
+    </div>
+  </form>
+</div>
+<script>
+    function submitDocForm(event) {
+  event.preventDefault();
+  const form = document.getElementById('docForm');
+  const formData = new FormData(form);
+
+  fetch('/add-customer-doc', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("تم الحفظ بنجاح");
+      bootstrap.Modal.getInstance(document.getElementById('docModal')).hide();
+      // تحميل الجدول من جديد
+    } else {
+      alert("حدث خطأ: " + data.error);
+    }
+  })
+  .catch(err => alert("فشل الاتصال: " + err));
+}
+
+function submitDoc(event) {
+  event.preventDefault();
+
+  const formData = new FormData();
+  formData.append("id", document.getElementById("docId").value);
+  formData.append("full_name", document.getElementById("doc_full_name").value);
+  formData.append("phone", document.getElementById("doc_phone").value);
+  formData.append("issue_date", document.getElementById("issue_date").value);
+  formData.append("expiry_date", document.getElementById("expiry_date").value);
+  formData.append("doc_type", document.getElementById("doc_type").value);
+  formData.append("issue_place", document.getElementById("issue_place").value);
+  formData.append("address", document.getElementById("doc_address").value);
+
+  const files = document.getElementById("doc_files").files;
+  for (let i = 0; i < files.length; i++) {
+    formData.append("files[]", files[i]);
+  }
+
+  fetch("/add_customer_doc", {
+    method: "POST",
+    body: formData
+  }).then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById("docModal")).hide();
+        loadDocuments(); // تحديث جدول الوثائق
+      } else {
+        alert("فشل في الحفظ");
+      }
+    });
+}
+
+</script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

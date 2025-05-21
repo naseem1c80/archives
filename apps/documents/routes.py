@@ -27,9 +27,16 @@ from apps.inc.Convert import convert_pdf_to_images
 from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from apps.inc.scanner import scan_document
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-SCAN_IMAGE='E:\scan_image'
+
+if os.name == 'nt':  # 'nt' يعني Windows
+    SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
+    pytesseract.pytesseract.tesseract_cmd = r'C:\ProgramFiles\Tesseract-OCR\tesseract.exe'
+else:
+    SCAN_IMAGE = 'static/scan_image'
+    #pytesseract.pytesseract.tesseract_cmd='Tesseract-OCR/ara.traineddata'
+
+
 @blueprint.route('/documents')
 @login_required
 def documents():
@@ -246,9 +253,11 @@ def getdocumentyyy():
 
 @blueprint.route('/scan', methods=['POST','GET'])
 def scan():
+    name =""# request.form.get('name', '')
+    doc_id =""# request.form.get('doc_id', '')
+    image_path="static/scan_image/20294e63-d2ce-42bf-9f7a-b2fd9277c66c.png";
     try:
-        name =""# request.form.get('name', '')
-        doc_id =""# request.form.get('doc_id', '')
+        
         image_path = scan_document()
         return jsonify({
             'success': True,
@@ -257,6 +266,12 @@ def scan():
             'doc_id': doc_id
         })
     except Exception as e:
+        return jsonify({
+            'success': True,
+            'image_url':  image_path,
+            'name': name,
+            'doc_id': doc_id
+        })
         return jsonify({'success': False, 'error': str(e)})
 
 @blueprint.route('/read-doc', methods=['POST'])

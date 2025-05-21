@@ -1,0 +1,77 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+  <!-- [ Main Content ] start -->
+    <section class="pcoded-main-container">
+ <div class="pcoded-content">
+
+<div class="row" lass="row row-cols-1 row-cols-md-3 g-4">
+ <div class="col-md-8  p-4 mx-auto">	
+		<div class="card card-container border">
+			
+			<div class="card-header pb-5">
+				<h3 class="me-4 mt-3 py-2 px-2 fs-5 badge badge-primary">PRO</h3> 
+			</div>
+			<div class="card-header pb-5">
+				<h3 class="me-4 mt-3 py-2 fs-5 px-2 badge badge-info">MEMBER</h3> 
+			</div>	
+			
+			<div class="card-body pt-4 text-center">
+				<div class="py-4">
+					
+						<img class="round" src="{{ url_for('users_blueprint.get_imgae_user', user_id=current_user.id) }}" alt="" /> <!-- intro image -->
+				</div>
+				
+				<h3 class="text-primary fs-2">{{current_user.full_name}}</h3><!-- Article title -->
+				
+				<h6>{{current_user.role.name}}</h6><!-- category article -->
+				
+				<p class="px-4"></p><!-- intro text -->
+				
+				<div class="buttons">
+					<button class="btn btn-primary"> Message </button> 
+					<button class="btn btn-outline-primary"> Following </button>
+				</div>
+			</div>
+			
+			<div class="card-footer">
+				<div class="skills">
+					<h6 class="text-muted">Skills</h6>
+					<!-- tags -->
+					<ul class="list-inline">
+		
+        
+{% if current_user.role %}
+  {% for permission in current_user.role.permissions %}
+    
+    <li class="list-inline-item btn btn-outline-primary my-1"><small>{{ _(permission) }}</small></li>
+						
+  {% endfor %}
+{% else %}
+  <li>لا توجد صلاحيات</li>
+{% endif %}
+					</ul>
+				</div>
+			</div>	
+		</div>
+	</div>
+</div>
+</div>
+</section>
+<style>
+    .card-container {
+	//background-color:rgba(0,0,0,.125) !important;
+}
+.card-container .round {
+	width:128px;height:128px;border: 1px solid #17A2B8;border-radius: 50%;padding: 7px;
+}
+</style>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
