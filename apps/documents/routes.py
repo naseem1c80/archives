@@ -15,6 +15,7 @@ import uuid
 
 from apps import db, login_manager
 from flask_cors import cross_origin
+import PyPDF2
 from pdf2image import convert_from_bytes
 from flask import render_template, request, redirect, url_for, flash, jsonify, session,send_from_directory
 from flask_login import  current_user
@@ -121,7 +122,10 @@ def getdocuments():
         }
 
         # Base query with LEFT JOINs
-        base_query = db.session.query(Document).outerjoin(Users, Document.user_id == Users.id) . outerjoin(Files, Document.id == Files.doc_id) . outerjoin(Branch, Document.branch_id == Branch.id)
+        base_query = db.session.query(Document).\
+            outerjoin(Users, Document.user_id == Users.id).\
+            outerjoin(Files, Document.id == Files.doc_id).\
+            outerjoin(Branch, Document.branch_id == Branch.id)
 
         # Apply search filter if provided
         if search:
@@ -137,8 +141,8 @@ def getdocuments():
             )
 
         # Get total count before pagination
-        total =0# base_query.count()
-        print(f'***ddddd****{base_query}')
+        total = base_query.count()
+        print(f'*******{base_query}')
         # Clone query for pagination
         #paginated_query = base_query
         #if offset:
