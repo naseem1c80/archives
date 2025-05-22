@@ -101,7 +101,7 @@ class Document(db.Model):
     description = db.Column(db.Text, nullable=True)
     document_type_id = db.Column(db.Integer, db.ForeignKey('document_types.id'), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
-    is_signature = db.Column(db.Boolean, default=True)
+    is_signature = db.Column(db.Boolean, default=False)
     user_signature = db.Column(db.Integer, db.ForeignKey('users.id'))
     signature = db.Column(db.Text, nullable=True)
 

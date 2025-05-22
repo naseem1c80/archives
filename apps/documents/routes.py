@@ -100,10 +100,97 @@ def upload_file():
     return f'تم حفظ الملف باسم: {filename}'
 '''
 
-
 @blueprint.route('/getdocuments', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def getdocuments():
+    try:
+        # التحقق من وجود وسائط الطلب وتعيين القيم الافتراضية
+        limit = min(request.args.get('limit', default=10, type=int), 100)  # حد أقصى 100 سجل
+        offset = request.args.get('offset', default=0, type=int)
+        sort_by = request.args.get('sort_by', default='id')
+        sort_order = request.args.get('sort_order', default='asc')
+        search = request.args.get('search', default=None, type=str)
+
+        # قائمة الحقول المسموح الفرز بها (لحماية من SQL injection)
+        sort_column_map = {
+            'id': Document.id,
+            'name': Document.name,
+            'number_doc': Document.number_doc,
+            'user_name': Users.full_name,
+            'branch_name': Branch.name,
+            'created_at': Document.created_at
+        }
+
+        # إنشاء الاستعلام الأساسي
+        query = db.session.query(Document).\
+            outerjoin(Users, Document.user_id == Users.id).\
+            outerjoin(Files, Document.id == Files.doc_id).\
+            outerjoin(Branch, Document.branch_id == Branch.id)
+
+        # تطبيق البحث إذا وجد
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                db.or_(
+                    Document.name.ilike(search_term),
+                    Document.number_doc.ilike(search_term),
+                    Users.full_name.ilike(search_term),
+                    Branch.name.ilike(search_term)
+                )
+            )
+
+        # الحصول على العدد الكلي قبل التقسيم
+        total = query.count()
+
+        # تطبيق الفرز
+        if sort_by in sort_column_map:
+            column = sort_column_map[sort_by]
+            if sort_order.lower() == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column.asc())
+        else:
+            # الترتيب الافتراضي إذا كان حقل الفرز غير صحيح
+            query = query.order_by(Document.id.asc())
+
+        # تطبيق التقسيم الصفحي
+        documents = query.offset(offset).limit(limit).all()
+
+        # بناء الاستجابة
+        response = {
+            "status": "success",
+            "rows": [{
+                "id": doc.id,
+                "name": doc.name,
+                "number_doc": doc.number_doc,
+                "account_number": doc.account_number,
+                "transfer_number": doc.transfer_number,
+                "sender_name": doc.sender_name,
+                "recipient_name": doc.recipient_name,
+                "user_id": doc.user_id,
+                "user_name": doc.user.full_name if doc.user else None,
+                "branch_id": doc.branch_id,
+                "branch_name": doc.branch.name if doc.branch else None,
+                "verify_user": doc.verify_user,
+                "status": doc.status,
+                "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                "files": [file.description for file in doc.files] if doc.files else []
+            } for doc in documents],
+            "limit": limit,
+            "offset": offset,
+            "total": total
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        current_app.logger.error(f"Error in getdocuments: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Internal server error {e}"}), 500
+    
+
+@blueprint.route('/getdocumentsssss', methods=['GET', 'OPTIONS'])
+@cross_origin()
+def getdocumentsssss():
     try:
         # Get query parameters
         limit = request.args.get('limit', type=int)
@@ -142,7 +229,7 @@ def getdocuments():
 
         # Get total count before pagination
         total = base_query.count()
-        print(f'*******{base_query}')
+        
         # Clone query for pagination
         #paginated_query = base_query
         #if offset:
@@ -156,8 +243,8 @@ def getdocuments():
           base_query = base_query.order_by(column.desc())
         else:
          base_query = base_query.order_by(column.asc())
-        #base_query = base_query.limit(limit)
-        #base_query = base_query.offset(offset)
+        base_query = base_query.limit(limit)
+        base_query = base_query.offset(offset)
         print(f'*******{base_query}')
         documents = base_query.all()
 
