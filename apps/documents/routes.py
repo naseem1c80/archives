@@ -15,7 +15,6 @@ import uuid
 
 from apps import db, login_manager
 from flask_cors import cross_origin
-import PyPDF2
 from pdf2image import convert_from_bytes
 from flask import render_template, request, redirect, url_for, flash, jsonify, session,send_from_directory
 from flask_login import  current_user
