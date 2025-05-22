@@ -37,6 +37,16 @@
 
         <!-- Form -->
         <form id="multi-form" enctype="multipart/form-data">
+          
+                              <div class="mb-3 ">
+                        <label for="document_type">اختر نوع المستند </label>
+                        <select class="form-select tag-select form-control"
+                        id="document_type" name="document_type_id" >
+
+                        </select>
+
+                    </div>
+          
             <div class="card p-4 mx-auto mb-4" style="max-width: 800px;">
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -67,12 +77,12 @@
                 <!-- طلب توقيع المستند -->
                 <div class="card p-3 mb-4">
                     <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="require_signature" name="require_signature">
+                        <input class="form-check-input" type="checkbox" id="require_signature" name="is_signature">
                         <label class="form-check-label" for="require_signature">طلب توقيع المستند</label>
                     </div>
-                    <div class="mb-3 d-none" id="sign-users-container">
+                    <div class="mb-3 d-none " id="sign-users-container">
                         <label for="sign_users">اختر المستخدمين للتوقيع</label>
-                        <select class="form-select" id="sign_users" name="sign_users[]" multiple>
+                        <select class="form-select tag-select" id="sign_users" name="user_signature" >
 
                         </select>
                         <div class="invalid-feedback">يجب اختيار مستخدم واحد على الأقل للتوقيع.</div>
@@ -104,14 +114,54 @@
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
 
-
+<script>
+$(document).ready(function() {
+    $('.tag-select').select2({
+        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        dir: "rtl",
+        width: 'resolve',
+        language: {
+            noResults: function () {
+                return "لا توجد نتائج";
+            },
+            searching: function () {
+                return "جاري البحث...";
+            }
+        }
+    });
+});
+</script>
 <script>
 let users=[];
-   
     loadUsers();
+let documents_type=[];
+    loaddocuments_type();
 
+async function loaddocuments_type() {
+    const doctypSelect = document.getElementById('document_type');
+   
+    
+    try {
+      if(users.length<1){
+            doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
+       documents_type = await response.json();
 
-
+      }
+      // ملء القائمة المنسدلة
+      doctypSelect.innerHTML  = '';
+      documents_type.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = user.name;
+        doctypSelect.appendChild(option);
+      });
+    } catch (error) {
+      doctypSelect.innerHTML = '<option value="">فشل التحميل</option>';
+     showError('خطأ في تحميل الصلاحيات:');
+      console.error('خطأ في تحميل الاقسام:', error);
+    }
+  }
  // دالة لجلب الفروع من الـ API
   async function loadUsers() {
     const userSelect = document.getElementById('sign_users');
@@ -125,7 +175,7 @@ let users=[];
 
       }
       // ملء القائمة المنسدلة
-      userSelect.innerHTML = '';
+      userSelect.innerHTML  = '<option value="0">اختيار الموظف </option>';
       users.forEach(user => {
         const option = document.createElement('option');
         option.value = user.id; // أو branch.code حسب هيكل البيانات
@@ -137,6 +187,7 @@ let users=[];
      showError('خطأ في تحميل الصلاحيات:');
       console.error('خطأ في تحميل الصلاحيات:', error);
     }
+    userSelect.value=0;
   }
   </script>
 <script>
@@ -168,7 +219,7 @@ function createDocBlock(index) {
             <div class="details_doc mt-2" style="display:none">
                 <textarea name="docs[${index}][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف المستند..."></textarea>
                 <pre id="pre-${index}" class="bg-light p-2 rounded"></pre>
-                <pre id="pre2-${index}" class="bg-light p-2 rounded"></pre>
+                <div id="pre2-${index}" class="bg-light p-2 rounded"></div>
             </div>
         </div>
 
@@ -185,11 +236,12 @@ function openCamera(index) {
 function loadFilePreview(input, index) {
     const file = input.files[0];
     const previewBox = document.getElementById(`preview-${index}`);
-
+uploadDocument(file, index);
     if (file && file.type.startsWith("image")) {
         const reader = new FileReader();
         reader.onload = function (e) {
             previewBox.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded shadow-sm" style="max-height: 300px;">`;
+            
         };
         reader.readAsDataURL(file);
     } else {
@@ -205,44 +257,7 @@ function toggleDetails(index, btn) {
 
 
 
-function createDocBlock2(index) {
-    return `
-    <div class="card p-4 mx-auto border rounded mb-4 document-block col-md-6" style="max-width: 500px;">
-        <h5 class="mb-3">مستند رقم ${index + 1}</h5>
-        <div class="mb-2">
-            <label>المصدر</label>
-            <select name="docs[${index}][source]" class="form-select source-select" data-index="${index}">
-                <option value="scan">المسح الضوئي</option>
-                <option value="upload">رفع ملف</option>
-            </select>
-        </div>
-        <div class="mb-2 upload-block d-none">
-            <label>اختيار ملف</label>
-            <input type="file" onchange="loadfile(this)" name="docs[${index}][file]" class="form-control file-input" data-index="${index}">
-        </div>
-        <div id="result-${index}" class="mt-4 d-none">
-            <div class="alert"></div>
-            <span class="btn btn-sm btn-primary" onclick="scan(${index})">scan</span>
-        </div>
-        <div class="preview-box" id="preview-${index}">
-            <em class="text-muted">لا توجد صورة بعد.</em>
-        </div>
-        <div class="mb-2 mt-4 cdetails">
-            <label>تفاصيل المستند</label>
-            <span class="btn btn-sm btn-primary" onclick="show_details_doc(${index}, this)">+</span>
-            <div class="progress mt-2 d-none" id="progress-${index}">
-                <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress-bar-${index}">0%</div>
-            </div>
-            <div class="details_doc" style="display:none">
-                <textarea name="docs[${index}][details]" class="form-control" rows="3"></textarea>
-                <pre id="pre-${index}"></pre>
-                <pre id="pre2-${index}"></pre>
-            </div>
-        </div>
-        <button type="button" class="btn btn-danger btn-sm remove-doc mt-2">🗑️ إزالة المستند</button>
-    </div>
-    `;
-}
+
 
 function show_details_doc(index, e) {
     const det = $(e).closest('.cdetails').find('.details_doc');
@@ -297,6 +312,8 @@ function scan(index) {
 }
 
 function uploadDocument(file, index) {
+ // alert(index+'');
+ $(`#progress-${index}`).removeClass('d-none');
     const formData = new FormData(); formData.append('file', file);
     const xhr = new XMLHttpRequest(); xhr.open('POST', '/read-doc', true);
     xhr.upload.addEventListener('progress', function(e) {
@@ -310,12 +327,35 @@ function uploadDocument(file, index) {
             const res = JSON.parse(xhr.responseText);
             if (res.success) {
                 $(`#progress-${index}`).addClass('d-none');
-                $(`#pre-${index}`).html(res.text);
+               // $(`#pre-${index}`).html(res.text);
+               const sentences = res.text.match(/[^.!?]+[.!?]*/g) || [res.text];
+const badges = sentences.map((s, i) => 
+    `<span class="badge bg-primary m-1 copy-badge" data-text="${s.trim()}" style="cursor:pointer;">${s.trim()}</span>`
+).join('');
+$(`#pre-${index}`).html(badges);
+// التعامل مع النسخ عند الضغط على الجملة
+$(`#pre-${index}`).on('click', '.copy-badge', function () {
+    const text = $(this).data('text');
+    navigator.clipboard.writeText(text).then(() => {
+        // إشعار بسيط
+        //alert('✅ تم نسخ الجملة إلى الحافظة');
+        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+toast.show();
+
+        // أو يمكنك استخدام Toast إن أردت تنسيقًا أجمل
+        // showToast('✅ تم النسخ!');
+    }).catch(err => {
+        alert('❌ حدث خطأ أثناء النسخ');
+    });
+});
+
+               
+
                 $(`textarea[name="docs[${index}][details]"]`).val(res.text);
                 $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
             }
         } else {
-            $(`#progress-${index}`).addClass('d-none');
+            //$(`#progress-${index}`).addClass('d-none');
         }
     };
     xhr.send(formData);
@@ -368,6 +408,9 @@ $('#multi-form').on('submit', function (e) {
                 $('#multi-form')[0].reset();
                 $('#documents-container').empty();
                 docIndex = 0;
+                document.getElementById('sign_users').value=0;
+                        $('#sign-users-container').addClass('d-none');
+        $('#sign_users').removeAttr('required').removeClass('is-invalid');
             } else {
                 $('#result').html('❌ خطأ: ' + res.message);
             }
@@ -378,4 +421,8 @@ $('#multi-form').on('submit', function (e) {
     });
 });
 </script>
+<div id="toast-copy" class="toast position-fixed bottom-0 end-0 m-3 text-bg-success" role="alert" data-bs-delay="1500">
+  <div class="toast-body">تم النسخ ✅</div>
+</div>
+
 {% endblock %}

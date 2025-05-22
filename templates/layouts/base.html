@@ -210,11 +210,11 @@ th,td,button{
           
              margin-bottom: 20px;
            display: none;
-         position: fixed;
+         /*position: fixed;
     bottom: 300px;
-    left: 200px;
+    left: 200px;*/
         }
-        
+        /*
         .alert-success {
             background-color: #d4edda;
             color: #155724;
@@ -225,7 +225,7 @@ th,td,button{
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-        }
+        }*/
         
         .action-buttons button {
             margin-left: 5px;
@@ -299,27 +299,42 @@ th,td,button{
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    <!-- رسائل التنبيه -->
+       <div id="toast-success" class="toast position-fixed bottom-0 end-0 m-3
+       text-bg-success alert alert-success" role="alert" data-bs-delay="1500">
+        <div id="alert-success" class="alert alert-success">
+             إدارة المستخدمين   
+        </div>
+        </div>
+        
+        <div id="toast-danger" class="alert alert-danger toast position-fixed
+        bottom-0 end-0 m-3 text-bg-danger">
+             إدارة المستخدمين   
+        </div>
 <script>
 
 
    // عرض رسالة نجاح
         function showSuccess(message) {
-            const alert = document.getElementById('alert-success');
+            const alert = document.getElementById('toast-success');
             alert.innerHTML ='<i class="feather icon-check-circle" style="font-size:20px;color:#fff"></i>'+ message;
             alert.style.display = 'block';
-            
-            setTimeout(() => {
+            const toast = new
+            bootstrap.Toast(document.getElementById('toast-success'));
+toast.show();
+           /* setTimeout(() => {
                 alert.style.display = 'none';
-            }, 5000);
+            }, 5000);*/
         }
 
         // عرض رسالة خطأ
         function showError(message) {
-            const alert = document.getElementById('alert-danger');
+            const alert = document.getElementById('toast-danger');
                alert.innerHTML ='<i class="feather icon-alert-circle" style="font-size:20px;color:#fff"></i>'+ message;
             alert.style.display = 'block';
-            
+            const toast = new
+            bootstrap.Toast(document.getElementById('toast-danger'));
+toast.show();
             setTimeout(() => {
                 alert.style.display = 'none';
             }, 5000);

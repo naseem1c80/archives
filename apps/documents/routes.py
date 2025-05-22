@@ -31,7 +31,7 @@ from apps.inc.scanner import scan_document
 
 if os.name == 'nt':  # 'nt' يعني Windows
     SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
-    pytesseract.pytesseract.tesseract_cmd = r'C:\ProgramFiles\Tesseract-OCR\tesseract.exe'
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:
     SCAN_IMAGE = 'static/scan_image'
     #pytesseract.pytesseract.tesseract_cmd='Tesseract-OCR/ara.traineddata'
@@ -99,6 +99,8 @@ def upload_file():
     file.save(os.path.join(UPLOAD_FOLDER, filename))
     return f'تم حفظ الملف باسم: {filename}'
 '''
+
+
 @blueprint.route('/getdocuments', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def getdocuments():
@@ -117,13 +119,10 @@ def getdocuments():
           'number_doc': Document.number_doc,
           'user_name': Users.full_name,
           'branch_name': Branch.name
-}
+        }
 
         # Base query with LEFT JOINs
-        base_query = db.session.query(Document).\
-            outerjoin(Users, Document.user_id == Users.id).\
-            outerjoin(Files, Document.id == Files.doc_id).\
-            outerjoin(Branch, Document.branch_id == Branch.id)
+        base_query = db.session.query(Document).outerjoin(Users, Document.user_id == Users.id) . outerjoin(Files, Document.id == Files.doc_id) . outerjoin(Branch, Document.branch_id == Branch.id)
 
         # Apply search filter if provided
         if search:
@@ -139,8 +138,8 @@ def getdocuments():
             )
 
         # Get total count before pagination
-        total = base_query.count()
-
+        total =0# base_query.count()
+        print(f'***ddddd****{base_query}')
         # Clone query for pagination
         #paginated_query = base_query
         #if offset:
@@ -154,8 +153,9 @@ def getdocuments():
           base_query = base_query.order_by(column.desc())
         else:
          base_query = base_query.order_by(column.asc())
-        base_query = base_query.limit(limit)
-        base_query = base_query.offset(offset)
+        #base_query = base_query.limit(limit)
+        #base_query = base_query.offset(offset)
+        print(f'*******{base_query}')
         documents = base_query.all()
 
         # Build response
@@ -288,7 +288,11 @@ def read_doc():
     try:
         if ext == '.pdf':
             # تحويل أول صفحة من PDF إلى صورة
-            images = convert_from_bytes(file.read(), dpi=200, fmt='png',poppler_path=r'C:\poppler\Library\bin' )
+            if os.name == 'nt': 
+             images = convert_from_bytes(file.read(), dpi=200, fmt='png',poppler_path=r'C:\poppler\Library\bin' )
+            else:
+               images = convert_from_bytes(file.read(), dpi=200,
+              fmt='png')
             if not images:
                 return jsonify({'success': False, 'error': 'لم يتمكن من تحويل PDF إلى صورة'})
             
@@ -358,14 +362,15 @@ def save_docs():
             now = datetime.now()
             year = now.strftime('%Y')
             month = now.strftime('%m')
+            day = now.strftime('%d')
 
             branch_id = request.form.get('branch_id') or str(getattr(current_user, 'branch_id', 'unknown'))
 
-            base_dir = os.path.join('static', 'uploads', year, month, branch_id)
+            base_dir = os.path.join('static', 'uploads', year, month, day,branch_id)
             os.makedirs(base_dir, exist_ok=True)
 
             for key in request.form:
-                if key.startswith('docs[') and key.endswith('][source]'):
+                if key.startswith('docs[') and key.endswith('][details]'):
                     index = key.split('[')[1].split(']')[0]
                     source = request.form.get(f'docs[{index}][source]')
                     details = request.form.get(f'docs[{index}][details]')
@@ -373,20 +378,20 @@ def save_docs():
                     filename = f"{uuid.uuid4().hex}.png"  # صيغة افتراضية
                     full_path = os.path.join(base_dir, filename)
 
-                    if source == 'scan':
-                        scan_document(full_path)
-                    elif source == 'upload':
-                        file = request.files.get(f'docs[{index}][file]')
-                        if file and file.filename:
-                            if allowed_file(file.filename):
-                                ext = file.filename.rsplit('.', 1)[1].lower()
-                                filename = f"{uuid.uuid4().hex}.{ext}"
-                                full_path = os.path.join(base_dir, filename)
-                                file.save(full_path)
-                            else:
-                                continue  # تجاهل الملفات غير المدعومة
+                    #if source == 'scan':
+                        #scan_document(full_path)
+                    #elif source == 'upload':
+                    file = request.files.get(f'docs[{index}][file]')
+                    if file and file.filename:
+                        if allowed_file(file.filename):
+                            ext = file.filename.rsplit('.', 1)[1].lower()
+                            filename = f"{uuid.uuid4().hex}.{ext}"
+                            full_path = os.path.join(base_dir, filename)
+                            file.save(full_path)
                         else:
-                            continue  # لا يوجد ملف مرفوع
+                          continue  # تجاهل الملفات غير المدعومة
+                    else:
+                       continue  # لا يوجد ملف مرفوع
 
                     all_docs.append({
                         'doc_id': inserted_id,
@@ -517,7 +522,24 @@ def save_document():
     #print(request.form.to_dict())
     try:
         # طباعة الطلب للتصحيح
-        print(f"Received form data:{current_user.branch_id} {current_user.id if current_user.is_authenticated else 0} {request.form}")
+        # نحصل على القيمة، إذا كانت موجودة اعتبرها True، غير ذلك Fals
+        
+        is_signature=False
+        user_signature=None
+        print(f"Received form data:is_signature {is_signature}{request.form}")
+        
+        
+        if not request.form.get('is_signature'):
+         is_signature=False
+         user_signature=None
+        else:
+          is_signature = bool(request.form.get('is_signature'))
+          user_signature=request.form.get('user_signature')
+          
+
+        
+          
+        
 
 
         # إنشاء المستند
@@ -531,7 +553,10 @@ def save_document():
             user_id=current_user.id if current_user.is_authenticated else 0,
             branch_id=current_user.branch_id if current_user.is_authenticated else 0,
             verify_user=0,
-            description=request.form.get('description', '')
+            description=request.form.get('description', ''),
+            document_type_id=request.form.get('document_type_id', '1'),
+            user_signature=user_signature,
+            is_signature=is_signature
         )
 
         # الحفظ
@@ -590,6 +615,16 @@ def get_documents_report():
 
 #blueprint = Blueprint("document_types", __name__)
 
+@blueprint.route("/getdocument_types", methods=["GET"])
+def getdocument_types():
+  types = DocumentType.query.all()
+  response = []
+  for doc in types:
+    response.append({
+          "id": doc.id,
+          "name": doc.name})
+  return response          
+  
 @blueprint.route("/document_types", methods=["GET"])
 def view_document_types():
     types = DocumentType.query.all()

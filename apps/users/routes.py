@@ -26,9 +26,9 @@ from flask_login import login_required
 @blueprint.route('/users')
 @login_required
 def users():
-  print(f"*****has_permission{current_user.has_permission('users')}")
-  if not current_user.has_permission('users'):
-    return render_template('home/page-404.html'), 404
+#  print(f"*****has_permission{current_user.has_permission('users')}")
+  #if not current_user.has_permission('users'):
+   # return render_template('home/page-no-permission.html'), 404
     #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
   return render_template('users/users.html')
 
