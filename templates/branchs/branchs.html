@@ -129,8 +129,13 @@
             <td>${branch.address}</td>
            <td>${branch.created_at}</td>
             <td>
-              <button class="btn btn-sm btn-primary" onclick="openEditModal(${branch.id}, '${branch.name}', '${branch.branch_number}','${branch.phone}', '${branch.address}')">تعديل</button>
-              <button class="btn btn-sm btn-danger" onclick="delete_branch(${branch.id})">حذف</button>
+              <button class="btn btn-sm btn-primary"
+              onclick="openEditModal(${branch.id}, '${branch.name}',
+              '${branch.branch_number}','${branch.phone}',
+              '${branch.address}')"><i class="feather icon-edit"></i></button>
+              <button class="btn btn-sm btn-danger"
+              onclick="delete_branch(${branch.id})"><i class="feather
+              icon-trash"></i></button>
             </td>
           </tr>
         `;

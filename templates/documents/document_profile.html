@@ -28,9 +28,9 @@
     </style>
 
 
-    <h2 class="mb-4">بروفايل المستند</h2>
+    
 
-    <div class="document-box mb-4">
+    <div class="document-box mb-4" dir="rtl">
         <p><strong>رقم المستند:</strong> {{ document.id }}</p>
         <p><strong>الاسم:</strong> {{ document.name }}</p>
         <p><strong>رقم الحساب:</strong> {{ document.account_number }}</p>
@@ -44,11 +44,13 @@
 
     <div class="signature-box mb-4">
         {% if document.is_signature %}
+        {% if  document.signature!=None %}
             <p><strong>✅ تم التوقيع إلكترونيًا بواسطة المستخدم رقم {{ document.user_signature }}</strong></p>
             <textarea readonly rows="3" class="form-control">{{ document.signature }}</textarea>
         {% else %}
             <p class="text-danger">⚠️ المستند غير موقع.</p>
             <button id="signBtn" class="btn btn-primary">توقيع إلكتروني</button>
+        {% endif %}
         {% endif %}
         <div id="signResult" class="mt-2"></div>
     </div>
@@ -56,6 +58,9 @@
     <h4>الملفات المرفقة</h4>
     <div class="row">
         {% for file in document.files %}
+        <pre dir="rtl">
+  {{ file.description }}
+</pre>
             <div class="col-md-6 file-preview">
                 <h6>{{ file.name }}</h6>
                 {% if file.path_file.endswith('.pdf') %}

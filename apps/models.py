@@ -102,7 +102,8 @@ class Document(db.Model):
     document_type_id = db.Column(db.Integer, db.ForeignKey('document_types.id'), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
     is_signature = db.Column(db.Boolean, default=False)
-    user_signature = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_signature = db.Column(db.Integer,
+    db.ForeignKey('users.id'),nullable=True)
     signature = db.Column(db.Text, nullable=True)
 
 
@@ -120,7 +121,7 @@ class Document(db.Model):
         super(Document, self).__init__(**kwargs)
 
     def __repr__(self):
-        return f"{self.name} / ${self.price}"
+        return f"{self.name}"
 
     @classmethod
     def find_by_id(cls, _id: int) -> "Document":
@@ -131,13 +132,15 @@ class Document(db.Model):
         return cls.query.all()
 
     def save(self) -> None:
+        print(f'****self SQLAlchemyError')
         try:
             db.session.add(self)
             db.session.commit()
         except SQLAlchemyError as e:
+            print(f'****SQLAlchemyError {e}')
             db.session.rollback()
             db.session.close()
-            error = str(e.__dict__['orig'])
+            error =str(e.__dict__['orig'])
             raise InvalidUsage(error, 422)
 
     def delete(self) -> None:
@@ -208,11 +211,14 @@ class Users(db.Model, UserMixin):
     full_name = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(15), unique=True, nullable=False)  # Updated field
     password= db.Column(db.String(255), nullable=False)
-    branch_id = db.Column(db.Integer, default=0)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branchs.id'))
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    job_id = db.Column(db.Integer, db.ForeignKey('job_title.id'))
     role = db.relationship('Role', backref='users')
+    brnach = db.relationship('Branch', backref='users')
+    job = db.relationship('JobTitle', backref='users')
     #notifications = db.relationship('Notification', backref='users')
       # Define both relationships explicitly
         # FIXED: back_populates name must match the corresponding property
@@ -227,6 +233,7 @@ class Users(db.Model, UserMixin):
     def to_dict(self):
         return {
             'id': self.id,
+            'role_id':self.role_id,
             'phone': self.phone,
             'full_name': self.full_name,
             'branch_id': self.branch_id,
@@ -236,7 +243,15 @@ class Users(db.Model, UserMixin):
                 'id': self.role.id,
                 'name': self.role.name,
                 'permissions': self.role.permissions
-            } if self.role else None
+            } if self.role else None,
+            'branch': {
+                'id': self.brnach.id,
+                'name': self.brnach.name
+            } if self.brnach else None,
+             'job': {
+                'id': self.role.id,
+                'name': self.role.name
+            } if self.job else None
         }
     def __init__(self, **kwargs):
         for property, value in kwargs.items():
@@ -312,6 +327,13 @@ class Role(db.Model):
     name = db.Column(db.String(50), unique=True)
     permissions = db.Column(db.JSON)  # قائمة بالصلاحيات كـ JSON أو كـ علاقات منفصلة
 
+
+
+class JobTitle(db.Model):
+    __tablename__ = 'job_title'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
 
 
 class DocumentType(db.Model):
