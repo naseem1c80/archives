@@ -6,6 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 from apps.documents import blueprint
 
 from apps.models import Document,Files,Branch,Users,DocumentType
+from apps.documents.insert import addDocument
 from PIL import Image
 import pytesseract
 #from scanner import scan_document
