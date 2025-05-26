@@ -1,0 +1,34 @@
+{% extends "card/header.html" %}
+
+{% block title %} المستندات {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+        <!-- قائمة العملاء -->
+        <div id="customers" class="tab-content active">
+            <div class="toolbar">
+                <div class="search-filter-container">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="ابحث باسم العميل أو رقم الجوال..." id="searchInput">
+                        <div class="search-icon"><i class="fas fa-search"></i></div>
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterType">
+                            <option value="all">جميع الأنواع</option>
+                            <option value="id">بطاقة هوية</option>
+                            <option value="passport">جواز سفر</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                        <button class="btn btn-info" onclick="refreshData()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary no-print" onclick="printAll()"><i class="fas fa-print"></i> طباعة الكل</button>
+            </div>
+
+            <div class="customers-list" id="customersList"></div>
+        </div>
+{% endblock %}

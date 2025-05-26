@@ -1,0 +1,36 @@
+   {% extends "card/header.html" %}
+
+{% block title %} المستندات {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+   <!-- تبويب سجلات النشاط -->
+
+
+        <div id="activity" class="tab-content active">
+    <h2><i class="fas fa-history"></i> سجلات النشاط</h2>
+    
+    <div class="toolbar">
+        <div class="filter-group">
+            <select id="logTypeFilter">
+                <option value="all">جميع الأنواع</option>
+                <option value="add">إضافة</option>
+                <option value="edit">تعديل</option>
+                <option value="delete">حذف</option>
+                <option value="view">عرض</option>
+                <option value="print">طباعة</option>
+                <option value="report">تقرير</option>
+            </select>
+            <input type="date" id="logDateFilter">
+            <button class="btn btn-primary" onclick="refreshLogs()"><i class="fas fa-filter"></i> تصفية</button>
+        </div>
+        <button class="btn btn-success" onclick="exportLogs()"><i class="fas fa-download"></i> تصدير PDF</button>
+    </div>
+
+    <div class="activity-log" id="activityLog"></div>
+</div>
+
+    
+   {% endblock %}

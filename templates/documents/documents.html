@@ -1,15 +1,14 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Tables {% endblock %} 
+{% block title %} المستندات {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
 
-  <script sr="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
   
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- [ Main Content ] start -->
     <section class="pcoded-main-container">
         <div class="pcoded-content">
@@ -57,20 +56,21 @@
                     <input type="text" id="searchInput" class="form-control" placeholder="🔍 ابحث...">
                 </div>
                 <div class="col-md-2">
-                    <select id="docType" class="form-select">
-                        <option value="">كل الأنواع</option>
-                        <option value="تقرير">تقرير</option>
-                        <option value="عقد">عقد</option>
+                    <select id="document_type" class="form-select" onchange="change_document_type(this)">
+                        <option value="0">كل الأنواع</option>
+                        <option value="1">تقرير</option>
+                        <option value="2">عقد</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <input type="date" id="docDate" class="form-control date-input">
                 </div>
                 <div class="col-md-2">
-                    <select id="docStatus" class="form-select">
+                    <select id="docStatus" class="form-select" onchange="change_document_status(this)">
                         <option value="">كل الحالات</option>
                         <option value="1">متحقق</option>
                         <option value="0">غير متحقق</option>
+                            <option value="2">مرتجع </option>
                     </select>
                 </div>
                 <div class="col-md-3 d-grid">
@@ -84,20 +84,21 @@
 
 
     <div class="table-responsive">
-                        
-
-<table class="table table-striped table-bordered" id="list"  
-                               data-toggle="table"
-                               data-url="{{
-                               url_for('documents_blueprint.getdocuments') }}"
-                               data-pagination="true"
-                               data-side-pagination="server"
-                               data-page-list="[10, 20, 30 , 40 , 50, 100, 200]"
-                               data-search="true"
-                               data-show-refresh="true"
-                               data-show-toggle="true"
-                               data-sort-name="id"
-                               data-sort-order="asc">
+<table
+  id="table"
+  class="table table-striped table-bordered"
+  dir="rtl"
+  data-toggle="table"
+  data-ajax="ajaxRequest"
+  data-pagination="true"
+  data-side-pagination="server"
+  data-page-list="[10, 20, 50, 100]"
+  data-search="true"
+  data-show-refresh="true"
+  data-show-toggle="true"
+  data-sort-name="id"
+  data-sort-order="asc"
+>
                             <thead>
                             <tr>
 
@@ -128,8 +129,8 @@
                                 data-sortable="true">الحالة</th>
                  <th class="text-center py-1 px-2" data-field="created_at" data-align="center"
                                 data-sortable="true">التاريخ</th>
-<th data-align="center"     data-formatter="getactionuser"
-data-events="actionEvents" width="100px"  class="text-center py-1 px-2"> action
+<th data-align="center"     data-formatter="getactiondocument"
+ width="100px"  class="text-center py-1 px-2"> action
 </th>
 						
                          
@@ -148,8 +149,8 @@ data-events="actionEvents" width="100px"  class="text-center py-1 px-2"> action
 
 <script>
 
-    
-    function getactionuser(value,row,index){
+      window.getactiondocument = (value, row) => {
+   // function getactiondocument(value,row,index){
 			    
 			    return [`<div style="width:140px"><button class="btn btn-sm btn-primary"
 			    onclic="openEditModal(${row['id']}, '${row['name']}', '${row['number_doc']}',
@@ -160,7 +161,98 @@ data-events="actionEvents" width="100px"  class="text-center py-1 px-2"> action
 			}
 </script>
 
+<script>
+  var document_type = 0;
+ var document_status="";
+ 
+let documents_type=[];
+    loaddocuments_type();
 
+async function loaddocuments_type() {
+    const doctypSelect = document.getElementById('document_type');
+   
+    
+    try {
+      if(users.length<1){
+            doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
+       documents_type = await response.json();
+
+      }
+      // ملء القائمة المنسدلة
+      doctypSelect.innerHTML  = '';
+      documents_type.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = user.name;
+        doctypSelect.appendChild(option);
+      });
+    } catch (error) {
+      doctypSelect.innerHTML = '<option value="">فشل التحميل</option>';
+     showError('خطأ في تحميل الصلاحيات:');
+      console.error('خطأ في تحميل الاقسام:', error);
+    }
+  }
+  function change_document_type(e) {
+    document_type = e.value;
+    // إعادة تحميل الجدول عند تغيير نوع الوثيقة
+    $('#table').bootstrapTable('refresh'); 
+  }
+
+
+  function change_document_status(e) {
+    document_status = e.value;
+    // إعادة تحميل الجدول عند تغيير نوع الوثيقة
+    $('#table').bootstrapTable('refresh'); 
+  }
+
+  
+  window.ajaxRequest = function (params) {
+    // إذا لم يكن هناك بيانات في الطلب، أنشئ كائن data
+    if (!params.data) {
+      params.data = {};
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_type > 0) {
+      params.data['document_type'] = document_type;
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_status.length>0) {
+      params.data['status'] = document_status;
+    }
+
+    const url = "{{ url_for('documents_blueprint.getdocuments') }}";
+
+    // تنفيذ الطلب
+    $.get(`${url}?${$.param(params.data)}`).then(function (res) {
+      // تمرير النتائج إلى bootstrap-table
+      params.success(res);
+    }).catch(function (err) {
+      console.error("Error fetching documents:", err);
+    });
+  };
+</script>
+<script>/*
+    var document_type=0;
+  // your custom ajax request here
+  function change_document_type(e){
+    alert(e.value);
+    ajaxRequest();
+  }
+  window.ajaxRequest = params => {
+    const url = "{{url_for('documents_blueprint.getdocuments') }}"
+
+if(document_type>0){
+    params.data['document_type']=document_type;
+}
+alert(JSON.stringify(params));
+    $.get(`${url}?${$.param(params.data)}`).then(function (res) {
+      params.success(res)
+    })
+  }*/
+</script>
    
    
                             </div>
@@ -194,7 +286,7 @@ data-events="actionEvents" width="100px"  class="text-center py-1 px-2"> action
   </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
 $(document).on('click', '.view-profile-btn', function () {
     const docId = $(this).data('id');
@@ -226,8 +318,8 @@ $(document).on('click', '.view-profile-btn', function () {
 
         // تهيئة التطبيق
         $(document).ready(function() {
-            initEventListeners();
-            loadData(1);
+            //initEventListeners();
+            //loadData(1);
         });
 
         // إدارة الأحداث
@@ -265,7 +357,7 @@ $(document).on('click', '.view-profile-btn', function () {
         }
 
         // إدارة الأخطاء
-        function showError(message) {
+       /* function showError(message) {
             $('#mainTable tbody').html(`
                 <tr>
                     <td colspan="5" class="text-center text-danger py-4">
@@ -273,7 +365,7 @@ $(document).on('click', '.view-profile-btn', function () {
                     </td>
                 </tr>
             `);
-        }
+        }*/
 
         // منع الطلبات المتكررة
         function debounce(func, wait) {

@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from apps.users import blueprint
 
-from apps import db, login_manager,socketio
+from apps import db, login_manager
 from flask import render_template, redirect, request, url_for,jsonify,flash, Response
 from werkzeug.security import generate_password_hash # type: ignore
 from flask_login import (
@@ -18,7 +18,7 @@ import hashlib
 import io
 import base64
 from apps.models import Users,Notification,Role
-import eventlet
+#import eventlet
 #from apps.extensions import 
 import re
 from flask_login import login_required
@@ -35,25 +35,66 @@ def users():
 @blueprint.route('/getusers')
 @login_required
 def getusers():
-    users = Users.query.all()
+    #users = Users.query.all()
+    limit = request.args.get('limit', default=10, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+    search = request.args.get('search', default=None, type=str)
+    sort_by = request.args.get('sort_by', default='id')
+    sort_order = request.args.get('sort_order', default='asc')
+    # خريطة الحقول المسموح بها للفرز
+    sort_column_map = {
+    'id': Users.id,
+    'full_name': Users.full_name,
+    'phone': Users.phone,
+    'created_at': Users.created_at
+    }
+    # بداية الاستعلام
+    query = db.session.query(Users)
+    # تطبيق البحث
+    if search:
+       term = f"%{search}%"
+       query = query.filter(
+       db.or_(
+            Users.full_name.ilike(term),
+            Users.phone.ilike(term)
+        )
+        )
+
+# تطبيق الفرز
+    if sort_by in sort_column_map:
+       column = sort_column_map[sort_by]
+       if sort_order == 'desc':
+        query = query.order_by(column.desc())
+       else:
+        query = query.order_by(column.asc())
+    else:
+       query = query.order_by(Users.id.asc())  # ترتيب افتراضي
+
+# عدد النتائج الكلي قبل limit/offset
+    total = query.count()
+
+# تطبيق limit و offset
+    users = query.offset(offset).limit(limit).all()
+    response = {
+            "status": "success",
+            "rows": [
+               user.to_dict()
+             for user in users],
+            "total": total
+        }
+
+    return jsonify(response)
+
     return jsonify([user.to_dict() for user in users])
-    return jsonify([{
-        "id": u.id,
-        "full_name": u.full_name,
-        "phone": u.phone,
-        "role": u.role,
-        "active": u.active
-    } for u in users])
-    #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
-    #return render_template('users/users.html')
 
 @blueprint.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
     try:
      data=request.json
+     print(f'{data}')
      phone = data['phone']
-     role_id=data['role_id']
+     role_id=data['role']
      
      print(jsonify({'success': False, 'message':'', 'branch_id':data['branch_id'],'full_name':data['full_name'],'phone':data['phone'],'password':generate_password_hash(data['password'])}))
         #email = request.form['email']
@@ -64,7 +105,7 @@ def add_user():
         return jsonify({'message':'اسم المستخدم او رقم الهاتف موجود مسبقاً',
                                    'success':False})
 
-     user = Users(branch_id=data['branch_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id) 
+     user = Users(branch_id=data['branch_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id,job_id=1) 
         #user = Users(**request.form)
      db.session.add(user)
      db.session.commit()     #user.save()

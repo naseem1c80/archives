@@ -67,13 +67,13 @@
                         <label for="recipient_name">اسم المستلم</label>
                         <input type="text" name="recipient_name" class="form-control" id="recipient_name">
                     </div>
-                </div>
+           
 
-                <div class="mb-3">
-                    <label for="date">التاريخ</label>
+                <div class="col-md-4">
+                    <label for="date"> تاريخ السند </label>
                     <input type="date" name="date" class="form-control" id="date">
                 </div>
-
+     </div>
                 <!-- طلب توقيع المستند -->
                 <div class="card p-3 mb-4">
                     <div class="form-check form-switch mb-2">
@@ -176,7 +176,7 @@ async function loaddocuments_type() {
       }
       // ملء القائمة المنسدلة
       userSelect.innerHTML  = '<option value="0">اختيار الموظف </option>';
-      users.forEach(user => {
+      users.rows.forEach(user => {
         const option = document.createElement('option');
         option.value = user.id; // أو branch.code حسب هيكل البيانات
         option.textContent = user.full_name+"/"+user.phone;
@@ -203,6 +203,9 @@ function createDocBlock(index) {
                 <button type="button" class="btn btn-outline-success" onclick="scan(${index})">🖨️  </button>
                 <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file-input-${index}').click()">📁  </button>
             </div>
+              <input type="text" id="file-path-${index}" required readonly
+                     name="docs[${index}][path]" class="form-control"/>
+                     
             <input type="file" id="file-input-${index}" accept="*/*" name="docs[${index}][file]" class="form-control d-none" onchange="loadFilePreview(this, ${index})">
         </div>
 
@@ -219,7 +222,7 @@ function createDocBlock(index) {
             <div class="details_doc mt-2" style="display:none">
                 <textarea name="docs[${index}][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف المستند..."></textarea>
                 <pre id="pre-${index}" class="bg-light p-2 rounded"></pre>
-                <div id="pre2-${index}" class="bg-light p-2 rounded"></div>
+                <div id="pre2-${index}" class="row" lass="bg-light p-2 rounded"></div>
             </div>
         </div>
 
@@ -303,6 +306,11 @@ function scan(index) {
     $.ajax({ url: '/scan', type: 'POST', success: function(response) {
         if (response.success) {
             $(`#preview-${index}`).html(`<img src="${response.image_url}" alt="Preview">`);
+        var inp=$(`input[name="docs[${index}][path]"]`)
+        inp.attr('readonly',false);
+        inp.val(response.image_url);
+        inp.attr('readonly',true);
+            uploadDocument(null,index,response.image_url);
         } else {
             $(`#result-${index} .alert`).html('خطأ: ' + response.error);
         }
@@ -311,10 +319,15 @@ function scan(index) {
     }});
 }
 
-function uploadDocument(file, index) {
+function uploadDocument(file=null, index,path=null) {
  // alert(index+'');
  $(`#progress-${index}`).removeClass('d-none');
-    const formData = new FormData(); formData.append('file', file);
+    const formData = new FormData();
+    if(path!==null){
+      formData.append('path', path);
+    }else{
+    formData.append('file', file);
+    }
     const xhr = new XMLHttpRequest(); xhr.open('POST', '/read-doc', true);
     xhr.upload.addEventListener('progress', function(e) {
         if (e.lengthComputable) {
@@ -327,14 +340,23 @@ function uploadDocument(file, index) {
             const res = JSON.parse(xhr.responseText);
             if (res.success) {
                 $(`#progress-${index}`).addClass('d-none');
-               // $(`#pre-${index}`).html(res.text);
-               const sentences = res.text.match(/[^.!?]+[.!?]*/g) || [res.text];
+               $(`#pre-${index}`).html(res.text);
+               convert(res.text);
+               const sentences = res.text.match(/[^.!?]+[.!?]+[\n]*/g) || [res.text];
 const badges = sentences.map((s, i) => 
-    `<span class="badge bg-primary m-1 copy-badge" data-text="${s.trim()}" style="cursor:pointer;">${s.trim()}</span>`
+    `<div class="col"><span class="badge bg-primary m-2 copy-badge "
+    data-text="${s.trim()}" style="cursor:pointer;">${s.trim()}</span></div>`
 ).join('');
-$(`#pre-${index}`).html(badges);
+$(`#pre2-${index}`).html(badges);
 // التعامل مع النسخ عند الضغط على الجملة
-$(`#pre-${index}`).on('click', '.copy-badge', function () {
+
+               
+
+                $(`textarea[name="docs[${index}][details]"]`).val(res.text);
+                $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
+                
+                $(`#pre2-${index}`).on('click', '.copy-badge',function () {
     const text = $(this).data('text');
     navigator.clipboard.writeText(text).then(() => {
         // إشعار بسيط
@@ -348,11 +370,6 @@ toast.show();
         alert('❌ حدث خطأ أثناء النسخ');
     });
 });
-
-               
-
-                $(`textarea[name="docs[${index}][details]"]`).val(res.text);
-                $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
             }
         } else {
             //$(`#progress-${index}`).addClass('d-none');
@@ -420,6 +437,32 @@ $('#multi-form').on('submit', function (e) {
         }
     });
 });
+
+
+function convert(text){
+	  // استخراج البيانات بالتعابير النمطية
+const remittanceNumber = text.match(/رقم الحوالة\/\s*\|?\s*(\d+)/)?.[1] || "غير موجود";
+const senderName = text.match(/اسم المرسل\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiverName = text.match(/اسم المستلم\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiptNumber = text.match(/رقم السند\s*\/\s*(\d+)/)?.[1] || "غير موجود";
+const date = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/)?.[1] || "غير موجود";
+//transfer_number
+      //      doc_id
+            
+            
+            $("#sender_name").val(senderName);
+            $("#recipient_name").val(receiverName);
+            $("#transfer_number").val(remittanceNumber);
+            $("#date").val(date);
+            $("#doc_id").val(receiptNumber);
+// طباعة النتائج
+console.log("رقم الحوالة:", remittanceNumber);
+console.log("اسم المرسل:", senderName);
+console.log("اسم المستلم:", receiverName);
+console.log("رقم السند:", receiptNumber);
+console.log("التاريخ:", date);
+	}
+
 </script>
 <div id="toast-copy" class="toast position-fixed bottom-0 end-0 m-3 text-bg-success" role="alert" data-bs-delay="1500">
   <div class="toast-body">تم النسخ ✅</div>

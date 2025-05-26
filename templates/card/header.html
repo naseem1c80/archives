@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العملاء المتكامل</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+   <link rel="stylesheet" href="{{url_for('static',filename='/assets/style_card/style.css')}}" />
+   <!-- ✅ Load jQuery first -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.tag-select').select2({
+        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        dir: "rtl",
+        width: 'resolve',
+        language: {
+            noResults: function () {
+                return "لا توجد نتائج";
+            },
+            searching: function () {
+                return "جاري البحث...";
+            }
+        }
+    });
+});
+</script>
+</head>
+<body>
+    <div class="container">
+
+        <h1><i class="fas fa-users-cog"></i> نظام إدارة العملاء المتكامل</h1>
+
+        <!-- التبويبات -->
+        <div class="tabs">
+            <a class="tab" href="{{ url_for('customers_blueprint.customers') }}"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a>
+            <a a class="tab" href="{{ url_for('customers_blueprint.list') }}"><i class="fas fa-users"></i> العملاء</a>
+      <a class="tab" href="{{ url_for('customers_blueprint.add_customer') }}">
+    <i class="fas fa-user-plus"></i> إضافة عميل
+</a>
+            <a class="tab" href="{{ url_for('customers_blueprint.reports') }}"><i class="fas fa-chart-bar"></i> التقارير</a>
+            <a class="tab" href="{{ url_for('customers_blueprint.activity') }}"><i class="fas fa-history"></i> سجلات النشاط</a>
+        </div>
+
+
+         {% block content %}{% endblock content %}
+
+
+
+         
+</div>
+
+    <script>
+        // أنواع الملفات
+        const FILE_TYPES = {
+            id: { name: 'بطاقة هوية', color: '#27ae60', icon: 'fas fa-id-card' },
+            passport: { name: 'جواز سفر', color: '#3498db', icon: 'fas fa-passport' },
+            other: { name: 'أخرى', color: '#7f8c8d', icon: 'fas fa-file-alt' }
+        };
+
+        // بيانات النظام
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        let editingCustomerId = null;
+        let currentFiles = [];
+        let reportChart = null;
+
+        // عناصر DOM
+        const DOM = {
+            form: document.getElementById('customerForm'),
+            fullName: document.getElementById('fullName'),
+            phone: document.getElementById('phone'),
+            address: document.getElementById('address'),
+            notes: document.getElementById('notes'),
+            fileInput: document.getElementById('fileInput'),
+            fileType: document.getElementById('fileType'),
+            previewContainer: document.getElementById('previewContainer'),
+            searchInput: document.getElementById('searchInput'),
+            filterType: document.getElementById('filterType'),
+            customersList: document.getElementById('customersList'),
+            recentCustomers: document.getElementById('recentCustomers'),
+            message: document.getElementById('message'),
+            formTitle: document.getElementById('formTitle'),
+            submitBtn: document.getElementById('submitBtn'),
+            totalCustomers: document.getElementById('totalCustomers'),
+            idCards: document.getElementById('idCards'),
+            passports: document.getElementById('passports'),
+            lastUpdate: document.getElementById('lastUpdate'),
+            startDate: document.getElementById('startDate'),
+            endDate: document.getElementById('endDate'),
+            periodCustomers: document.getElementById('periodCustomers'),
+            periodPDFs: document.getElementById('periodPDFs'),
+            periodImages: document.getElementById('periodImages')
+        };
+
+        // أحداث النموذج
+        DOM.form.addEventListener('submit', handleSubmit);
+        DOM.fileInput.addEventListener('change', handleFileUpload);
+        DOM.searchInput.addEventListener('input', refreshCustomersList);
+        DOM.filterType.addEventListener('change', refreshCustomersList);
+
+        // تهيئة التاريخ
+        const today = new Date().toISOString().split('T')[0];
+        DOM.startDate.value = today;
+        DOM.endDate.value = today;
+
+        // ========== الدوال الرئيسية ========== //
+        function handleSubmit(e) {
+            e.preventDefault();
+            
+            const customerData = {
+                id: editingCustomerId || Date.now(),
+                name: DOM.fullName.value.trim(),
+                phone: DOM.phone.value.trim(),
+                address: DOM.address.value.trim(),
+                notes: DOM.notes.value.trim(),
+                files: currentFiles.map(file => ({
+                    ...file,
+                    category: DOM.fileType.value
+                })),
+                date: new Date().toISOString(),
+                type: DOM.fileType.value
+            };
+
+            if (!validateForm(customerData)) return;
+
+            if (editingCustomerId) {
+                updateCustomer(customerData);
+            } else {
+                addCustomer(customerData);
+            }
+
+            resetForm();
+            refreshCustomersList();
+            updateStats();
+            switchTab('customers');
+        }
+
+        function handleFileUpload(e) {
+            const files = Array.from(e.target.files);
+            currentFiles = [];
+            DOM.previewContainer.innerHTML = '';
+
+            // التحقق من عدد الملفات
+            const hasPDF = files.some(f => f.type === 'application/pdf');
+            if (hasPDF && files.length > 1) {
+                showAlert('يمكن رفع ملف PDF واحد فقط', 'error');
+                e.target.value = '';
+                return;
+            }
+
+            if (!hasPDF && files.length > 2) {
+                showAlert('الحد الأقصى صورتين', 'error');
+                e.target.value = '';
+                return;
+            }
+
+            files.forEach(file => {
+                if (!validateFile(file)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                const fileData = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: URL.createObjectURL(file),
+                    category: DOM.fileType.value
+                };
+                currentFiles.push(fileData);
+                showFilePreview(fileData);
+            });
+        }
+
+        // ========== الدوال المساعدة ========== //
+        function validateForm(data) {
+            if (!data.phone) {
+                showAlert('رقم الجوال حقل مطلوب', 'error');
+                return false;
+            }
+
+            if (!/^[0-9]{9}$/.test(data.phone)) {
+                showAlert('رقم الجوال يجب أن يكون 9 أرقام', 'error');
+                return false;
+            }
+
+            
+
+           /* if (currentFiles.length === 0) {
+                showAlert('يجب رفع ملف واحد على الأقل', 'error');
+                return false;
+            }
+*/
+            return true;
+        }
+
+        function validateFile(file) {
+            const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('الملفات المسموحة: JPG, PNG, PDF', 'error');
+                return false;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('حجم الملف يجب ألا يتجاوز 5MB', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function showFilePreview(file) {
+            const preview = document.createElement('div');
+            preview.className = 'file-preview';
+            
+            const typeInfo = FILE_TYPES[file.category] || FILE_TYPES.other;
+
+            if (file.type.startsWith('image/')) {
+                preview.innerHTML = `
+                    <div class="file-type-badge" style="background:${typeInfo.color}">
+                        <i class="${typeInfo.icon}"></i> ${typeInfo.name}
+                    </div>
+                    <img src="${file.data}" alt="${file.name}">
+                    <div class="file-info">
+                        ${file.name}<br>
+                        ${(file.size/1024).toFixed(1)}KB
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" onclick="downloadFile('${file.data}', '${file.name}')">
+                            <i class="fas fa-download"></i> تنزيل
+                        </button>
+                        <button class="file-action-btn" onclick="removeFile(this, '${file.data}')">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
+                `;
+            } else {
+                preview.innerHTML = `
+                    <div class="file-type-badge" style="background:${typeInfo.color}">
+                        <i class="${typeInfo.icon}"></i> ${typeInfo.name}
+                    </div>
+                    <div style="padding:20px; text-align:center">
+                        <i class="fas fa-file-pdf fa-3x" style="color:#e74c3c"></i><br>
+                        ${file.name}<br>
+                        <small>${(file.size/1024).toFixed(1)}KB</small>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" onclick="downloadFile('${file.data}', '${file.name}')">
+                            <i class="fas fa-download"></i> تنزيل
+                        </button>
+                        <button class="file-action-btn" onclick="removeFile(this, '${file.data}')">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
+                `;
+            }
+
+            DOM.previewContainer.appendChild(preview);
+        }
+
+        function removeFile(button, fileUrl) {
+            const preview = button.closest('.file-preview');
+            preview.remove();
+            
+            currentFiles = currentFiles.filter(f => f.data !== fileUrl);
+            URL.revokeObjectURL(fileUrl);
+        }
+
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // ========== عرض العملاء ========== //
+        function refreshCustomersList() {
+            const term = DOM.searchInput.value.toLowerCase();
+            const filterType = DOM.filterType.value;
+            
+            const filtered = customers.filter(customer => {
+                const matchesSearch = customer.name?.toLowerCase().includes(term) ||
+                                    customer.phone.includes(term);
+                const matchesType = filterType === 'all' || 
+                                  customer.type === filterType;
+                return matchesSearch && matchesType;
+            });
+            
+            displayCustomers(filtered, DOM.customersList);
+            
+            // عرض آخر 5 عملاء في لوحة التحكم
+            const recent = [...customers].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            displayCustomers(recent, DOM.recentCustomers);
+        }
+
+        function displayCustomers(customersArray, container) {
+            container.innerHTML = '';
+
+            if (customersArray.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#7f8c8d">لا توجد نتائج</p>';
+                return;
+            }
+
+            customersArray.forEach(customer => {
+                const typeInfo = FILE_TYPES[customer.type] || FILE_TYPES.other;
+                
+                const customerElement = document.createElement('div');
+                customerElement.className = 'customer-card';
+                customerElement.innerHTML = `
+                    <div class="customer-header">
+                        <h3 style="color:${typeInfo.color}">
+                            <i class="${typeInfo.icon}"></i> ${customer.name}
+                        </h3>
+                        <div class="customer-actions">
+                            <button class="btn btn-outline" onclick="editCustomer('${customer.id}')">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="btn btn-outline" onclick="printCustomer('${customer.id}')">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                            <button class="btn btn-outline" onclick="deleteCustomer('${customer.id}')">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    </div>
+                    <div class="customer-details">
+                        <div class="detail-item">
+                            <i class="fas fa-phone"></i>
+                            <span>${customer.phone}</span>
+                        </div>
+                        
+                        ${customer.address ? `
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${customer.address}</span>
+                        </div>` : ''}
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>${formatDate(customer.date)}</span>
+                        </div>
+                    </div>
+                    ${customer.notes ? `
+                    <div class="form-group">
+                        <label><i class="fas fa-info-circle"></i> ملاحظات</label>
+                        <p>${customer.notes}</p>
+                    </div>` : ''}
+                    ${customer.files.length > 0 ? `
+                    <div class="form-group">
+                        <label><i class="fas fa-paperclip"></i> المرفقات</label>
+                        <div class="customer-files">
+                            ${customer.files.map(file => {
+                                const fileType = FILE_TYPES[file.category] || FILE_TYPES.other;
+                                return file.type.startsWith('image/') 
+                                    ? `<img src="${file.data}" alt="${file.name}" title="${file.name}">`
+                                    : `<div class="file-badge" style="background:${fileType.color}">
+                                        <i class="${fileType.icon}"></i> ${file.name}
+                                       </div>`;
+                            }).join('')}
+                        </div>
+                    </div>` : ''}
+                `;
+                container.appendChild(customerElement);
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // ========== إدارة العملاء ========== //
+        function addCustomer(data) {
+            customers.push(data);
+            saveToLocalStorage();
+            showAlert('تمت إضافة العميل بنجاح', 'success');
+        }
+
+        function editCustomer(id) {
+            const customer = customers.find(c => c.id == id);
+            if (!customer) return;
+
+            editingCustomerId = customer.id;
+            
+            // ملء النموذج ببيانات العميل
+            DOM.fullName.value = customer.name;
+            DOM.phone.value = customer.phone;
+            DOM.address.value = customer.address || '';
+            DOM.notes.value = customer.notes || '';
+            DOM.fileType.value = customer.type || 'id';
+            
+            // معالجة الملفات
+            currentFiles = customer.files.map(file => ({ ...file }));
+            DOM.previewContainer.innerHTML = '';
+            currentFiles.forEach(file => showFilePreview(file));
+            
+            // تحديث عنوان النموذج
+            DOM.formTitle.innerHTML = '<i class="fas fa-user-edit"></i> تعديل بيانات العميل';
+            DOM.submitBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+            
+            // التبديل إلى تبويب الإضافة/التعديل
+            switchTab('addCustomer');
+            
+            // التمرير إلى أعلى الصفحة
+            window.scrollTo(0, 0);
+        }
+
+        // ... (الكود السابق يبقى كما هو)
+
+        // ========== إدارة العملاء ========== //
+                function updateCustomer(data) {
+            customers = customers.map(c => c.id === editingCustomerId ? data : c);
+            saveToLocalStorage();
+            showAlert('تم تحديث بيانات العميل بنجاح', 'success');
+        }
+
+        function deleteCustomer(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا العميل؟')) return;
+            customers = customers.filter(c => c.id != id);
+            saveToLocalStorage();
+            refreshCustomersList();
+            updateStats();
+            showAlert('تم حذف العميل بنجاح', 'success');
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('customers', JSON.stringify(customers));
+            updateStats();
+        }
+
+        function showAlert(message, type) {
+            DOM.message.className = `alert alert-${type}`;
+            DOM.message.innerHTML = message;
+            DOM.message.style.display = 'block';
+            setTimeout(() => DOM.message.style.display = 'none', 3000);
+        }
+
+        function resetForm() {
+            DOM.form.reset();
+            DOM.previewContainer.innerHTML = '';
+            currentFiles = [];
+            editingCustomerId = null;
+            DOM.formTitle.innerHTML = '<i class="fas fa-user-plus"></i> إضافة عميل جديد';
+            DOM.submitBtn.innerHTML = '<i class="fas fa-save"></i> حفظ البيانات';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            if (tabName === 'reports') generateReport();
+            if (tabName === 'dashboard') updateStats();
+        }
+
+        function refreshData() {
+            refreshCustomersList();
+            showAlert('تم تحديث البيانات بنجاح', 'success');
+        }
+
+        function updateStats() {
+            DOM.totalCustomers.textContent = customers.length;
+            DOM.idCards.textContent = customers.filter(c => c.type === 'id').length;
+            DOM.passports.textContent = customers.filter(c => c.type === 'passport').length;
+            DOM.lastUpdate.textContent = new Date().toLocaleTimeString('ar-SA');
+        }
+
+        function simulateScan() {
+            const fakeFile = {
+                name: 'مسح_ضوئي.jpg',
+                type: 'image/jpeg',
+                size: 1024 * 1024 * 2,
+                data: 'https://via.placeholder.com/200x300?text=مسح+ضوئي',
+                category: DOM.fileType.value
+            };
+            currentFiles.push(fakeFile);
+            showFilePreview(fakeFile);
+            showAlert('تم محاكاة المسح الضوئي بنجاح', 'success');
+        }
+
+        function generateReport() {
+            const start = new Date(DOM.startDate.value);
+            const end = new Date(DOM.endDate.value);
+            
+            const filtered = customers.filter(c => {
+                const date = new Date(c.date);
+                return date >= start && date <= end;
+            });
+
+            DOM.periodCustomers.textContent = filtered.length;
+            DOM.periodPDFs.textContent = filtered.reduce((acc, c) => acc + c.files.filter(f => f.type === 'application/pdf').length, 0);
+            DOM.periodImages.textContent = filtered.reduce((acc, c) => acc + c.files.filter(f => f.type.startsWith('image/')).length, 0);
+
+            if (reportChart) reportChart.destroy();
+            
+            const ctx = document.getElementById('reportChart').getContext('2d');
+            reportChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['عملاء جدد', 'ملفات PDF', 'صور مرفقة'],
+                    datasets: [{
+                        label: 'الإحصائيات',
+                        data: [
+                            DOM.periodCustomers.textContent,
+                            DOM.periodPDFs.textContent,
+                            DOM.periodImages.textContent
+                        ],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(231, 76, 60, 0.7)',
+                            'rgba(46, 204, 113, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'التوزيع الإحصائي' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function printCustomer(id) {
+            const customer = customers.find(c => c.id == id);
+            if (!customer) return;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>بيانات العميل - ${customer.name}</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        h2 { color: #2c3e50; }
+                        .detail { margin: 10px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${customer.name}</h2>
+                    <div class="details">
+                        <div class="detail"><strong>الهاتف:</strong> ${customer.phone}</div>
+                        ${customer.email ? `<div class="detail"><strong>البريد:</strong> ${customer.email}</div>` : ''}
+                        ${customer.address ? `<div class="detail"><strong>العنوان:</strong> ${customer.address}</div>` : ''}
+                        <div class="detail"><strong>التاريخ:</strong> ${formatDate(customer.date)}</div>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function printAll() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>كافة العملاء</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        .customer { margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>كافة العملاء</h1>
+                    ${customers.map(c => `
+                        <div class="customer">
+                            <h2>${c.name}</h2>
+                            <div>الهاتف: ${c.phone}</div>
+                            ${c.email ? `<div>البريد: ${c.email}</div>` : ''}
+                            <div>التاريخ: ${formatDate(c.date)}</div>
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        
+        let currentUser = {
+            username: "admin",
+            branch: "الفرع الرئيسي"
+        };
+
+        let activityLogs = JSON.parse(localStorage.getItem('activityLogs')) || [];
+
+        // أنواع السجلات
+        const LOG_TYPES = {
+            add: { name: 'إضافة', class: 'add' },
+            edit: { name: 'تعديل', class: 'edit' },
+            delete: { name: 'حذف', class: 'delete' },
+            view: { name: 'عرض', class: 'view' },
+            print: { name: 'طباعة', class: 'print' },
+            report: { name: 'تقرير', class: 'report' }
+        };
+
+        // دالة تسجيل النشاط
+        function logActivity(type, details) {
+            const logEntry = {
+                type: type,
+                user: currentUser.username,
+                branch: currentUser.branch,
+                details: details,
+                timestamp: new Date().toISOString()
+            };
+            
+            activityLogs.unshift(logEntry);
+            localStorage.setItem('activityLogs', JSON.stringify(activityLogs));
+        }
+
+        // عرض السجلات
+        function refreshLogs() {
+            const typeFilter = document.getElementById('logTypeFilter').value;
+            const dateFilter = document.getElementById('logDateFilter').value;
+            
+            const filtered = activityLogs.filter(log => {
+                const matchesType = typeFilter === 'all' || log.type === typeFilter;
+                const matchesDate = !dateFilter || 
+                    new Date(log.timestamp).toISOString().split('T')[0] === dateFilter;
+                return matchesType && matchesDate;
+            });
+            
+            displayLogs(filtered);
+        }
+
+        function displayLogs(logs) {
+            const container = document.getElementById('activityLog');
+            container.innerHTML = '';
+            
+            if (logs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#7f8c8d">لا توجد سجلات</p>';
+                return;
+            }
+            
+            logs.forEach(log => {
+                const logElement = document.createElement('div');
+                logElement.className = 'log-item';
+                logElement.innerHTML = `
+                    <span class="log-type ${LOG_TYPES[log.type].class}">
+                        ${LOG_TYPES[log.type].name}
+                    </span>
+                    <span>${log.user}</span>
+                    <span>${log.details}</span>
+                    <span>${formatDateTime(log.timestamp)}</span>
+                `;
+                container.appendChild(logElement);
+            });
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('ar-SA', {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            });
+        }
+
+        // تصدير السجلات
+        function exportLogs() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text('سجلات النشاط - نظام إدارة العملاء', 15, 15);
+            
+            const headers = [["النوع", "المستخدم", "التفاصيل", "التاريخ"]];
+            const data = activityLogs.map(log => [
+                LOG_TYPES[log.type].name,
+                log.user,
+                log.details,
+                formatDateTime(log.timestamp)
+            ]);
+            
+            doc.setFontSize(12);
+            doc.autoTable({
+                startY: 25,
+                head: headers,
+                body: data,
+                theme: 'grid',
+                styles: { font: 'Amiri', halign: 'right' },
+                headerStyles: { fillColor: [41, 128, 185], textColor: 255 }
+            });
+            
+            doc.save('activity_logs.pdf');
+        }
+
+        // تعديل الدوال الحالية لإضافة التسجيل
+        function addCustomer(data) {
+            customers.push(data);
+            saveToLocalStorage();
+            showAlert('تمت إضافة العميل بنجاح', 'success');
+            logActivity('add', `تم إضافة عميل جديد: ${data.name}`);
+        }
+
+        function updateCustomer(data) {
+            customers = customers.map(c => c.id === editingCustomerId ? data : c);
+            saveToLocalStorage();
+            showAlert('تم تحديث بيانات العميل بنجاح', 'success');
+            logActivity('edit', `تم تعديل عميل: ${data.name}`);
+        }
+
+        function deleteCustomer(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا العميل؟')) return;
+            const customer = customers.find(c => c.id == id);
+            customers = customers.filter(c => c.id != id);
+            saveToLocalStorage();
+            refreshCustomersList();
+            updateStats();
+            showAlert('تم حذف العميل بنجاح', 'success');
+            logActivity('delete', `تم حذف عميل: ${customer.name}`);
+        }
+
+        function printCustomer(id) {
+            const customer = customers.find(c => c.id == id);
+            if (!customer) return;
+            logActivity('print', `تم طباعة بيانات العميل: ${customer.name}`);
+            // باقي كود الطباعة...
+        }
+
+        function generateReport() {
+            // باقي كود التقرير...
+            logActivity('report', 'تم إنشاء تقرير إحصائي');
+        }
+
+        function refreshCustomersList() {
+            // باقي كود التحديث...
+            logActivity('view', 'عرض قائمة العملاء');
+        }
+        // إدارة النماذج
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+    });
+}
+
+function toggleBranchVisibility() {
+    const role = document.getElementById('userRole').value;
+    document.getElementById('branchSelection').style.display = 
+        role === 'branch_manager' || role === 'staff' ? 'block' : 'none';
+}
+
+// عرض قائمة المستخدمين
+function refreshUsersList() {
+    const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+    const filteredUsers = users.filter(user => 
+        user.username.toLowerCase().includes(searchTerm)
+    );
+    
+    const usersList = document.getElementById('usersList');
+    usersList.innerHTML = filteredUsers.map(user => `
+        <div class="user-card">
+            <div class="user-info">
+                <h4>${user.username}</h4>
+                <span class="role-badge ${getRoleClass(user.role)}">
+                    ${getRoleName(user.role)}
+                </span>
+                ${user.branch ? `<span>الفرع: ${getBranchName(user.branch)}</span>` : ''}
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-outline" onclick="editUser('${user.id}')">
+                    <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="btn btn-danger" onclick="deleteUser('${user.id}')">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getRoleClass(role) {
+    return {
+        admin: 'role-admin',
+        branch_manager: 'role-manager',
+        staff: 'role-staff'
+    }[role];
+}
+
+function getRoleName(role) {
+    return {
+        admin: 'مدير النظام',
+        branch_manager: 'مدير فرع',
+        staff: 'موظف'
+    }[role];
+}
+
+        // تهيئة النظام عند التحميل
+        window.onload = function() {
+            updateStats();
+            refreshCustomersList();
+            generateReport();
+            refreshLogs();
+        }
+    </script>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+
+
+
+<script>
+let docIndex = 0;
+
+
+function extractTextFromImage(file, index) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        Tesseract.recognize(
+            e.target.result,
+            'ara+en', // اللغة العربية
+            {  logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const pct = Math.round(m.progress * 100);
+                        $(`#progress-bar-${index}`).css('width', `${pct}%`).text(`${pct}%`);
+                    }
+                }
+            }
+        
+		
+		
+		).then(({ data: { text } }) => {
+		$(`#progress-${index}`).addClass('d-none'); // إخفاء الشريط بعد الانتهاء
+            // تحليل النص واستخلاص البيانات
+           			$(`#pre2-${index}`).html(text);
+            console.log("OCR Text:", text);
+            const nameMatch = text.match(/الاسم[:\-]?\s*(.+)/);
+            const idMatch = text.match(/رقم[:\-]?\s*(\d+)/);
+console.log('idMatch',idMatch);
+           $(`textarea[name="docs[${index}][details]"]`).val(text);
+            if (nameMatch) $(`input[name="docs[${index}][name]"]`).val(nameMatch[1]);
+            if (idMatch) $(`input[name="docs[${index}][id]"]`).val(idMatch[1]);
+        }).catch(() => {
+            $(`#progress-${index}`).addClass('d-none');
+            alert("فشل في قراءة البيانات من السند.");
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function openCamera(index) {
+    const input = document.getElementById(`file-input-${index}`);
+    input.setAttribute('capture', 'environment');
+    input.click();
+}
+
+function loadFilePreview(input, index) {
+    const file = input.files[0];
+    const previewBox = document.getElementById(`preview-${index}`);
+uploadDocument(file, index);
+    if (file && file.type.startsWith("image")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            previewBox.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded shadow-sm" style="max-height: 300px;">`;
+            
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewBox.innerHTML = `<em class="text-muted">لم يتم اختيار صورة صالحة.</em>`;
+    }
+}
+
+function toggleDetails(index, btn) {
+    const details = btn.closest(".card").querySelector(".details_doc");
+    details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
+    btn.textContent = details.style.display === 'block' ? 'إخفاء التفاصيل' : 'عرض التفاصيل';
+}
+
+
+
+
+
+function show_details_doc(index, e) {
+    const det = $(e).closest('.cdetails').find('.details_doc');
+    det.slideToggle();
+    $(e).text(det.is(':visible') ? '-' : '+');
+}
+
+function updateHandlers() {
+    $('.source-select').off('change').on('change', function() {
+        const index = $(this).data('index');
+        const block = $(this).closest('.document-block');
+        if ($(this).val() === 'upload') {
+            block.find('.upload-block').removeClass('d-none');
+            block.find(`#result-${index}`).addClass('d-none');
+        } else {
+            scan(index);
+            block.find(`#result-${index}`).removeClass('d-none');
+            block.find('.upload-block').addClass('d-none');
+        }
+    });
+
+    $('.remove-doc').off('click').on('click', function() {
+        $(this).closest('.document-block').remove();
+    });
+}
+
+function loadfile(f) {
+    const index = $(f).data('index');
+    const file = f.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $(`#progress-${index}`).removeClass('d-none');
+            $(`#preview-${index}`).html(`<img src="${e.target.result}" alt="Preview">`);
+            uploadDocument(file, index);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function scan(index) {
+    $(`#result-${index} .alert`).html('جاري المسح للعرض فقط...');
+    $.ajax({ url: '/scan', type: 'POST', success: function(response) {
+        if (response.success) {
+            $(`#preview-${index}`).html(`<img src="${response.image_url}" alt="Preview">`);
+        var inp=$(`input[name="docs[${index}][path]"]`)
+        inp.attr('readonly',false);
+        inp.val(response.image_url);
+        inp.attr('readonly',true);
+            uploadDocument(null,index,response.image_url);
+        } else {
+            $(`#result-${index} .alert`).html('خطأ: ' + response.error);
+        }
+    }, error: function() {
+        $(`#result-${index} .alert`).html('فشل الاتصال بالخادم.');
+    }});
+}
+
+function uploadDocument(file=null, index,path=null) {
+ // alert(index+'');
+ $(`#progress-${index}`).removeClass('d-none');
+    const formData = new FormData();
+    if(path!==null){
+      formData.append('path', path);
+    }else{
+    formData.append('file', file);
+    }
+    const xhr = new XMLHttpRequest(); xhr.open('POST', '/read-doc', true);
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index}`).addClass('d-none');
+               $(`#pre-${index}`).html(res.text);
+               convert(res.text);
+               const sentences = res.text.match(/[^.!?]+[.!?]+[\n]*/g) || [res.text];
+const badges = sentences.map((s, i) => 
+    `<div class="col"><span class="badge bg-primary m-2 copy-badge "
+    data-text="${s.trim()}" style="cursor:pointer;">${s.trim()}</span></div>`
+).join('');
+$(`#pre2-${index}`).html(badges);
+// التعامل مع النسخ عند الضغط على الجملة
+
+               
+
+                $(`textarea[name="docs[${index}][details]"]`).val(res.text);
+                $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
+                
+                $(`#pre2-${index}`).on('click', '.copy-badge',function () {
+    const text = $(this).data('text');
+    navigator.clipboard.writeText(text).then(() => {
+        // إشعار بسيط
+        //alert('✅ تم نسخ الجملة إلى الحافظة');
+        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+toast.show();
+
+        // أو يمكنك استخدام Toast إن أردت تنسيقًا أجمل
+        // showToast('✅ تم النسخ!');
+    }).catch(err => {
+        alert('❌ حدث خطأ أثناء النسخ');
+    });
+});
+            }
+        } else {
+            //$(`#progress-${index}`).addClass('d-none');
+        }
+    };
+    xhr.send(formData);
+}
+
+
+// إضافة مستند
+$('#add-doc').on('click', function() {
+    $('#documents-container').append(createDocBlock(docIndex));
+    updateHandlers(); docIndex++;
+});
+
+// فحص قبل الإرسال
+
+
+// إضافة أول مستند تلقائيًا
+$('#add-doc').click();
+
+
+$('#multi-form').on('submit', function (e) {
+    e.preventDefault();
+    if ($('#require_signature').is(':checked') && $('#sign_users').val().length === 0) {
+        e.preventDefault();
+        $('#sign_users').addClass('is-invalid');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    $('#result').html('⏳ جاري حفظ المستندات...');
+
+    $.ajax({
+        url: '/save-docs',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            if (res.success) {
+                $('#result').html('<h5>✅ تم حفظ المستندات بنجاح</h5>');
+                $('#multi-form')[0].reset();
+                $('#documents-container').empty();
+                docIndex = 0;
+                document.getElementById('sign_users').value=0;
+                        $('#sign-users-container').addClass('d-none');
+        $('#sign_users').removeAttr('required').removeClass('is-invalid');
+            } else {
+                $('#result').html('❌ خطأ: ' + res.message);
+            }
+        },
+        error: function () {
+            $('#result').html('❌ فشل الاتصال بالخادم.');
+        }
+    });
+});
+
+
+function convert(text){
+	  // استخراج البيانات بالتعابير النمطية
+const remittanceNumber = text.match(/رقم الحوالة\/\s*\|?\s*(\d+)/)?.[1] || "غير موجود";
+const senderName = text.match(/اسم المرسل\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiverName = text.match(/اسم المستلم\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+const receiptNumber = text.match(/رقم السند\s*\/\s*(\d+)/)?.[1] || "غير موجود";
+const date = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/)?.[1] || "غير موجود";
+//transfer_number
+      //      doc_id
+            
+            
+            $("#sender_name").val(senderName);
+            $("#recipient_name").val(receiverName);
+            $("#transfer_number").val(remittanceNumber);
+            $("#date").val(date);
+            $("#doc_id").val(receiptNumber);
+// طباعة النتائج
+console.log("رقم الحوالة:", remittanceNumber);
+console.log("اسم المرسل:", senderName);
+console.log("اسم المستلم:", receiverName);
+console.log("رقم السند:", receiptNumber);
+console.log("التاريخ:", date);
+	}
+
+</script>
+</body>
+</html>

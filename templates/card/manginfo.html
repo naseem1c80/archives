@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العملاء المتكامل</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}" />
+    
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-users-cog"></i> نظام إدارة العملاء المتكامل</h1>
+
+        <!-- شريط الأدوات العلوي -->
+        <div class="toolbar">
+            <div class="user-info">
+                <span id="currentBranch"></span>
+                <span id="currentUser"></span>
+            </div>
+            <div class="notification-bell" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <div class="notification-count" id="notificationCount">0</div>
+            </div>
+        </div>
+
+        <!-- التبويبات -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('users')"><i class="fas fa-users-cog"></i> إدارة المستخدمين</div>
+            <div class="tab" onclick="switchTab('branches')"><i class="fas fa-code-branch"></i> إدارة الفروع</div>
+            <div class="tab" onclick="switchTab('activity')"><i class="fas fa-history"></i> سجل النشاطات</div>
+        </div>
+
+        <!-- محتوى تبويب المستخدمين -->
+        <div id="users" class="tab-content active">
+            <div class="toolbar">
+                <button class="btn btn-primary" onclick="showUserForm()" id="addUserBtn"><i class="fas fa-user-plus"></i> إضافة مستخدم</button>
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="ابحث بالمستخدمين..." id="userSearch" onkeyup="searchUsers()">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="users-list" id="usersList"></div>
+        </div>
+
+        <!-- محتوى تبويب الأفرع -->
+        <div id="branches" class="tab-content">
+            <div class="toolbar">
+                <button class="btn btn-primary" onclick="showBranchForm()" id="addBranchBtn"><i class="fas fa-plus-circle"></i> إضافة فرع</button>
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="ابحث بالفروع..." id="branchSearch" onkeyup="searchBranches()">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="branches-list" id="branchesList"></div>
+        </div>
+
+        <!-- محتوى تبويب سجل النشاطات -->
+        <div id="activity" class="tab-content">
+            <div class="toolbar">
+                <button class="btn btn-info" onclick="exportActivityLog()"><i class="fas fa-file-export"></i> تصدير السجل</button>
+                <div class="filter-group">
+                    <select id="activityFilter" onchange="filterActivityLog()">
+                        <option value="all">جميع النشاطات</option>
+                        <option value="user_add">إضافة مستخدم</option>
+                        <option value="user_update">تعديل مستخدم</option>
+                        <option value="user_delete">حذف مستخدم</option>
+                        <option value="branch_add">إضافة فرع</option>
+                        <option value="branch_update">تعديل فرع</option>
+                        <option value="branch_delete">حذف فرع</option>
+                    </select>
+                </div>
+            </div>
+            <div class="activity-log" id="activityLog"></div>
+        </div>
+
+        <!-- نموذج إضافة/تعديل المستخدم -->
+        <div id="userFormModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h3><i class="fas fa-user-edit"></i> <span id="userFormTitle">إضافة مستخدم جديد</span></h3>
+                <form id="userForm" onsubmit="saveUser(event)">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label for="username">اسم المستخدم</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور</label>
+                        <input type="password" id="password" autocomplete="new-password">
+                        <small id="passwordHelp">اتركه فارغاً للحفاظ على كلمة المرور الحالية</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">الدور</label>
+                        <select id="userRole" required onchange="toggleBranchVisibility()">
+                            <option value="admin">مدير النظام</option>
+                            <option value="branch_manager">مدير فرع</option>
+                            <option value="staff">موظف</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="branchSelection">
+                        <label for="userBranch">الفرع التابع</label>
+                        <select id="userBranch"></select>
+                    </div>
+                    <div class="progress-bar" id="passwordStrengthBar" style="display:none;">
+                        <div class="progress" id="passwordStrength"></div>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-danger" onclick="closeModal()"><i class="fas fa-times"></i> إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- نموذج إدارة الأفرع -->
+        <div id="branchFormModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h3><i class="fas fa-code-branch"></i> <span id="branchFormTitle">إضافة فرع جديد</span></h3>
+                <form id="branchForm" onsubmit="saveBranch(event)">
+                    <input type="hidden" id="branchId">
+                    <div class="form-group">
+                        <label for="branchName">اسم الفرع</label>
+                        <input type="text" id="branchName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="branchManager">المسؤول</label>
+                        <select id="branchManager"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="branchAddress">العنوان</label>
+                        <textarea id="branchAddress" rows="3" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-danger" onclick="closeModal()"><i class="fas fa-times"></i> إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- لوحة الإشعارات -->
+        <div class="notifications-panel" id="notificationsPanel">
+            <div class="panel-header" style="padding:10px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <h4>الإشعارات</h4>
+                <button class="btn btn-outline" style="padding:5px 10px; font-size:0.8em;" onclick="markAllAsRead()">تعيين الكل كمقروء</button>
+            </div>
+            <div id="notificationsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات النظام
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let branches = JSON.parse(localStorage.getItem('branches')) || [];
+        let activities = JSON.parse(localStorage.getItem('activities')) || [];
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let currentUser = null;
+        let currentBranch = null;
+
+        // صلاحيات الأدوار
+        const permissions = {
+            admin: {
+                manage_users: true,
+                manage_branches: true,
+                view_activity: true,
+                edit_all_users: true,
+                delete_all_users: true,
+                edit_all_branches: true,
+                delete_all_branches: true
+            },
+            branch_manager: {
+                manage_users: true,
+                manage_branches: false,
+                view_activity: true,
+                edit_all_users: false,
+                delete_all_users: false,
+                edit_all_branches: false,
+                delete_all_branches: false,
+                edit_branch_users: true,
+                delete_branch_users: true
+            },
+            staff: {
+                manage_users: false,
+                manage_branches: false,
+                view_activity: false,
+                edit_all_users: false,
+                delete_all_users: false,
+                edit_all_branches: false,
+                delete_all_branches: false
+            }
+        };
+
+        // تهيئة النظام
+        function initSystem() {
+            // إنشاء مستخدم مسؤول إذا لم يكن موجوداً
+            if(users.length === 0) {
+                const adminUser = {
+                    id: 1,
+                    username: 'admin',
+                    password: 'admin123',
+                    role: 'admin',
+                    branch: null,
+                    created: new Date().toISOString(),
+                    lastLogin: null
+                };
+                users.push(adminUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // إنشاء فرع رئيسي
+                const mainBranch = {
+                    id: 1,
+                    name: 'الفرع الرئيسي',
+                    manager: 1,
+                    address: 'العنوان الرئيسي',
+                    created: new Date().toISOString()
+                };
+                branches.push(mainBranch);
+                localStorage.setItem('branches', JSON.stringify(branches));
+                
+                // تسجيل نشاط النظام الأول
+                logActivity('system_init', 'تم تهيئة النظام لأول مرة');
+            }
+            
+            // افتراضياً نستخدم المستخدم الأول (المسؤول)
+            currentUser = users[0];
+            currentBranch = branches.find(b => b.id === currentUser.branch) || branches[0];
+            
+            updateUserDisplay();
+            refreshUsersList();
+            refreshBranchesList();
+            updateNotifications();
+            loadBranchesToSelect();
+            loadManagersToSelect();
+            refreshActivityLog();
+            
+            // التحقق من الصلاحيات
+            checkPermissions();
+            
+            // تسجيل دخول المستخدم
+            logActivity('user_login', `قام المستخدم ${currentUser.username} بتسجيل الدخول`);
+        }
+
+        // التحقق من الصلاحيات وإظهار/إخفاء العناصر حسب الدور
+        function checkPermissions() {
+            const userRole = currentUser.role;
+            
+            // إدارة المستخدمين
+            if(!permissions[userRole]?.manage_users) {
+                document.getElementById('addUserBtn').style.display = 'none';
+                document.getElementById('users').style.display = 'none';
+            }
+            
+            // إدارة الأفرع
+            if(!permissions[userRole]?.manage_branches) {
+                document.getElementById('addBranchBtn').style.display = 'none';
+                document.getElementById('branches').style.display = 'none';
+            }
+            
+            // سجل النشاطات
+            if(!permissions[userRole]?.view_activity) {
+                document.querySelector('.tab[onclick="switchTab(\'activity\')"]').style.display = 'none';
+            }
+        }
+
+        // تحديث عرض معلومات المستخدم الحالي
+        function updateUserDisplay() {
+            const userElement = document.getElementById('currentUser');
+            const branchElement = document.getElementById('currentBranch');
+            
+            if(currentUser) {
+                const roleBadge = getRoleBadge(currentUser.role, currentUser.role);
+                userElement.innerHTML = `مرحباً، ${currentUser.username} <span class="user-role-badge ${currentUser.role}-badge">${roleBadge}</span>`;
+            }
+            
+            if(currentBranch) {
+                branchElement.textContent = `الفرع: ${currentBranch.name}`;
+            }
+        }
+
+        // تحويل رمز الدور إلى نص مقروء
+        function getRoleBadge(role) {
+            const roles = {
+                'admin': 'مدير النظام',
+                'branch_manager': 'مدير فرع',
+                'staff': 'موظف'
+            };
+            return roles[role] || role;
+        }
+
+        // تحديث قائمة المستخدمين
+        function refreshUsersList(filteredUsers = null) {
+            const usersList = document.getElementById('usersList');
+            const usersToDisplay = filteredUsers || users;
+            
+            usersList.innerHTML = usersToDisplay.map(user => {
+                const branch = branches.find(b => b.id === user.branch);
+                const branchName = branch ? branch.name : 'لا يوجد';
+                const managerName = branch && branch.manager ? 
+                    users.find(u => u.id === branch.manager)?.username : 'غير معين';
+                
+                const canEdit = canUserEdit(user);
+                const canDelete = canUserDelete(user);
+                
+                return `
+                    <div class="user-card" data-id="${user.id}">
+                        <div class="user-header">
+                            <h3>${user.username}</h3>
+                            <div class="user-actions">
+                                ${canEdit ? `<button class="btn btn-outline" onclick="editUser(${user.id})"><i class="fas fa-edit"></i> تعديل</button>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger" onclick="confirmDeleteUser(${user.id})"><i class="fas fa-trash"></i> حذف</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="user-details">
+                            <div class="detail-item">
+                                <i class="fas fa-user-tag"></i>
+                                <span>الدور: <span class="user-role-badge ${user.role}-badge">${getRoleBadge(user.role)}</span></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-code-branch"></i>
+                                <span>الفرع: ${branchName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>تاريخ الإنشاء: ${formatDate(user.created)}</span>
+                            </div>
+                            ${user.lastLogin ? `
+                            <div class="detail-item">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>آخر دخول: ${formatDateTime(user.lastLogin)}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // التحقق مما إذا كان المستخدم الحالي يمكنه تعديل مستخدم آخر
+        function canUserEdit(user) {
+            if(!currentUser) return false;
+            
+            const userRole = currentUser.role;
+            
+            // المدير يمكنه تعديل الجميع
+            if(permissions[userRole]?.edit_all_users) return true;
+            
+            // مدير الفرع يمكنه تعديل مستخدمي فرعه فقط
+            if(permissions[userRole]?.edit_branch_users && 
+               currentUser.branch && 
+               user.branch === currentUser.branch) {
+                return true;
+            }
+            
+            // يمكن للمستخدم تعديل نفسه
+            if(user.id === currentUser.id) return true;
+            
+            return false;
+        }
+
+        // التحقق مما إذا كان المستخدم الحالي يمكنه حذف مستخدم آخر
+        function canUserDelete(user) {
+            if(!currentUser) return false;
+            
+            const userRole = currentUser.role;
+            
+            // لا يمكن حذف النفس
+            if(user.id === currentUser.id) return false;
+            
+            // المدير يمكنه حذف الجميع
+            if(permissions[userRole]?.delete_all_users) return true;
+            
+            // مدير الفرع يمكنه حذف مستخدمي فرعه فقط
+            if(permissions[userRole]?.delete_branch_users && 
+               currentUser.branch && 
+               user.branch === currentUser.branch) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // تحديث قائمة الأفرع
+        function refreshBranchesList(filteredBranches = null) {
+            const branchesList = document.getElementById('branchesList');
+            const branchesToDisplay = filteredBranches || branches;
+            
+            branchesList.innerHTML = branchesToDisplay.map(branch => {
+                const manager = users.find(u => u.id === branch.manager);
+                const managerName = manager ? manager.username : 'غير معين';
+                const canEdit = canUserEditBranch(branch);
+                const canDelete = canUserDeleteBranch(branch);
+                
+                return `
+                    <div class="branch-card" data-id="${branch.id}">
+                        <div class="branch-header">
+                            <h3>${branch.name}</h3>
+                            <div class="branch-actions">
+                                ${canEdit ? `<button class="btn btn-outline" onclick="editBranch(${branch.id})"><i class="fas fa-edit"></i> تعديل</button>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger" onclick="confirmDeleteBranch(${branch.id})"><i class="fas fa-trash"></i> حذف</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="branch-details">
+                            <div class="detail-item">
+                                <i class="fas fa-user-tie"></i>
+                                <span>المسؤول: ${managerName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>العنوان: ${branch.address}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>تاريخ الإنشاء: ${formatDate(branch.created)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // التحقق مما إذا كان المستخدم الحالي يمكنه تعديل فرع
+        function canUserEditBranch(branch) {
+            if(!currentUser) return false;
+            
+            const userRole = currentUser.role;
+            
+            // المدير يمكنه تعديل جميع الأفرع
+            if(permissions[userRole]?.edit_all_branches) return true;
+            
+            // مدير الفرع يمكنه تعديل فرعه فقط
+            if(userRole === 'branch_manager' && 
+               currentUser.branch === branch.id) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // التحقق مما إذا كان المستخدم الحالي يمكنه حذف فرع
+        function canUserDeleteBranch(branch) {
+            if(!currentUser) return false;
+            
+            const userRole = currentUser.role;
+            
+            // المدير فقط يمكنه حذف الأفرع
+            if(permissions[userRole]?.delete_all_branches) return true;
+            
+            return false;
+        }
+
+        // تحميل الأفرع في القائمة المنسدلة
+        function loadBranchesToSelect() {
+            const branchSelect = document.getElementById('userBranch');
+            branchSelect.innerHTML = branches.map(branch => 
+                `<option value="${branch.id}">${branch.name}</option>`
+            ).join('');
+        }
+
+        // تحميل المديرين في القائمة المنسدلة
+        function loadManagersToSelect() {
+            const managerSelect = document.getElementById('branchManager');
+            // نأخذ فقط المستخدمين الذين لديهم دور مدير فرع أو مدير نظام
+            const managers = users.filter(u => u.role === 'admin' || u.role === 'branch_manager');
+            managerSelect.innerHTML = managers.map(user => 
+                `<option value="${user.id}">${user.username} (${getRoleBadge(user.role)})</option>`
+            ).join('');
+        }
+
+        // إظهار/إخفاء اختيار الفرع حسب الدور
+        function toggleBranchVisibility() {
+            const role = document.getElementById('userRole').value;
+            const branchSelection = document.getElementById('branchSelection');
+            
+            if(role === 'admin') {
+                branchSelection.style.display = 'none';
+            } else {
+                branchSelection.style.display = 'block';
+            }
+        }
+
+        // فتح نموذج إضافة مستخدم
+        function showUserForm(user = null) {
+            const form = document.getElementById('userForm');
+            const title = document.getElementById('userFormTitle');
+            
+            if(user) {
+                // وضع بيانات المستخدم للنموذج
+                document.getElementById('userId').value = user.id;
+                document.getElementById('username').value = user.username;
+                document.getElementById('userRole').value = user.role;
+                document.getElementById('userBranch').value = user.branch || '';
+                document.getElementById('password').placeholder = 'اتركه فارغاً للحفاظ على كلمة المرور الحالية';
+                title.textContent = 'تعديل المستخدم';
+            } else {
+                form.reset();
+                document.getElementById('userId').value = '';
+                document.getElementById('password').placeholder = 'كلمة المرور';
+                title.textContent = 'إضافة مستخدم جديد';
+            }
+            
+            toggleBranchVisibility();
+            openModal('userFormModal');
+        }
+
+        // حفظ بيانات المستخدم
+        function saveUser(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('userRole').value;
+            const branch = role === 'admin' ? null : document.getElementById('userBranch').value;
+            
+            // التحقق من الصلاحيات
+            if(!currentUser || currentUser.role !== 'admin') {
+                showAlert('ليست لديك الصلاحية لإدارة المستخدمين', 'error');
+                return;
+            }
+            
+            // التحقق من التكرار
+            const existingUser = users.find(u => 
+                u.username.toLowerCase() === username.toLowerCase() && 
+                (userId ? u.id !== parseInt(userId) : true)
+            );
+            
+            if(existingUser) {
+                showAlert('اسم المستخدم موجود مسبقاً', 'error');
+                return;
+            }
+            
+            if(userId) {
+                // تحديث المستخدم الموجود
+                const index = users.findIndex(u => u.id === parseInt(userId));
+                if(index !== -1) {
+                    users[index].username = username;
+                    users[index].role = role;
+                    users[index].branch = branch;
+                    
+                    // تحديث كلمة المرور فقط إذا تم إدخال قيمة
+                    if(password) {
+                        users[index].password = password;
+                    }
+                    
+                    localStorage.setItem('users', JSON.stringify(users));
+                    showAlert('تم تحديث المستخدم بنجاح', 'success');
+                    logActivity('user_update', `تم تحديث المستخدم ${username}`);
+                }
+            } else {
+                // إضافة مستخدم جديد
+                if(!password) {
+                    showAlert('يجب إدخال كلمة مرور للمستخدم الجديد', 'error');
+                    return;
+                }
+                
+                const newUser = {
+                    id: Date.now(),
+                    username,
+                    password,
+                    role,
+                    branch,
+                    created: new Date().toISOString(),
+                    lastLogin: null
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                showAlert('تم إضافة المستخدم بنجاح', 'success');
+                logActivity('user_add', `تم إضافة مستخدم جديد: ${username}`);
+            }
+            
+            closeModal();
+            refreshUsersList();
+            loadManagersToSelect(); // تحديث قائمة المديرين في حالة تغيير الأدوار
+        }
+
+        // تحرير مستخدم
+        function editUser(id) {
+            const user = users.find(u => u.id === id);
+            if(user) {
+                showUserForm(user);
+            }
+        }
+
+        // تأكيد حذف مستخدم
+        function confirmDeleteUser(id) {
+            if(confirm('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذه العملية.')) {
+                deleteUser(id);
+            }
+        }
+
+        // حذف مستخدم
+        function deleteUser(id) {
+            const userIndex = users.findIndex(u => u.id === id);
+            if(userIndex !== -1) {
+                const deletedUser = users[userIndex];
+                users.splice(userIndex, 1);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // إذا كان المستخدم المحذوف مديراً لأي فرع، نقوم بإزالة إدارته
+                branches.forEach(branch => {
+                    if(branch.manager === id) {
+                        branch.manager = null;
+                    }
+                });
+                localStorage.setItem('branches', JSON.stringify(branches));
+                
+                showAlert('تم حذف المستخدم بنجاح', 'success');
+                logActivity('user_delete', `تم حذف المستخدم ${deletedUser.username}`);
+                
+                refreshUsersList();
+                loadManagersToSelect(); // تحديث قائمة المديرين
+            }
+        }
+
+        // فتح نموذج إدارة الفرع
+        function showBranchForm(branch = null) {
+            const form = document.getElementById('branchForm');
+            const title = document.getElementById('branchFormTitle');
+            
+            if(branch) {
+                // وضع بيانات الفرع للنموذج
+                document.getElementById('branchId').value = branch.id;
+                document.getElementById('branchName').value = branch.name;
+                document.getElementById('branchManager').value = branch.manager || '';
+                document.getElementById('branchAddress').value = branch.address;
+                title.textContent = 'تعديل الفرع';
+            } else {
+                form.reset();
+                document.getElementById('branchId').value = '';
+                title.textContent = 'إضافة فرع جديد';
+            }
+            
+            openModal('branchFormModal');
+        }
+
+        // حفظ بيانات الفرع
+        function saveBranch(e) {
+            e.preventDefault();
+            
+            const branchId = document.getElementById('branchId').value;
+            const name = document.getElementById('branchName').value.trim();
+            const manager = document.getElementById('branchManager').value;
+            const address = document.getElementById('branchAddress').value.trim();
+            
+            // التحقق من الصلاحيات
+            if(!currentUser || currentUser.role !== 'admin') {
+                showAlert('ليست لديك الصلاحية لإدارة الأفرع', 'error');
+                return;
+            }
+            
+            // التحقق من التكرار
+            const existingBranch = branches.find(b => 
+                b.name.toLowerCase() === name.toLowerCase() && 
+                (branchId ? b.id !== parseInt(branchId) : true)
+            );
+            
+            if(existingBranch) {
+                showAlert('اسم الفرع موجود مسبقاً', 'error');
+                return;
+            }
+            
+            if(branchId) {
+                // تحديث الفرع الموجود
+                const index = branches.findIndex(b => b.id === parseInt(branchId));
+                if(index !== -1) {
+                    branches[index].name = name;
+                    branches[index].manager = manager;
+                    branches[index].address = address;
+                    
+                    localStorage.setItem('branches', JSON.stringify(branches));
+                    showAlert('تم تحديث الفرع بنجاح', 'success');
+                    logActivity('branch_update', `تم تحديث الفرع ${name}`);
+                }
+            } else {
+                // إضافة فرع جديد
+                const newBranch = {
+                    id: Date.now(),
+                    name,
+                    manager,
+                    address,
+                    created: new Date().toISOString()
+                };
+                
+                branches.push(newBranch);
+                localStorage.setItem('branches', JSON.stringify(branches));
+                showAlert('تم إضافة الفرع بنجاح', 'success');
+                logActivity('branch_add', `تم إضافة فرع جديد: ${name}`);
+            }
+            
+            closeModal();
+            refreshBranchesList();
+            loadBranchesToSelect(); // تحديث قائمة الأفرع في نموذج المستخدم
+        }
+
+        // تحرير فرع
+        function editBranch(id) {
+            const branch = branches.find(b => b.id === id);
+            if(branch) {
+                showBranchForm(branch);
+            }
+        }
+
+        // تأكيد حذف فرع
+        function confirmDeleteBranch(id) {
+            if(confirm('هل أنت متأكد من حذف هذا الفرع؟ سيتم إزالة جميع المستخدمين المرتبطين به. لا يمكن التراجع عن هذه العملية.')) {
+                deleteBranch(id);
+            }
+        }
+
+        // حذف فرع
+        function deleteBranch(id) {
+            const branchIndex = branches.findIndex(b => b.id === id);
+            if(branchIndex !== -1) {
+                const deletedBranch = branches[branchIndex];
+                branches.splice(branchIndex, 1);
+                localStorage.setItem('branches', JSON.stringify(branches));
+                
+                // إزالة الفرع من المستخدمين المرتبطين به
+                users.forEach(user => {
+                    if(user.branch === id) {
+                        user.branch = null;
+                    }
+                });
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                showAlert('تم حذف الفرع بنجاح', 'success');
+                logActivity('branch_delete', `تم حذف الفرع ${deletedBranch.name}`);
+                
+                refreshBranchesList();
+                refreshUsersList();
+                loadBranchesToSelect(); // تحديث قائمة الأفرع
+            }
+        }
+
+        // البحث عن المستخدمين
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const filteredUsers = users.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) || 
+                getRoleBadge(user.role).toLowerCase().includes(searchTerm) ||
+                (user.branch && branches.find(b => b.id === user.branch)?.name.toLowerCase().includes(searchTerm))
+            );
+            refreshUsersList(filteredUsers);
+        }
+
+        // البحث عن الأفرع
+        function searchBranches() {
+            const searchTerm = document.getElementById('branchSearch').value.toLowerCase();
+            const filteredBranches = branches.filter(branch => 
+                branch.name.toLowerCase().includes(searchTerm) || 
+                branch.address.toLowerCase().includes(searchTerm) ||
+                (branch.manager && users.find(u => u.id === branch.manager)?.username.toLowerCase().includes(searchTerm))
+            );
+            refreshBranchesList(filteredBranches);
+        }
+
+        // فتح النموذج
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // إغلاق النموذج
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // تبديل التبويبات
+        function switchTab(tabId) {
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // إلغاء تنشيط جميع التبويبات
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المحدد
+            document.getElementById(tabId).classList.add('active');
+            
+            // تنشيط التبويب المحدد
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // عرض رسالة تنبيه
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // تسجيل نشاط
+        function logActivity(type, details) {
+            const activity = {
+                id: Date.now(),
+                type,
+                details,
+                userId: currentUser.id,
+                username: currentUser.username,
+                timestamp: new Date().toISOString()
+            };
+            
+            activities.unshift(activity);
+            localStorage.setItem('activities', JSON.stringify(activities));
+            
+            // إنشاء إشعار للنشاطات المهمة
+            if(type.includes('delete') || type.includes('add')) {
+                createNotification(details, 'activity');
+            }
+            
+            refreshActivityLog();
+        }
+
+        // تحديث سجل النشاطات
+        function refreshActivityLog(filteredActivities = null) {
+            const activityLog = document.getElementById('activityLog');
+            const activitiesToDisplay = filteredActivities || activities;
+            
+            activityLog.innerHTML = activitiesToDisplay.map(activity => {
+                const typeClass = activity.type.split('_')[0];
+                const typeText = getActivityTypeText(activity.type);
+                
+                return `
+                    <div class="log-item">
+                        <div class="log-type ${typeClass}">${typeText}</div>
+                        <div>${activity.username}</div>
+                        <div>${activity.details}</div>
+                        <div>${formatDateTime(activity.timestamp)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // تحويل نوع النشاط إلى نص مقروء
+        function getActivityTypeText(type) {
+            const types = {
+                'user_add': 'إضافة مستخدم',
+                'user_update': 'تعديل مستخدم',
+                'user_delete': 'حذف مستخدم',
+                'branch_add': 'إضافة فرع',
+                'branch_update': 'تعديل فرع',
+                'branch_delete': 'حذف فرع',
+                'user_login': 'تسجيل دخول',
+                'system_init': 'تهيئة النظام'
+            };
+            return types[type] || type;
+        }
+
+        // تصفية سجل النشاطات
+        function filterActivityLog() {
+            const filterValue = document.getElementById('activityFilter').value;
+            
+            if(filterValue === 'all') {
+                refreshActivityLog();
+            } else {
+                const filteredActivities = activities.filter(a => a.type === filterValue);
+                refreshActivityLog(filteredActivities);
+            }
+        }
+
+        // تصدير سجل النشاطات
+        function exportActivityLog() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // عنوان الملف
+            csvContent += "سجل النشاطات - نظام إدارة العملاء المتكامل\n\n";
+            
+            // العناوين
+            csvContent += "النوع,المستخدم,التفاصيل,التاريخ\n";
+            
+            // البيانات
+            activities.forEach(activity => {
+                const row = [
+                    getActivityTypeText(activity.type),
+                    activity.username,
+                    activity.details,
+                    formatDateTime(activity.timestamp)
+                ].join(",");
+                csvContent += row + "\n";
+            });
+            
+            // إنشاء الرابط وتنزيل الملف
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "سجل_النشاطات_" + formatDate(new Date()) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            logActivity('report_export', 'تم تصدير سجل النشاطات');
+        }
+
+        // نظام الإشعارات
+        function createNotification(message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                message,
+                type,
+                read: false,
+                timestamp: new Date().toISOString()
+            };
+            
+            notifications.unshift(notification);
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotifications();
+        }
+
+        function updateNotifications() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            document.getElementById('notificationCount').textContent = unreadCount;
+            
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = notifications.map(n => `
+                <div class="notification-item ${n.read ? '' : 'unread'}" onclick="markAsRead(${n.id})">
+                    <div><strong>${n.type === 'alert' ? '⚠️' : 'ℹ️'} ${n.message}</strong></div>
+                    <small>${formatDateTime(n.timestamp)}</small>
+                </div>
+            `).join('');
+        }
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notificationsPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function markAsRead(id) {
+            notifications = notifications.map(n => 
+                n.id === id ? {...n, read: true} : n
+            );
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotifications();
+        }
+
+        function markAllAsRead() {
+            notifications = notifications.map(n => ({...n, read: true}));
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotifications();
+        }
+
+        // وظائف مساعدة
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('ar-EG', options);
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('ar-EG', options);
+        }
+
+        // تهيئة النظام عند التحميل
+        window.onload = initSystem;
+    </script>
+</body>
+</html>

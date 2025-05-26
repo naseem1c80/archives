@@ -9,7 +9,7 @@ from flask_login import login_required
 from jinja2 import TemplateNotFound
 from apps import db, login_manager
 from apps.models import Users,Notification,Role
-import eventlet
+#import eventlet
 #from apps.extensions import 
 import re
 @blueprint.route('/send_notification', methods=['POST'])

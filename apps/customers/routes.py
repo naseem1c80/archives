@@ -20,10 +20,31 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@blueprint.route('/list')
+@login_required
+def list():
+    return render_template("card/customers.html")
+
+@blueprint.route('/activity')
+@login_required
+def activity():
+    return render_template("card/activity.html")
+
+
+@blueprint.route('/reports')
+@login_required
+def reports():
+    return render_template("card/reports.html")
+
 @blueprint.route('/customers')
 @login_required
 def customers():
-    return render_template("customers/customers.html")
+    return render_template("card/dashboard.html")
+
+@blueprint.route('/customers/add_customer')
+@login_required
+def add_customer():
+    return render_template("card/add_customer.html")
 
 
 @blueprint.route('/add_customer_doc', methods=['POST'])
@@ -46,8 +67,8 @@ def add_customer_doc():
             place_of_issue=place_of_issue,
             document_type=document_type
         )
-        db.session.add(doc)
-        db.session.commit()
+        #db.session.add(doc)
+        #db.session.commit()
 
         files = request.files.getlist('images')
         
