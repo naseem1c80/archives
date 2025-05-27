@@ -355,9 +355,29 @@ class CustomerDocument(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     images = db.relationship('CustomerDocumentImage', backref='document', cascade="all, delete", lazy=True)
-
+    
+    def save(self) -> None:
+     try:
+         db.session.add(self)
+         db.session.commit()
+     except SQLAlchemyError as e:
+            print(f"err CustomerDocument {e}")
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)
 
 class CustomerDocumentImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     document_id = db.Column(db.Integer, db.ForeignKey('customer_document.id'), nullable=False)
     image_path = db.Column(db.String(255), nullable=False)
+    def save(self) -> None:
+     try:
+         db.session.add(self)
+         db.session.commit()
+     except SQLAlchemyError as e:
+            print(f"err CustomerDocumentImage {e}")
+            db.session.rollback()
+            db.session.close()
+            error = str(e.__dict__['orig'])
+            raise InvalidUsage(error, 422)

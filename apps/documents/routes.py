@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from apps.documents import blueprint
 
-from apps.models import Document,Files,Branch,Users,DocumentType
+from apps.models import Document,Files,Branch,Users,DocumentType,Notification
 from apps.documents.insert import addDocument
 from PIL import Image
 import pytesseract
@@ -30,14 +30,26 @@ from sqlalchemy import func
 from apps.inc.scanner import scan_document
 import base64
 
-
+SCAN_IMAGE = 'static/scan_image'
 if os.name == 'nt':  # 'nt' يعني Windows
-    SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
+    #SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:
-    SCAN_IMAGE = 'static/scan_image'
-    #pytesseract.pytesseract.tesseract_cmd='Tesseract-OCR/ara.traineddata'
+    pytesseract.pytesseract.tesseract_cmd='Tesseract-OCR/ara.traineddata'
 
+
+UPLOAD_FOLDER = 'static/uploads_cropped'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@blueprint.route('/save-cropped', methods=['POST'])
+def save_cropped():
+    image = request.files.get('cropped_image')
+    if image:
+        filename = f"cropped_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        path = os.path.join(UPLOAD_FOLDER, filename)
+        image.save(path)
+        return jsonify({'success': True, 'url': f"{path}"})
+    return jsonify({'success': False, 'error': 'No image received'})
 
 @blueprint.route('/documents')
 @login_required
@@ -174,11 +186,12 @@ def getdocuments():
                 "name": doc.name,
                 "number_doc": doc.number_doc,
                 "account_number": doc.account_number,
+                "type_document": doc.type_document.name if doc.type_document else None,
                 "transfer_number": doc.transfer_number,
                 "document_type_id": doc.document_type_id,
-                "sender_name": doc.sender_name,
+                "is_signature": doc.is_signature,
                 "signer":doc.signer.full_name if doc.signer else None,
-                "recipient_name": doc.recipient_name,
+                "signature": doc.signature,
                 "user_id": doc.user_id,
                 "user_name": doc.user.full_name if doc.user else None,
                 "branch_id": doc.branch_id,
@@ -198,6 +211,7 @@ def getdocuments():
     except Exception as e:
         current_app.logger.error(f"Error in getdocuments: {str(e)}", exc_info=True)
         return jsonify({"error": f"Internal server error {e}"}), 500
+    
     
 
 

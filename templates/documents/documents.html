@@ -116,16 +116,24 @@
             <th  data-field="name" data-sortable="true">الاسم </th>
             <th data-field="number_doc" data-sortable="true">رقم السند</th>
             <th data-field="transfer_number" data-sortable="true">رقم الحوالة</th>
+            
              <th data-field="account_number" data-sortable="true"> رقم الحساب</th>
-            <th data-field="sender_name" data-align="center"
-                                data-sortable="true"> المرسل</th>
-             <th data-field="recipient_name" data-align="center"
-                                data-sortable="true"> المستلم</th>
+             <th data-field="type_document" data-sortable="true"> نوع
+             المستند </th>
+           
+            <th data-field="signature" data-align="center"
+            data-formatter="getsignaturedocument"
+                                data-sortable="true"> حالة التوقيع</th>
+             <th data-field="is_signature" data-align="center"
+             data-formatter="getis_signaturedocument"
+                                data-sortable="true"> قابل للتوقيع</th>
             <th data-field="user_name" data-align="center"
                                 data-sortable="true"> الموظف</th>
+            
             <th data-field="branch_name" data-align="center"
                                 data-sortable="true"> الفرع</th>
-            <th data-field="status" data-align="center" class="text-center py-1 px-2"
+            <th data-field="status" data-align="center" class="text-center py-1
+            px-2" data-formatter="getstatusdocument"
                                 data-sortable="true">الحالة</th>
                  <th class="text-center py-1 px-2" data-field="created_at" data-align="center"
                                 data-sortable="true">التاريخ</th>
@@ -148,7 +156,47 @@
 
 
 <script>
-
+  window.getsignaturedocument = (value, row) => {
+    var st=row['is_signature'];
+    var sig=row['signature'];
+  if(st==false||st==null){
+return `<span class="badge badge-sim badge-warning">غير قابل للتوقيع</span>`
+  }
+  else{
+    if(sig.length>0){
+return `<img src="${sig}" width="100" height="30">`
+}else{
+  return `<span class="badge badge-sim badge-warning">انتظار التوقيع  </span>`
+}
+  }
+  }
+  window.getis_signaturedocument = (value, row) => {
+  var st=row['is_signature'];
+  if(st==false||st==null){
+return `<span class="badge badge-sim badge-warning"><i class="feather
+icon-x-circle"></i></span>`
+  }
+  else{
+return `<span class="badge badge-sim badge-success"><i class="feather
+icon-check-circle"></i></span>`
+  }
+  
+}
+window.getstatusdocument = (value, row) => {
+  var st=row['status'];
+  if(st==0){
+return `<span class="badge badge-sim badge-warning"><i class="feather
+icon-clock"></i>${st}</span>`
+  }
+  if(st==1){
+return `<span class="badge badge-sim badge-success"><i class="feather
+icon-check-circle"></i>${st}</span>`
+  }
+  if(st==2){
+return `<span class="badge badge-sim badge-danger"><i class="feather
+icon-x-circle"></i>${st}</span>`
+  }
+}
       window.getactiondocument = (value, row) => {
    // function getactiondocument(value,row,index){
 			    
@@ -161,6 +209,85 @@
 			}
 </script>
 
+
+<script>
+  var document_type = 0;
+ var document_status="";
+
+ var document_status ;
+
+ 
+let documents_type=[];
+    loaddocuments_type();
+
+async function loaddocuments_type() {
+    const doctypSelect = document.getElementById('document_type');
+
+    
+    try {
+      if(documents_type.length<1){
+            doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
+       documents_type = await response.json();
+
+      }
+      // ملء القائمة المنسدلة
+     doctypSelect.innerHTML = '<option value="0">الجميع</option>';
+      //doctypSelect.innerHTML  = '';
+      documents_type.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id; // أو branch.code حسب هيكل البيانات
+        option.textContent = user.name;
+        doctypSelect.appendChild(option);
+      });
+    } catch (error) {
+      doctypSelect.innerHTML = '<option value="">فشل التحميل</option>';
+     showError('خطأ في تحميل الصلاحيات:');
+      console.error('خطأ في تحميل الاقسام:', error);
+    }
+  }
+
+function change_document_type(e) {
+    document_type = e.value;
+    // إعادة تحميل الجدول عند تغيير نوع الوثيقة
+    $('#table').bootstrapTable('refresh'); 
+  }
+
+
+  function change_document_status(e) {
+    document_status = e.value;
+    // إعادة تحميل الجدول عند تغيير نوع الوثيقة
+    $('#table').bootstrapTable('refresh'); 
+  }
+
+  
+  window.ajaxRequest = function (params) {
+    // إذا لم يكن هناك بيانات في الطلب، أنشئ كائن data
+    if (!params.data) {
+      params.data = {};
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_type > 0) {
+      params.data['document_type'] = document_type;
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_status.length>0) {
+      params.data['status'] = document_status;
+    }
+
+    const url = "{{ url_for('documents_blueprint.getdocuments') }}";
+
+    // تنفيذ الطلب
+    $.get(`${url}?${$.param(params.data)}`).then(function (res) {
+      // تمرير النتائج إلى bootstrap-table
+      params.success(res);
+    }).catch(function (err) {
+      console.error("Error fetching documents:", err);
+    });
+  };
+</script>
 
    
    

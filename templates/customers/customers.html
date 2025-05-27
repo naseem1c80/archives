@@ -1,135 +1,312 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Tables {% endblock %} 
+{% block title %} وثائق العملاء {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
+
+
+  
     <!-- [ Main Content ] start -->
     <section class="pcoded-main-container">
         <div class="pcoded-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">
+                                     إدارة وثائق العملاء  
+                                </h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="#"> إدارة وثائق العملاء  </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <!-- [ Main Content ] start -->
+            <div class="row">
+                <!-- [ basic-table ] start -->
+                <div class="col-md-18">
+                    <div class="card">
+                        <div class="card-header">
+                         
+
+                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
+    <h5>
+                        إدارة وثائق العملاء   
+                            </h5>
+      <a href="/add_customerdocument" class="btn btn-success" target="_blank" onlick="openAddModal()">إضافة مستند</a>
+    </div>
+                           
+                        </div>
+                        <div class="card-body table-border-style">
+       
+
+    <div class="table-responsive">
+<table
+  id="table"
+  class="table table-striped table-bordered"
+  dir="rtl"
+  data-toggle="table"
+  data-ajax="ajaxRequest"
+  data-pagination="true"
+  data-side-pagination="server"
+  data-page-list="[10, 20, 50, 100]"
+  data-search="true"
+  data-show-refresh="true"
+  data-show-toggle="true"
+  data-sort-name="id"
+  data-sort-order="asc"
+>
+                            <thead>
+                            <tr>
+
+     				
+                           
+                                <th class="text-center py-1 px-2"
+                                data-field="id" data-align="center"
+                                data-sortable="true">ID</th>
+                                
+
+            <th  data-field="name" data-sortable="true">الاسم </th>
+            <th data-field="phone" data-sortable="true">رقم الهاتف</th>
+            
+           
+            
+                 <th class="text-center py-1 px-2" data-field="created_at" data-align="center"
+                                data-sortable="true">التاريخ</th>
+<th data-align="center"     data-formatter="getactiondocument"
+ width="100px"  class="text-center py-1 px-2"> action
+</th>
+						
+                         
+          </tr>
+        </thead>
+        <!--<tbody id="userTable"></tbody>-->
+      </table>
+   
+   <!-- Pagination -->
+
+    
 
 
 
-<div class="container mt-4">
-  <h3>وثائق العملاء</h3>
 
-<a href="/add-customerdocument" class="btn btn-success mb-3">➕ إضافة وثيقة جديدة</a>
 
-  <table id="documentsTable" class="table table-bordered table-hover">
-    <thead>
-      <tr>
-        <th>الاسم</th>
-        <th>رقم الهاتف</th>
-        <th>نوع الوثيقة</th>
-        <th>تاريخ الإصدار</th>
-        <th>تاريخ الانتهاء</th>
-        <th>الإجراء</th>
-      </tr>
-    </thead>
-    <tbody id="docsBody">
-      <!-- سيتم ملؤها بواسطة JavaScript -->
-    </tbody>
-  </table>
-</div>
+<script>
+      window.getactiondocument = (value, row) => {
+   // function getactiondocument(value,row,index){
+			    
+			    return [`<div style="width:140px"><button class="btn btn-sm btn-primary"
+			    onclic="openEditModal(${row['id']}, '${row['name']}', '${row['number_doc']}',
+			    '${row['role']}')"> <i class="feather icon-edit"></i></button>
+              <button class="btn btn-sm btn-danger"
+              onclick="delete_document(${row['id']})"> <i class="feather icon-trash"></i></button> 
+              <button class="btn btn-sm btn-success view-profile-btn" data-id="${row['id']}"   > <i class="feather icon-eye"></i></button></div>`];
+			}
+</script>
 
-<!-- Modal لعرض التفاصيل -->
-<div class="modal fade" id="viewDocModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+
+<script>
+  var document_type = 0;
+ var document_status="";
+
+ var document_status ;
+
+ 
+let documents_type=[];
+  
+  window.ajaxRequest = function (params) {
+    // إذا لم يكن هناك بيانات في الطلب، أنشئ كائن data
+    if (!params.data) {
+      params.data = {};
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_type > 0) {
+      params.data['document_type'] = document_type;
+    }
+
+    // إرسال نوع الوثيقة المحدد
+    if (document_status.length>0) {
+      params.data['status'] = document_status;
+    }
+
+    const url = "{{ url_for('customers_blueprint.getcustomers') }}";
+
+    // تنفيذ الطلب
+    $.get(`${url}?${$.param(params.data)}`).then(function (res) {
+      // تمرير النتائج إلى bootstrap-table
+      params.success(res);
+    }).catch(function (err) {
+      console.error("Error fetching documents:", err);
+    });
+  };
+</script>
+
+   
+   
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              
+           
+             
+               
+          
+            </div>
+            <!-- [ Main Content ] end -->
+        </div>
+    </section>
+    <!-- [ Main Content ] end -->
+
+<!-- Modal -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">تفاصيل الوثيقة</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" id="documentModalLabel">بروفايل المستند</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
       </div>
-      <div class="modal-body">
-        <div id="docDetails"></div>
-        <div class="row" id="docImages"></div>
+      <div class="modal-body" id="documentModalBody">
+        <!-- يتم تحميل محتوى المستند هنا -->
+        <div class="text-center p-4">جاري التحميل...</div>
       </div>
     </div>
   </div>
 </div>
 
 
+<script>
+$(document).on('click', '.view-profile-btn', function () {
+    const docId = $(this).data('id');
+    $('#documentModalBody').html('<div class="text-center p-4">جاري التحميل...</div>');
+
+    $.get('/document/' + docId, function (html) {
+        $('#documentModalBody').html(html);
+        $('#documentModal').modal('show');
+    }).fail(function () {
+        $('#documentModalBody').html('<div class="alert alert-danger">فشل في تحميل البيانات</div>');
+    });
+});
+</script>
+    <script sr="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+     <script>
+       
+       let currentPage = 1;
+    let limit = 10;
+    let data = [];
+    let sortBy = 'id';
+    let sortOrder = 'asc'; // or 'desc'
+        // إعدادات التطبيق
+        const appConfig = {
+            apiUrl: "{{ url_for('documents_blueprint.getdocuments') }}",
+            token: 'Bearer your_token_here',
+            pageSize: 10
+        };
+
+        // تهيئة التطبيق
+        $(document).ready(function() {
+            //initEventListeners();
+            //loadData(1);
+        });
+
+        // إدارة الأحداث
+        function initEventListeners() {
+            $('#refreshBtn').click(loadData);
+            $('#searchInput').on('input', debounce(function(){
+              loadData(1);}, 300));
+            $('.form-control, .form-select').change(function(){
+              loadData(1);});
+        }
+
+
+
+        // معالجة الفلاتر
+        function getFilters(offset=0) {
+            return {
+                search: $('#searchInput').val(),
+                type: $('#docType').val(),
+                date: $('#docDate').val(),
+                status: $('#docStatus').val(),
+                limit: limit,
+                offset:offset,
+                sort_by:sortBy,
+                sort_order:sortOrder
+            };
+        }
+        
+        // إدارة التحميل
+        function showLoading() {
+            $('#loading').show();
+        }
+
+        function hideLoading() {
+            $('#loading').hide();
+        }
+
+        // إدارة الأخطاء
+       /* function showError(message) {
+            $('#mainTable tbody').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-danger py-4">
+                        ⚠️ ${message}
+                    </td>
+                </tr>
+            `);
+        }*/
+
+        // منع الطلبات المتكررة
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+        
+        function renderPagination(total, limit, currentPage) {
+        const totalPages = Math.ceil(total / 10);
+        const pagination = document.getElementById("paginationControls");
+        pagination.innerHTML = "";
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            if (i === currentPage) btn.classList.add("active");
+            btn.onclick = () => {
+              loadData(i);
+               // fetchDocuments(i);
+            };
+            li.appendChild(btn);
+            pagination.appendChild(li);
+        }
+    }
+    </script>
 
 <script>
-function editDoc(id) {
-  fetch(`/api/customer-documents/${id}`)
-    .then(res => res.json())
-    .then(doc => {
-      document.getElementById("docId").value = doc.id;
-      document.getElementById("doc_full_name").value = doc.name;
-      document.getElementById("doc_phone").value = doc.phone;
-      document.getElementById("issue_date").value = doc.issue_date;
-      document.getElementById("expiry_date").value = doc.expiry_date;
-      document.getElementById("doc_type").value = doc.document_type;
-      document.getElementById("issue_place").value = doc.place_of_issue;
-      document.getElementById("doc_address").value = doc.address;
-      new bootstrap.Modal(document.getElementById("docModal")).show();
-    });
-}
+   
+  
 
-function loadDocuments() {
-  fetch("/api/customer-documents")
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById("docsBody");
-      tbody.innerHTML = "";
-      data.forEach(doc => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${doc.name}</td>
-          <td>${doc.phone}</td>
-          <td>${doc.document_type}</td>
-          <td>${doc.issue_date}</td>
-          <td>${doc.expiry_date}</td>
-          <td><button class="btn btn-sm btn-info" onclick="viewDoc(${doc.id})">عرض</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-      $('#documentsTable').DataTable();
-    });
-}
+  function delete_document(id) {
+    if (confirm("هل أنت متأكد من حذف هذا السند؟")) {
+      axios.post(`/documents/${id}/delete`).then(() => loadData(1));
+    }
+  }
 
-function viewDoc(id) {
-  fetch(`/api/customer-documents/${id}`)
-    .then(res => res.json())
-    .then(doc => {
-      document.getElementById("docDetails").innerHTML = `
-        <p><strong>الاسم:</strong> ${doc.name}</p>
-        <p><strong>الهاتف:</strong> ${doc.phone}</p>
-        <p><strong>نوع الوثيقة:</strong> ${doc.document_type}</p>
-        <p><strong>العنوان:</strong> ${doc.address || '-'}</p>
-        <p><strong>مكان الإصدار:</strong> ${doc.place_of_issue || '-'}</p>
-        <p><strong>تاريخ الإصدار:</strong> ${doc.issue_date}</p>
-        <p><strong>تاريخ الانتهاء:</strong> ${doc.expiry_date}</p>
-      `;
-
-      const imgContainer = document.getElementById("docImages");
-      imgContainer.innerHTML = "";
-      doc.images.forEach(img => {
-        imgContainer.innerHTML += `
-          <div class="col-md-3 mb-3">
-            <a href="/${img.image_path}" target="_blank">
-              <img src="/${img.image_path}" class="img-fluid img-thumbnail" alt="وثيقة">
-            </a>
-          </div>
-        `;
-      });
-
-      new bootstrap.Modal(document.getElementById("viewDocModal")).show();
-    });
-}
-
-document.addEventListener("DOMContentLoaded", loadDocuments);
-
-    </script>
-</div>
-    </section>
-    <!-- [ Main Content ] end -->
-
-
-
+//  window.onload = loadData;
+</script>
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->

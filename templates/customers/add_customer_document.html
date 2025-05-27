@@ -1,119 +1,464 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} إضافة وثيقة عميل {% endblock %}
+{% block title %} إدارة المستندات {% endblock %} 
+
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h3 class="mb-4">إضافة وثيقة عميل</h3>
+<section class="pcoded-main-container">
+    <div class="pcoded-content">
+        <!-- Breadcrumb -->
+        <div class="page-header" dir="rtl">
+            <h5 class="m-b-10">إدارة وثائق العملاء 📂</h5>
+         
+        </div>
 
-  <form action="/add_customer_doc"  onsubmit="submitDocForm(event)" method="POST" enctype="multipart/form-data" >
-    <div class="row g-3">
 
-      <div class="col-md-6">
-        <label>الاسم الكامل</label>
-        <input type="text" name="full_name" class="form-control" required>
-      </div>
 
-      <div class="col-md-6">
-        <label>رقم الهاتف</label>
-        <input type="text" name="phone" class="form-control" required>
-      </div>
 
-      <div class="col-md-6">
-        <label>تاريخ الإصدار</label>
-        <input type="date" name="issue_date" class="form-control">
-      </div>
 
-      <div class="col-md-6">
-        <label>تاريخ الانتهاء</label>
-        <input type="date" name="expiry_date" class="form-control">
-      </div>
 
-      <div class="col-md-6">
-        <label>نوع الوثيقة</label>
-        <input type="text" name="document_type" class="form-control">
-      </div>
 
-      <div class="col-md-6">
-        <label>مكان الإصدار</label>
-        <input type="text" name="place_of_issue" class="form-control">
-      </div>
 
-      <div class="col-12">
-        <label>العنوان</label>
-        <textarea name="address" class="form-control" rows="2"></textarea>
-      </div>
+        <!-- Form -->
+        <form id="multi-form" enctype="multipart/form-data">
+          
 
-      <div class="col-12">
-        <label>تحميل صور الوثيقة (PNG أو PDF)</label>
-        <input type="file" name="files[]" class="form-control" accept=".png,.pdf" multiple>
-      </div>
+          
+            <div class="card p-4 mx-auto mb-4" style="max-width: 800px;">
+                <div class="row mb-3">
+                                                <div class="mb-3 ">
+                        <label for="document_type">اختر نوع الوثيقة </label>
+                        <select class="form-select tag-select form-control"
+                        id="document_type" name="document_type_id" >
+<option value="id">بطاقة شخصية</option>
+<option value="passport">جواز سفر</option>
+<option value="familyId">بطاقة عائلية</option>
 
-      <div class="col-12 text-end">
-        <button type="submit" class="btn btn-primary">حفظ</button>
-        <a href="/documents" class="btn btn-secondary">إلغاء</a>
-      </div>
+                        </select>
 
+                    </div>
+                  
+
+                    <div class="col-md-4">
+                        <label for="name"> 
+                      الاسم 
+                        </label>
+                        <input type="text" name="name" class="form-control"
+                        id="name"  required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="phone">رقم الهاتف</label>
+                        <input type="phone" name="phone" class="form-control"
+                        id="phone" required>
+                    </div>
+           
+
+<div class="text-end my-3">
+                    <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة مستند جديد</button>
+                </div>
+
+     </div>
+                <!-- طلب توقيع المستند -->
+
+                <!-- Documents Container -->
+                <div id="documents-container" class="row mb-3">
+                  
+               
+                  
+                  
+                  
+                  
+                  
+                </div>
+
+
+
+
+
+                <div class="d-grid">
+                                   <div class="text-center">
+                    <button type="submit" class="btn btn-scan mb-6">💾 حفظ كل المستندات</button>
+                </div>
+                </div>
+
+                <div id="result" class="mt-4"></div>
+            </div>
+        </form>
     </div>
-  </form>
-</div>
-<script>
-    function submitDocForm(event) {
-  event.preventDefault();
-  const form = document.getElementById('docForm');
-  const formData = new FormData(form);
-
-  fetch('/add-customer-doc', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("تم الحفظ بنجاح");
-      bootstrap.Modal.getInstance(document.getElementById('docModal')).hide();
-      // تحميل الجدول من جديد
-    } else {
-      alert("حدث خطأ: " + data.error);
-    }
-  })
-  .catch(err => alert("فشل الاتصال: " + err));
-}
-
-function submitDoc(event) {
-  event.preventDefault();
-
-  const formData = new FormData();
-  formData.append("id", document.getElementById("docId").value);
-  formData.append("full_name", document.getElementById("doc_full_name").value);
-  formData.append("phone", document.getElementById("doc_phone").value);
-  formData.append("issue_date", document.getElementById("issue_date").value);
-  formData.append("expiry_date", document.getElementById("expiry_date").value);
-  formData.append("doc_type", document.getElementById("doc_type").value);
-  formData.append("issue_place", document.getElementById("issue_place").value);
-  formData.append("address", document.getElementById("doc_address").value);
-
-  const files = document.getElementById("doc_files").files;
-  for (let i = 0; i < files.length; i++) {
-    formData.append("files[]", files[i]);
+</section>
+                
+<!-- Modal -->
+    <div class="modal fade" id="cropModal" tabindex="-1"  style="display: none;" >
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    
+     <div id="imageContainer" style="max-width: 600px; margin: auto;">
+    <img id="imageToCrop"  style="max-width: 100%; display: block;">
+  </div>                 
+                    </div>
+                <div class="modal-footer">
+                    <button id="saveCropped" class="btn btn-success">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    <style>
+  #imageContainer {
+    width: 100%;
+    max-width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
   }
 
-  fetch("/add_customer_doc", {
-    method: "POST",
-    body: formData
-  }).then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        bootstrap.Modal.getInstance(document.getElementById("docModal")).hide();
-        loadDocuments(); // تحديث جدول الوثائق
-      } else {
-        alert("فشل في الحفظ");
-      }
+  #imageToCrop {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    #imageContainer {
+      max-height: 60vh;
+    }
+  }
+</style>
+    
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script>
+    let cropper;
+    const image = document.getElementById('imageToCrop');
+   // const modal = new bootstrap.Modal(document.getElementById('cropModal'));
+const modal = new bootstrap.Modal(document.getElementById('cropModal'));
+    document.getElementById('cropModal').setAttribute('aria-hidden', 'true');
+    document.getElementById('cropModal').addEventListener('shown.bs.modal', () => {
+       /* cropper = new Cropper(image, {
+         aspectRatio: NaN,           // نسبة العرض إلى الارتفاع (مثلاً: 1 = مربع، 16/9 = مستطيل)
+    viewMode: 2,              // طريقة العرض: 0 = حر، 1 = داخل الحاوية، 2 = تغطية، 3 = ملء
+    autoCropArea: 1,        // نسبة المنطقة المقتصة تلقائيًا (0 إلى 1)
+    movable: true,            // إمكانية تحريك الصورة
+    zoomable: true,           // تمكين التكبير
+    rotatable: true,          // تمكين التدوير
+    scalable: true,           // تمكين التصغير والتكبير
+    responsive: true,         // استجابة تلقائية مع تغيير الحجم
+    cropBoxResizable: true,   // تمكين تغيير حجم مربع القص
+    dragMode: 'move',         // الوضع الافتراضي للسحب: crop أو move أو none
+            
+            
+        });*/
+        cropper = new Cropper(image, {
+  viewMode: 1, // أو 2 لضبط التمدد داخل الحاوية
+  autoCropArea: 1,
+  responsive: true,
+  scalable: true,
+  zoomable: true,
+  rotatable: true,
+  movable: true,
+  cropBoxResizable: true,
+});
+    });
+
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', () => {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    document.getElementById('saveCropped').addEventListener('click', () => {
+      
+        const canvas = cropper.getCroppedCanvas();
+        canvas.toBlob((blob) => {
+         // alert(image.src);
+         // alert(JSON.stringify(blob));
+            const formData = new FormData();
+            formData.append('cropped_image', blob);
+formData.append('path', image.src);
+            fetch('/save-cropped', {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json())
+              .then(data => {
+                document.getElementById(`file-path-${index}`).value=data['url'];
+                document.getElementById(`img-${index}`).src=data['url'];
+                //alert('Saved: ' + data);
+                modal.hide();
+            });
+        });
+    });
+</script>
+
+
+    
+    
+    
+    
+    
+    
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.tag-select').select2({
+        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        dir: "rtl",
+        width: 'resolve',
+        language: {
+            noResults: function () {
+                return "لا توجد نتائج";
+            },
+            searching: function () {
+                return "جاري البحث...";
+            }
+        }
+    });
+});
+</script>
+
+
+
+
+<script>
+let docIndex = 0;
+let index=0;
+
+function createDocBlock(ind) {
+    return `
+    <div class="card p-4 mx-auto border shadow-sm rounded-3 mb-4 document-block col-md-6" style="max-width: 500px;">
+        <h5 class="mb-3 fw-bold text-primary">📄 مستند رقم ${ind + 1}</h5>
+        
+                                <div class="form-group">
+               
+               <div class="btn-group">   
+            <span class="btn btn-sm btn-outline-info" onclick="document.getElementById('file-input-${ind}').click()">
+                تحميل ملف 
+                   <i class="fas fa-cloud-upload-alt"></i> </span>
+
+            
+            <span class="btn btn-sm btn-outline-info" onclick="scan(${ind})">
+            اسكانير    
+             <i class="fas fas fa-scanner"></i>
+             <i class="fas fa-scanner-keyboard    "></i>
+       🖨️
+            </span>
+            </div>
+               
+                                    <input type="text"
+                                                id="file-path-${ind}" required
+                                                readonly
+                     name="docs[${ind}][path]" class="form-control"  required/>
+                                <!-- حقل رفع صورة منفصل -->
+                       <label><i class="fas fa-image"></i> صورة</label>
+                       <img id="img-${ind}"
+                       
+                       style="width:100%;"/>
+                    <div class="file-upload-area"  >
+                        
+                            <input type="file" id="file-input-${ind}"
+                            accept="*/*" 
+                            class="form-control d-none"
+                            onchange="loadFilePreview(this,${ind})">
+                   <i class="fas fa-cloud-upload-alt"></i>
+                    <p>انقر لرفع صورة</p>
+                   <small>الحد الأقصى لحجم الملف: 2MB</small>
+
+     
+                  </div>
+
+
+
+ <div class="mb-2 mt-4">
+            <label class="form-label fw-bold">تفاصيل المستند</label>
+            <span class="btn btn-sm btn-outline-info" onclick="toggleDetails(1, this)">عرض التفاصيل</span>
+            <div class="progress mt-2 d-none" id="progress-${ind}">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar-${ind}">0%</div>
+            </div>
+            <div class="details_doc mt-2" style="display:none">
+                <textarea name="docs[${ind}][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف المستند..."></textarea>
+                <pre id="pre-${ind}" class="bg-light p-2 rounded"></pre>
+                <div id="pre2-${ind}" class="row" lass="bg-light p-2 rounded"></div>
+            </div>
+        </div>
+
+
+
+
+         </div>  
+               
+        
+        <button type="button" class="btn btn-sm btn-danger mt-2 w-100 remove-doc">🗑️ إزالة المستند</button>
+    </div>
+    `;
+}
+function loadFilePreview(input,ind) {
+    index=ind;
+   // alert("loadFilePreview");
+    const file = input.files[0];
+    
+uploadDocument(file, index);
+   /* if (file && file.type.startsWith("image")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+                      $('#imageToCrop').attr('src',e.target.result);
+            
+            
+        };
+        reader.readAsDataURL(file);
+    } else {
+        
+    }*/
+}
+
+function toggleDetails(index, btn) {
+    const details = btn.closest(".card").querySelector(".details_doc");
+    details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
+    btn.textContent = details.style.display === 'block' ? 'إخفاء التفاصيل' : 'عرض التفاصيل';
+}
+
+
+
+
+// إضافة مستند
+$('#add-doc').on('click', function() {
+    $('#documents-container').append(createDocBlock(docIndex));
+    updateHandlers(); docIndex++;
+});
+
+// فحص قبل الإرسال
+
+
+// إضافة أول مستند تلقائيًا
+$('#add-doc').click();
+
+
+
+function show_details_doc(index, e) {
+    const det = $(e).closest('.cdetails').find('.details_doc');
+    det.slideToggle();
+    $(e).text(det.is(':visible') ? '-' : '+');
+}
+
+function updateHandlers() {
+    $('.source-select').off('change').on('change', function() {
+        const index = $(this).data('index');
+        const block = $(this).closest('.document-block');
+        if ($(this).val() === 'upload') {
+            block.find('.upload-block').removeClass('d-none');
+            block.find(`#result-${index}`).addClass('d-none');
+        } else {
+            scan(index);
+            block.find(`#result-${index}`).removeClass('d-none');
+            block.find('.upload-block').addClass('d-none');
+        }
+    });
+
+    $('.remove-doc').off('click').on('click', function() {
+        $(this).closest('.document-block').remove();
     });
 }
 
-</script>
-{% endblock content %}
+  
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+function scan(ind) {
+    index=ind;
+    $(`#result-${index} .alert`).html('جاري المسح للعرض فقط...');
+    $.ajax({ url: '/scan', type: 'POST', success: function(response) {
+        if (response.success) {
+             image.src = response.image_url;
+             // $('#imageToCrop').attr('src',res.processed_image_path);
+              modal.show();
+             
+            //$('#imageToCrop').attr('src',response.image_url);
+            
+        } else {
+            $(`#result-${index} .alert`).html('خطأ: ' + response.error);
+        }
+    }, error: function() {
+        $(`#result-${index} .alert`).html('فشل الاتصال بالخادم.');
+    }});
+}
+
+function uploadDocument(file=null, index,path=null) {
+ // alert(index+'');
+ $(`#progress-${index}`).removeClass('d-none');
+    const formData = new FormData();
+    if(path!==null){
+      formData.append('path', path);
+    }else{
+    formData.append('file', file);
+    }
+    const xhr = new XMLHttpRequest(); xhr.open('POST', '/read-doc', true);
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+              image.src = res.processed_image_path;
+             // $('#imageToCrop').attr('src',res.processed_image_path);
+              modal.show();
+            $(`#progress-${index}`).addClass('d-none'); 
+            }
+        } else {
+            $(`#progress-${index}`).addClass('d-none');
+        }
+    };
+    xhr.send(formData);
+}
+
+
+$('#multi-form').on('submit', function (e) {
+    e.preventDefault();
+   
+    
+    const formData = new FormData(this);
+    $('#result').html('⏳ جاري حفظ المستندات...');
+
+    $.ajax({
+        url: '/add_customer_doc',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            if (res.success) {
+                $('#result').html('<h5>✅ تم حفظ المستندات بنجاح</h5>');
+                $('#multi-form')[0].reset();
+                $('#documents-container').empty();
+                docIndex = 0;
+            } else {
+                $('#result').html('❌ خطأ: ' + res.message);
+            }
+        },
+        error: function () {
+            $('#result').html('❌ فشل الاتصال بالخادم.');
+        }
+    });
+});
+
+</script>
+<div id="toast-copy" class="toast position-fixed bottom-0 end-0 m-3 text-bg-success" role="alert" data-bs-delay="1500">
+  <div class="toast-body">تم النسخ ✅</div>
+</div>
+
+{% endblock %}
