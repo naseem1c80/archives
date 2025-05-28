@@ -216,6 +216,7 @@ class Users(db.Model, UserMixin):
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job_title.id'))
+    is_admin = db.Column(db.Boolean, default=False)
     role = db.relationship('Role', backref='users')
     brnach = db.relationship('Branch', backref='users')
     job = db.relationship('JobTitle', backref='users')
@@ -381,3 +382,24 @@ class CustomerDocumentImage(db.Model):
             db.session.close()
             error = str(e.__dict__['orig'])
             raise InvalidUsage(error, 422)
+
+
+
+class DeviceInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(255), unique=True, nullable=False)
+    system = db.Column(db.String(100))
+    release = db.Column(db.String(100))
+    version = db.Column(db.String(100))
+    machine = db.Column(db.String(100))
+    processor = db.Column(db.String(255))
+    architecture = db.Column(db.String(50))
+    ip_address = db.Column(db.String(100))
+    cpu_cores = db.Column(db.Integer)
+    ram_gb = db.Column(db.Float)
+    license_key = db.Column(db.String(255))
+    is_authorized = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Device {self.hostname}>"

@@ -26,7 +26,8 @@ def getbranchs():
         "name": u.name,
         "branch_number": u.branch_number,
         "phone": u.phone,
-        "address": u.address
+        "address": u.address,
+        "created_at":u.created_at.strftime('%Y-%m-%d %H:%M')  if u.created_at else None
     } for u in branchs])
  
  

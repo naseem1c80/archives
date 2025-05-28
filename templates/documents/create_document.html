@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} إدارة المستندات {% endblock %} 
+{% block title %} اضافة مستندات {% endblock %} 
 
 {% block stylesheets %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -21,11 +21,8 @@
     <div class="pcoded-content">
         <!-- Breadcrumb -->
         <div class="page-header" dir="rtl">
-            <h5 class="m-b-10">إدارة المستندات 📂</h5>
-            <ul class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
-                <li class="breadcrumb-item active">إدارة المستندات</li>
-            </ul>
+            <h5 class="m-b-10">اضافة مستندات 📂</h5>
+
         </div>
 
 
@@ -38,7 +35,11 @@
         <!-- Form -->
         <form id="multi-form" enctype="multipart/form-data">
           
-                              <div class="mb-3 ">
+
+          
+            <div class="card p-4 mx-auto mb-4" style="max-width: 800px;">
+                <div class="row mb-3">
+                                                <div class="col-md-6">
                         <label for="document_type">اختر نوع المستند </label>
                         <select class="form-select tag-select form-control"
                         id="document_type" name="document_type_id" >
@@ -46,9 +47,7 @@
                         </select>
 
                     </div>
-          
-            <div class="card p-4 mx-auto mb-4" style="max-width: 800px;">
-                <div class="row mb-3">
+                  
                     <div class="col-md-4">
                         <label for="doc_id">رقم المستند</label>
                         <input type="text" name="doc_id" class="form-control" id="doc_id">
@@ -58,15 +57,13 @@
                         <input type="text" name="transfer_number" class="form-control" id="transfer_number">
                     </div>
                     <div class="col-md-4">
-                        <label for="sender_name"> 
-                        اسم المرسل
+                        <label for="name"> 
+                      تفاصيل السند
                         </label>
-                        <input type="text" name="sender_name" class="form-control" id="sender_name">
+                        <textarea type="text" name="name" class="form-control"
+                        id="name"></textarea>
                     </div>
-                    <div class="col-md-4">
-                        <label for="recipient_name">اسم المستلم</label>
-                        <input type="text" name="recipient_name" class="form-control" id="recipient_name">
-                    </div>
+
            
 
                 <div class="col-md-4">
@@ -198,6 +195,24 @@ function createDocBlock(index) {
         <h5 class="mb-3 fw-bold text-primary">📄 مستند رقم ${index + 1}</h5>
         
         <div class="mb-3">
+        
+                       <div class="btn-group">   
+            <span class="btn btn-sm btn-outline-info"
+            onclick="document.getElementById('file-input-${index}').click()">
+                تحميل ملف 
+                   <i class="fas fa-cloud-upload-alt"></i> </span>
+
+            
+            <span class="btn btn-sm btn-outline-info" onclick="scan(${index})">
+            اسكانير    
+             <i class="fas fas fa-scanner"></i>
+             <i class="fas fa-scanner-keyboard    "></i>
+       🖨️
+            </span>
+            </div>
+        
+        
+        
             <div class="btn-group w-100" role="group">
                 <button type="button" class="btn btn-outline-secondary" onclick="openCamera(${index})">📷  </button>
                 <button type="button" class="btn btn-outline-success" onclick="scan(${index})">🖨️  </button>

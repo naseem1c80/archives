@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة الأجهزة</title>
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+</head>
+
+<body class="container py-5">
+    https://chatgpt.com/share/68376d61-f4b8-8006-80f1-48de2b5c3320
+    <h2 class="mb-4">إدارة الأجهزة</h2>
+    <table class="table table-bordered text-center">
+        <thead class="table-light">
+            <tr>
+                <th>الاسم</th>
+                <th>IP</th>
+                <th>النظام</th>
+                <th>الرخصة</th>
+                <th>الحالة</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in devices %}
+            <tr>
+                <td>{{ device.hostname }}</td>
+                <td>{{ device.ip_address }}</td>
+                <td>{{ device.system }} {{ device.release }}</td>
+                <td>{{ device.license_key }}</td>
+                <td>
+                    {% if device.is_authorized %}
+                        <span class="text-success">مفعل</span>
+                    {% else %}
+                        <span class="text-danger">غير مفعل</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not device.is_authorized %}
+                        <a href="{{ url_for('admin.authorize_device', device_id=device.id) }}" class="btn btn-success btn-sm">تفعيل</a>
+                    {% else %}
+                        <a href="{{ url_for('admin.deauthorize_device', device_id=device.id) }}" class="btn btn-danger btn-sm">تعطيل</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

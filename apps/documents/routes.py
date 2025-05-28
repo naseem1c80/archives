@@ -34,8 +34,8 @@ SCAN_IMAGE = 'static/scan_image'
 if os.name == 'nt':  # 'nt' يعني Windows
     #SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-else:
-    pytesseract.pytesseract.tesseract_cmd='Tesseract-OCR/ara.traineddata'
+#else:
+    #pytesseract.pytesseract.tesseract_cmd='/Tesseract-OCR/ara.traineddata'
 
 
 UPLOAD_FOLDER = 'static/uploads_cropped'
@@ -48,6 +48,17 @@ def save_cropped():
         filename = f"cropped_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
         path = os.path.join(UPLOAD_FOLDER, filename)
         image.save(path)
+                # قراءة النص من الصورة
+        result = read_text_from_image(path, lang='ara+en')
+
+        if 'error' in result:
+            return jsonify({'success': False, 'message': result['error']})
+
+        return jsonify({
+            'success': True,
+            'text': result['text'],
+            'url': result['processed_image_path']
+        })
         return jsonify({'success': True, 'url': f"{path}"})
     return jsonify({'success': False, 'error': 'No image received'})
 
@@ -80,40 +91,6 @@ def verify_document(doc_id):
 
 
 
-'''
-@blueprint.route('/sign-document/<int:doc_id>', methods=['POST'])
-@login_required
-def sign_document(doc_id):
-    document = Document.query.get_or_404(doc_id)
-
-    data_to_sign = f"{document.id}-{document.name}-{document.account_number}-{current_user.id}"
-    signature_value = sign_data(data_to_sign)
-
-    document.signature = signature_value
-    document.is_signature = True
-    document.user_signature = current_user.id
-    document.status = 2  # أو أي حالة تعبر عن "تم التوقيع"
-
-    db.session.commit()
-    return jsonify({'status': 'success', 'message': 'تم التوقيع الإلكتروني بنجاح'})
-
-'''
-'''
-
-UPLOAD_FOLDER = 'read-doc'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return 'لم يتم إرسال الملف', 400
-
-    file = request.files['file']
-    filename = file.filename
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return f'تم حفظ الملف باسم: {filename}'
-'''
-
 @blueprint.route('/getdocuments', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def getdocuments():
@@ -123,8 +100,8 @@ def getdocuments():
         offset = request.args.get('offset', default=0, type=int)
         status = request.args.get('status', default=None)
         document_type = request.args.get('document_type', default=None)
-        sort_by = request.args.get('sort_by', default='id')
-        sort_order = request.args.get('sort_order', default='asc')
+        sort_by = request.args.get('sort', default='id')
+        sort_order = request.args.get('order', default='asc')
         search = request.args.get('search', default=None, type=str)
 
         # قائمة الحقول المسموح الفرز بها (لحماية من SQL injection)
@@ -176,6 +153,7 @@ def getdocuments():
             query = query.order_by(Document.id.asc())
 
         # تطبيق التقسيم الصفحي
+        print(f'*****sql{query}*****')
         documents = query.offset(offset).limit(limit).all()
 
         # بناء الاستجابة
@@ -198,8 +176,7 @@ def getdocuments():
                 "branch_name": doc.branch.name if doc.branch else None,
                 "verify_user": doc.verify_user,
                 "status": doc.status,
-                "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                "files": [file.description for file in doc.files] if doc.files else []
+                "created_at": doc.created_at.strftime('%Y-%m-%d %H:%M')  if doc.created_at else None
             } for doc in documents],
             "limit": limit,
             "offset": offset,
@@ -214,7 +191,6 @@ def getdocuments():
     
     
 
-
 @blueprint.route('/update-document-status/<int:doc_id>', methods=['POST'])
 def update_document_status(doc_id):
     data = request.get_json()
@@ -226,8 +202,6 @@ def update_document_status(doc_id):
     if status == 2:
       # إرسال إشعار إلى المستخدم
       notify_user(current_user.id,document.user_id, reason,doc_id)
-
-        #document.return_reason = reason  # تأكد من وجود هذا الحقل في النموذج
 
     db.session.commit()
 

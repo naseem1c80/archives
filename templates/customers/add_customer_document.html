@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} إدارة المستندات {% endblock %} 
+{% block title %} إدارة الوثائقات {% endblock %} 
 
 {% block stylesheets %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -59,11 +59,11 @@
            
 
 <div class="text-end my-3">
-                    <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة مستند جديد</button>
+                    <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة وثيقة جديد</button>
                 </div>
 
      </div>
-                <!-- طلب توقيع المستند -->
+                <!-- طلب توقيع الوثائق -->
 
                 <!-- Documents Container -->
                 <div id="documents-container" class="row mb-3">
@@ -82,11 +82,11 @@
 
                 <div class="d-grid">
                                    <div class="text-center">
-                    <button type="submit" class="btn btn-scan mb-6">💾 حفظ كل المستندات</button>
+                    <button type="submit" class="btn btn-scan mb-6">💾 حفظ كل الوثائقات</button>
                 </div>
                 </div>
 
-                <div id="result" class="mt-4"></div>
+                <div id="result_add" class="mt-4"></div>
             </div>
         </form>
     </div>
@@ -134,12 +134,6 @@
     
     
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
 <script>
     let cropper;
     const image = document.getElementById('imageToCrop');
@@ -192,6 +186,10 @@ formData.append('path', image.src);
                 body: formData
             }).then(res => res.json())
               .then(data => {
+
+              $(`textarea[name="docs[${index}][details]"]`).val(data['text']);
+
+ $(`#file-upload-area-${index}`).addClass('d-none');
                 document.getElementById(`file-path-${index}`).value=data['url'];
                 document.getElementById(`img-${index}`).src=data['url'];
                 //alert('Saved: ' + data);
@@ -241,7 +239,7 @@ let index=0;
 function createDocBlock(ind) {
     return `
     <div class="card p-4 mx-auto border shadow-sm rounded-3 mb-4 document-block col-md-6" style="max-width: 500px;">
-        <h5 class="mb-3 fw-bold text-primary">📄 مستند رقم ${ind + 1}</h5>
+        <h5 class="mb-3 fw-bold text-primary">📄 وثيقة رقم ${ind + 1}</h5>
         
                                 <div class="form-group">
                
@@ -268,7 +266,7 @@ function createDocBlock(ind) {
                        <img id="img-${ind}"
                        
                        style="width:100%;"/>
-                    <div class="file-upload-area"  >
+                    <div class="file-upload-area" id="file-upload-area-${ind}" >
                         
                             <input type="file" id="file-input-${ind}"
                             accept="*/*" 
@@ -284,25 +282,25 @@ function createDocBlock(ind) {
 
 
  <div class="mb-2 mt-4">
-            <label class="form-label fw-bold">تفاصيل المستند</label>
+            <label class="form-label fw-bold">تفاصيل الوثائق</label>
             <span class="btn btn-sm btn-outline-info" onclick="toggleDetails(1, this)">عرض التفاصيل</span>
             <div class="progress mt-2 d-none" id="progress-${ind}">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar-${ind}">0%</div>
             </div>
             <div class="details_doc mt-2" style="display:none">
-                <textarea name="docs[${ind}][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف المستند..."></textarea>
+                <textarea name="docs[${ind}][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف الوثائق..."></textarea>
                 <pre id="pre-${ind}" class="bg-light p-2 rounded"></pre>
                 <div id="pre2-${ind}" class="row" lass="bg-light p-2 rounded"></div>
             </div>
         </div>
-
+<div id="result-${ind}"></div>
 
 
 
          </div>  
                
         
-        <button type="button" class="btn btn-sm btn-danger mt-2 w-100 remove-doc">🗑️ إزالة المستند</button>
+        <button type="button" class="btn btn-sm btn-danger mt-2 w-100 remove-doc">🗑️ إزالة الوثائق</button>
     </div>
     `;
 }
@@ -334,7 +332,7 @@ function toggleDetails(index, btn) {
 
 
 
-// إضافة مستند
+// إضافة وثيقة
 $('#add-doc').on('click', function() {
     $('#documents-container').append(createDocBlock(docIndex));
     updateHandlers(); docIndex++;
@@ -343,7 +341,7 @@ $('#add-doc').on('click', function() {
 // فحص قبل الإرسال
 
 
-// إضافة أول مستند تلقائيًا
+// إضافة أول وثيقة تلقائيًا
 $('#add-doc').click();
 
 
@@ -377,7 +375,7 @@ function updateHandlers() {
 
 function scan(ind) {
     index=ind;
-    $(`#result-${index} .alert`).html('جاري المسح للعرض فقط...');
+    $(`#result-${index}`).html('<div class="alert">جاري المسح للعرض فقط...</div>');
     $.ajax({ url: '/scan', type: 'POST', success: function(response) {
         if (response.success) {
              image.src = response.image_url;
@@ -387,16 +385,18 @@ function scan(ind) {
             //$('#imageToCrop').attr('src',response.image_url);
             
         } else {
-            $(`#result-${index} .alert`).html('خطأ: ' + response.error);
+            $(`#result-${index}`).html('خطأ: ' + response.error);
         }
     }, error: function() {
-        $(`#result-${index} .alert`).html('فشل الاتصال بالخادم.');
+        $(`#result-${index}`).html(`<div class="alert">فشل الاتصال
+        بالخادم.</div>`);
     }});
 }
 
-function uploadDocument(file=null, index,path=null) {
+function uploadDocument(file=null, index2,path=null) {
+  $(`#result-${index2}`).html(" ");
  // alert(index+'');
- $(`#progress-${index}`).removeClass('d-none');
+ $(`#progress-${index2}`).removeClass('d-none');
     const formData = new FormData();
     if(path!==null){
       formData.append('path', path);
@@ -407,20 +407,27 @@ function uploadDocument(file=null, index,path=null) {
     xhr.upload.addEventListener('progress', function(e) {
         if (e.lengthComputable) {
             const percent = Math.round((e.loaded / e.total) * 100);
-            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+            $(`#progress-bar-${index2}`).css('width', percent + '%').text(percent + '%');
         }
     });
     xhr.onload = function() {
+     // alert(index2+"/"+JSON.stringify(xhr)+"/"+xhr.status);
         if (xhr.status === 200) {
             const res = JSON.parse(xhr.responseText);
             if (res.success) {
               image.src = res.processed_image_path;
              // $('#imageToCrop').attr('src',res.processed_image_path);
               modal.show();
-            $(`#progress-${index}`).addClass('d-none'); 
+            $(`#progress-${index2}`).addClass('d-none'); 
+            }else{
+              $(`#progress-${index2}`).addClass('d-none');
+              $(`#result-${index2}`).html(`<div class="alert
+              alert-danger">${res.message}</div>`);
             }
         } else {
-            $(`#progress-${index}`).addClass('d-none');
+            $(`#progress-${index2}`).addClass('d-none');
+            $(`#result-${index2}`).html(`<div class="alert
+              alert-danger">${xhr.status}</div>`);
         }
     };
     xhr.send(formData);
@@ -432,7 +439,7 @@ $('#multi-form').on('submit', function (e) {
    
     
     const formData = new FormData(this);
-    $('#result').html('⏳ جاري حفظ المستندات...');
+    $('#result').html('⏳ جاري حفظ الوثائقات...');
 
     $.ajax({
         url: '/add_customer_doc',
@@ -442,7 +449,7 @@ $('#multi-form').on('submit', function (e) {
         contentType: false,
         success: function (res) {
             if (res.success) {
-                $('#result').html('<h5>✅ تم حفظ المستندات بنجاح</h5>');
+                $('#result').html('<h5>✅ تم حفظ الوثائقات بنجاح</h5>');
                 $('#multi-form')[0].reset();
                 $('#documents-container').empty();
                 docIndex = 0;

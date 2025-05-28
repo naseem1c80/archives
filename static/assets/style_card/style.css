@@ -282,7 +282,7 @@
             font-size: 0.9em;
         }
 
-        /* الرسائل التنبيهية */
+        /* الرسائل التنبيهية 
         .alert {
             padding: 15px;
             margin: 20px 0;
@@ -290,7 +290,7 @@
             display: none;
             text-align: center;
         }
-
+*/
         .alert-success {
             background-color: #d4edda;
             color: #155724;

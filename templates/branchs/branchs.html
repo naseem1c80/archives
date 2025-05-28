@@ -41,7 +41,7 @@
     <h5>
                         إدارة الفروع   
                             </h5>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#branchModal" onclick="openAddModal()">إضافة فرع</button>
+      <button class="btn btn-success" dataf-bs-toggle="modal" dataf-bs-target="#branchModal" onclick="openAddModal()">إضافة فرع</button>
     </div>
                            
                         </div>
@@ -117,6 +117,17 @@
 </div>
 
 <script>
+  
+function clearForm() {
+  document.getElementById("branchForm").reset();
+
+}
+  function openAddModal() {
+ clearForm();
+  
+    const modal = new bootstrap.Modal(document.getElementById("branchModal"));
+    modal.show();
+  }
    function loadbranchs() {
     axios.get("{{ url_for('branchs_blueprint.getbranchs') }}").then(res => {
       branchTable.innerHTML = "";
@@ -144,6 +155,7 @@
   }
   
   function openEditModal(id, name,branch_number, phone, address) {
+    clearForm();
     document.getElementById("modalTitle").innerText = "تعديل الفرع";
     document.getElementById("branchId").value = id;
     document.getElementById("name").value = name;

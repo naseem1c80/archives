@@ -52,32 +52,24 @@
         <!-- فلترة البحث -->
         <div class="search-box p-3 mb-4">
             <div class="row g-2">
-                <div class="col-md-3">
-                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 ابحث...">
-                </div>
+              
                 <div class="col-md-2">
-                    <select id="document_type" class="form-select" onchange="change_document_type(this)">
+                    <select id="document_type" class="form-select form-control" onchange="change_document_type(this)">
                         <option value="0">كل الأنواع</option>
                         <option value="1">تقرير</option>
                         <option value="2">عقد</option>
                     </select>
                 </div>
+
                 <div class="col-md-2">
-                    <input type="date" id="docDate" class="form-control date-input">
-                </div>
-                <div class="col-md-2">
-                    <select id="docStatus" class="form-select" onchange="change_document_status(this)">
+                    <select id="docStatus" class="form-select form-control" onchange="change_document_status(this)">
                         <option value="">كل الحالات</option>
                         <option value="1">متحقق</option>
                         <option value="0">غير متحقق</option>
                             <option value="2">مرتجع </option>
                     </select>
                 </div>
-                <div class="col-md-3 d-grid">
-                    <button class="btn btn-primary" id="refreshBtn">
-                        <i class="fas fa-sync"></i> تحديث البيانات
-                    </button>
-                </div>
+             
             </div>
         </div>
 
@@ -102,9 +94,7 @@
                             <thead>
                             <tr>
 
-     <!-- <table class="table table-bordered table-striped text-center"  dir="rtl" id="mainTable">
-        <thead class="table-success">
-          <tr>-->
+
 
 							
                            
@@ -112,15 +102,15 @@
                                 data-field="id" data-align="center"
                                 data-sortable="true">ID</th>
                                 
-
+             <th data-field="type_document" data-sortable="true"> نوع
+             المستند </th>
+           
             <th  data-field="name" data-sortable="true">الاسم </th>
             <th data-field="number_doc" data-sortable="true">رقم السند</th>
             <th data-field="transfer_number" data-sortable="true">رقم الحوالة</th>
             
-             <th data-field="account_number" data-sortable="true"> رقم الحساب</th>
-             <th data-field="type_document" data-sortable="true"> نوع
-             المستند </th>
-           
+
+
             <th data-field="signature" data-align="center"
             data-formatter="getsignaturedocument"
                                 data-sortable="true"> حالة التوقيع</th>
@@ -163,7 +153,7 @@
 return `<span class="badge badge-sim badge-warning">غير قابل للتوقيع</span>`
   }
   else{
-    if(sig.length>0){
+    if(sig!=null){
 return `<img src="${sig}" width="100" height="30">`
 }else{
   return `<span class="badge badge-sim badge-warning">انتظار التوقيع  </span>`
@@ -186,15 +176,15 @@ window.getstatusdocument = (value, row) => {
   var st=row['status'];
   if(st==0){
 return `<span class="badge badge-sim badge-warning"><i class="feather
-icon-clock"></i>${st}</span>`
+icon-clock"></i></span>`
   }
   if(st==1){
 return `<span class="badge badge-sim badge-success"><i class="feather
-icon-check-circle"></i>${st}</span>`
+icon-check-circle"></i></span>`
   }
   if(st==2){
 return `<span class="badge badge-sim badge-danger"><i class="feather
-icon-x-circle"></i>${st}</span>`
+icon-x-circle"></i></span>`
   }
 }
       window.getactiondocument = (value, row) => {
@@ -358,30 +348,10 @@ $(document).on('click', '.view-profile-btn', function () {
             //loadData(1);
         });
 
-        // إدارة الأحداث
-        function initEventListeners() {
-            $('#refreshBtn').click(loadData);
-            $('#searchInput').on('input', debounce(function(){
-              loadData(1);}, 300));
-            $('.form-control, .form-select').change(function(){
-              loadData(1);});
-        }
 
 
 
-        // معالجة الفلاتر
-        function getFilters(offset=0) {
-            return {
-                search: $('#searchInput').val(),
-                type: $('#docType').val(),
-                date: $('#docDate').val(),
-                status: $('#docStatus').val(),
-                limit: limit,
-                offset:offset,
-                sort_by:sortBy,
-                sort_order:sortOrder
-            };
-        }
+      
         
         // إدارة التحميل
         function showLoading() {

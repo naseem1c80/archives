@@ -65,11 +65,11 @@
     }
     .profile-car{
       max-width: 700px;
-      //margin: 50px auto;
+      margin: 50px auto;
       background-color: white;
       border-radius: 10px;
       padding: 30px;
-      //box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .profile-img {
       width: 120px;
@@ -92,12 +92,14 @@
     <div class="col-md-8">
       <form>
         <div class="mb-3">
-          <label class="form-label">Email</label>
+          <label class="form-label">
+            رقم الهاتف
+          </label>
           <input type="phone" class="form-control" value="{{user.phone}}">
         </div>
       
         <div class="mb-3">
-          <label class="form-label">Last name</label>
+          <label class="form-label">اسم الموظف</label>
           <input type="text" class="form-control" value="{{user.full_name}}">
         </div>
         <div class="form-check form-switch mb-3">
@@ -114,11 +116,10 @@
           <label class="form-label">
             تأكيد كلمة المرور
           </label>
-          <input type="password" class="form-control" placeholder="تأكيد كلمة
-          المرور">
+          <input type="password" class="form-control" placeholder="تأكيد كلمة المرور">
         </div>
         <button type="submit"  onclick="updatePassword('{{user.id}}')" class="btn btn-primary">
-          <i class="bi bi-save"></i> Submit
+          <i class="bi bi-save"></i> تحديث
         </button>
       </form>
     </div>
@@ -139,7 +140,7 @@
 
   <h2>Send Notification</h2>
   <input id="inmsg" placeholder="Enter a message">
-  <button onclick="send()">Send</button>
+  <button onclick="send()" class="btn btn-info">Send</button>
 
   <h3>Notifications:</h3>
   <ul id="notifications"></ul>
@@ -154,41 +155,7 @@
 
 
 
-
-  <script>
- const userId = "{{current_user.id }}";
-    const socket = io();
-
-    socket.on('connect', () => {
-        console.log('Connected to WebSocket');
-    });
-   /*
-    function send() {
-      const msg = document.getElementById('msg').value;
-      socket.emit('/send_notification', { message: msg ,user_id:'{{user.id}}'});
-    }*/
-
-
-    socket.on('/new_notification', (data) => {
-          const li = document.createElement("li");
-      li.textContent = data.notifications.message;
-      document.getElementById("notifications").appendChild(li);
-    
-        /*if (parseInt(data.user_id) === userId) {
-            const list = document.getElementById('notificationsList');
-            const li = document.createElement('li');
-            li.className = 'list-group-item list-group-item-warning';
-            li.innerText = data.message + ' (جديد)';
-            list.prepend(li);
-        }*/
-    });
-    /*socket.on('/get_notifications', function(data) {
-      const li = document.createElement("li");
-      li.textContent = data.message;
-      document.getElementById("notifications").appendChild(li);
-    });*/
-
-
+<script>
 
     
   function send() {
@@ -279,20 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="card p-3 mb-3">
 
 
-<h1>{{ _("Welcome to the Multilingual App") }}</h1>
-
-    <p>{{ _("Choose your language:") }}</p>
-    <a href="/set_language/en">English</a> | 
-    <a href="/set_language/ar">العربية</a>
-
-    <h3>{{ _("Permissions") }}:</h3>
-    <ul>
-        {% set permissions = ["add_document", "verify_document", "add_user", "reset_password", "add_branch", "view_reports"] %}
-        {% for p in permissions %}
-            <li>{{ _(p) }}</li>
-        {% endfor %}
-    </ul>
-
 
 
 
@@ -310,15 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <strong>الصلاحيات:</strong> {{ user.role }}
     </div>
 
-    <div class="card p-3 mb-3">
-        <h5>تعديل كلمة المرور</h5>
-        <input type="password" id="newPassword" class="form-control mb-2" placeholder="كلمة مرور جديدة">
-        <button class="btn btn-primary"">تحديث</button>
-        <div id="progressBar" class="progress mt-2 d-none">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">جاري التحديث...</div>
-        </div>
-        <div id="msg" class="mt-2"></div>
-    </div>
+
 
     <div class="card p-3">
         <h5>الإشعارات</h5>

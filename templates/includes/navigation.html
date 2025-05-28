@@ -1,231 +1,134 @@
-
-
-
-
-
-
-	<!-- [ Header ] start -->
-	<header class="navbar pcoded-header navbar-expand-lg navbar-light headerpos-fixed header-blue">
-
-        
-
-
-
-
-			
-        <div class="m-header">
-            <a class="mobile-menu" id="mobile-collapse" href="#"><span></span></a>
-            <a href="#" class="b-brand">
-                <!-- ========   change your logo hear   ============ -->
-                <img src="/static/assets/images/logo.png" alt="" class="logo">
-                <img src="/static/assets/images/logo-icon.png" alt="" class="logo-thumb">
-            </a>
-            <a href="#" class="mob-toggler">
-                <i class="feather icon-more-vertical"></i>
-            </a>
-        </div>
-       
-       
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a href="#" class="pop-search"><i class="feather icon-search"></i></a>
-                    <div class="search-bar">
-                        <input type="text" class="form-control border-0 shadow-none" placeholder="Search here">
-                        <button type="button" class="btn-close" aria-label="Close">
-                        </button>
-                    </div>
-                </li>
-            </ul>
-
-            <ul class="navbar-nav ms-auto">
-                <li>
-
- <div class="dropdown drp-user">
-    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                        <div class="notification-icon right">
-    <i class="feather icon-bell "></i>
-    <span class="num-count" id="num-count">13</span>
-    </div>
+<!-- [ Header ] start -->
+<header class="navbar pcoded-header navbar-expand-lg navbar-light headerpos-fixed header-blue">
+  <div class="m-header">
+    <a class="mobile-menu" id="mobile-collapse" href="#"><span></span></a>
+    <a href="#" class="b-brand">
+      <img src="/static/assets/images/logo.png" alt="Logo" class="logo">
+      <img src="/static/assets/images/logo-icon.png" alt="Icon" class="logo-thumb">
     </a>
-
-     <div class="dropdown-menu dropdown-menu-end profile-notification">
-                            <div class="pro-head">
-                                   
-                                    الاشعارات
-      <i class="feather icon-bell 20dp right"></i>
-    
-                            </div>
-                            <ul class="pro-body ubody_notifications">
-
-
-
-<div clas="notification-container" id="notificationsList">
- 
-
-    
-
+    <a href="#" class="mob-toggler">
+      <i class="feather icon-more-vertical"></i>
+    </a>
   </div>
 
-
-                                <li>
-                                    <a href="{{ url_for('authentication_blueprint.logout') }}" 
-                                       class="dropdown-item"><i
-                                            class="feather icon-lock"></i> 
-                                        تسجيل الخروج
-                                        </a></li>
-                            </ul>
-                        </div>
-  </div>
-</li>
-            </ul>
-           
-           
-           
-           
-           
-            <ul class="navbar-nav ms-auto">
-                <li>
-                    <div class="dropdown drp-user">
-                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                            <img src="{{ url_for('users_blueprint.get_imgae_user', user_id=current_user.id) }}" sr="/static/assets/images/user/avatar-4.jpg" class="img-radius wid-40"
-                                alt="User-Profile-Image">
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end profile-notification">
-                            <div class="pro-head">
-                                <img src="{{ url_for('users_blueprint.get_imgae_user', user_id=current_user.id) }}"  sc="/static/assets/images/user/avatar-4.jpg" class="img-radius"
-                                    alt="User-Profile-Image">
-                                <span>
-                                    {{ current_user.full_name }}
-                                </span>
-                            </div>
-                            <ul class="pro-body">
-                                
-                              
-                              
-                              <li>
-                                    <a href="{{ url_for('users_blueprint.myprofile') }}" 
-                                       class="dropdown-item"><i
-                                            class="feather icon-user"></i> 
-                                        الملف الشخصي
-                                        </a></li>
-                              <li>
-                                    <a href="{{ url_for('authentication_blueprint.logout') }}" 
-                                       class="dropdown-item"><i
-                                            class="feather icon-lock"></i> 
-                                        تسجيل الخروج
-                                        </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-
-
-
-
-            </ul>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item">
+        <a href="#" class="pop-search"><i class="feather icon-search"></i></a>
+        <div class="search-bar">
+          <input type="text" class="form-control border-0 shadow-none" placeholder="Search here">
+          <button type="button" class="btn-close" aria-label="Close"></button>
         </div>
-        
-    
-</header>
+      </li>
+    </ul>
 
+    <ul class="navbar-nav ms-auto">
+      <!-- إشعارات -->
+      
 
 
   
+  
+      <li>
+        <div class="dropdown drp-user">
+          <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+            <div class="notification-icon right position-relative">
+              <i class="feather icon-bell"></i>
+              <span class="num-count" id="num-count">0</span>
+            </div>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end profile-notification">
+            <div class="pro-head">
+              الاشعارات
+              <i class="feather icon-bell float-end"></i>
+            </div>
+            <ul class="pro-body ubody_notifications" id="notificationsList">
+              <!-- إشعارات ديناميكية -->
+            </ul>
+            <div class="dropdown-divider"></div>
 
+          </div>
+        </div>
+      </li>
 
+      <!-- المستخدم -->
+      <li>
+        <div class="dropdown drp-user">
+          <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+            <img src="{{ url_for('users_blueprint.get_imgae_user', user_id=current_user.id) }}"
+              class="img-radius wid-40" alt="User-Profile-Image">
+          </a>
+          <div class="dropdown-menu dropdown-menu-end profile-notification">
+            <div class="pro-head">
+              <img src="{{ url_for('users_blueprint.get_imgae_user', user_id=current_user.id) }}"
+                class="img-radius me-2" alt="User-Profile-Image">
+              <span>{{ current_user.full_name }}</span>
+            </div>
+            <ul class="pro-body">
+              <li>
+                <a href="{{ url_for('users_blueprint.myprofile') }}" class="dropdown-item">
+                  <i class="feather icon-user"></i> الملف الشخصي
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('authentication_blueprint.logout') }}" class="dropdown-item">
+                  <i class="feather icon-lock"></i> تسجيل الخروج
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</header>
 <!-- [ Header ] end -->
+
+<!-- CSS: عداد الإشعارات -->
 <style>
-
-
 .num-count {
   position: absolute;
-  user-select: none;
-  cursor: default;
-  font-size: 0.8rem;
+  top: 0.5rem;
+  right: -0.4rem;
   background: red;
+  color: white;
+  font-size: 0.75rem;
   width: 1.2rem;
   height: 1.2rem;
-  color: white;
-  display: inline-flex;
+  border-radius: 50%;
+  display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 50%;
-  top: 0.93rem;
-  right: -.66rem;
-  box-sizing: border-box;
+  user-select: none;
+  cursor: default;
 }
-
-
-
-
-@keyframes dropPanel {
-  0% {
-    opacity: 0;
-    transform: translateY(-100px) scaleY(.5);
-  }
-}
-
-.notification {
-  box-sizing: border-box;
-  &.new {
-    background: #f3f9fd;
-  }
-}
-
-
-
-
-.notification-icon {
-  position: relative;
-  margin-right: 1em;
-  border-radius: 5px;
-  color: white;
-  i {
-    margin: .5rem;
-  }
-  &:nth-of-type(1) {
-    i {
-      background: -webkit-linear-gradient(300deg, #f8f8f8, #f33ca7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-  }
-  &:nth-of-type(2) i {
-    background: -webkit-linear-gradient(300deg, #fff9ab, #00b8ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
 </style>
 
-
+<!-- JavaScript: تحميل الإشعارات -->
 <script>
-  
 document.addEventListener('DOMContentLoaded', () => {
+  fetch(`/get_notifications/{{current_user.id}}`)
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById('notificationsList');
+      const numCount = document.getElementById('num-count');
+      numCount.innerText = data.notifications.length;
 
-    fetch(`/get_notifications/{{current_user.id}}`)
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById('notificationsList');
-                const num_count = document.getElementById('num-count');
-                num_count.innerText=data.notifications.length+"";
-            data.notifications.forEach(n => {
-                const li = document.createElement('li');
-                 const a = document.createElement('a');
-                 const i = document.createElement('i');
-                 a.setAttribute('href',`/notification/${n.id}`)
-                a.className = 'dropdown-item';
-                li.className=(n.seen?'':'notification new');
-                 i.className = 'feather icon-mail';
-                   //a.appendChild(i);
-                a.innerHTML ='<i class="feather icon-mail"></i>'+ n.message + (n.seen ? '' : ' (جديد)');
-                li.appendChild(a);
-              
-                 
-                list.appendChild(li);
-            });
-        });
+      data.notifications.forEach(n => {
+        const li = document.createElement('li');
+        li.className = n.seen ? 'notification' : 'notification new';
+
+        const a = document.createElement('a');
+        a.href = `/notification/${n.id}`;
+        a.className = 'dropdown-item';
+        a.innerHTML = `<i class="feather icon-mail"></i> ${n.message} ${n.seen ? '' : ' (جديد)'}`;
+
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    });
 });
 </script>
+
+
+
