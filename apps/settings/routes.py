@@ -57,6 +57,7 @@ def send_notification():
     })
 
     return jsonify({'status': 'sent'})
+
 @blueprint.route('/set_language/<lang>')
 def set_language(lang):
     prev_url = request.referrer

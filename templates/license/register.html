@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>تسجيل الجهاز</h1>
+<form method="POST">
+    <input type="hidden" name="device_id" value="{{ generated_id }}">
+    <button type="submit" class="btn btn-primary">تسجيل الجهاز</button>
+</form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "license/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">طلب ترخيص الجهاز</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">جهازك (<strong>{{ device.hostname }}</strong>) يحتاج إلى ترخيص للاستمرار.</p>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="license_key" class="form-label">كود الترخيص</label>
+                            <input type="text" class="form-control" id="license_key" name="license_key" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">إرسال الطلب</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

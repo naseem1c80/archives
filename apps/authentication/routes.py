@@ -23,7 +23,6 @@ from apps.authentication.util import verify_pass
 
 @blueprint.route('/')
 def route_default():
-    print(f'****generate_password_hash {generate_password_hash("783757660")}')
     return redirect(url_for('authentication_blueprint.login'))
 
 

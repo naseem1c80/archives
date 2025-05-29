@@ -1,0 +1,82 @@
+{% extends "license/base.html" %}
+
+{% block content %}
+
+
+
+
+<!-- في templates/license/activate.html -->
+<div class="mb-3">
+    <label class="form-label">معرف الجهاز الفريد</label>
+    <div class="input-group">
+        <input type="text" class="form-control" 
+               value="{{ hardware_id }}" readonly>
+        <button class="btn btn-outline-secondary" type="button" 
+                onclick="copyToClipboard(this)">
+            <i class="fas fa-copy"></i>
+        </button>
+    </div>
+    <small class="text-muted">يتم إنشاؤه تلقائياً من خصائص جهازك</small>
+</div>
+
+<script>
+function copyToClipboard(button) {
+    const input = button.closest('.input-group').querySelector('input');
+    input.select();
+    document.execCommand('copy');
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = '<i class="fas fa-copy"></i>';
+    }, 2000);
+}
+</script>
+
+
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0 text-center">
+                        <i class="fas fa-key me-2"></i>تفعيل الترخيص
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="licenseForm">
+                        <div class="mb-3">
+                            <label for="device_id" class="form-label">معرف الجهاز</label>
+                            <input type="text" class="form-control" id="device_id" 
+                                   name="device_id" value="{{ hardware_id }}" readonly required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="license_key" class="form-label">كود الترخيص</label>
+                            <input type="text" class="form-control" id="license_key" 
+                                   name="license_key"  placeholder="أدخل كود الترخيص المكون من 25 حرفاً" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-check-circle me-2"></i>تفعيل
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        للاستفسارات <a href="url_for('contact.us') ">اتصل بنا</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// جلب معرف الجهاز تلقائياً
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/device_id')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('device_id').value = data.device_id;
+        });
+});
+</script>
+{% endblock %}

@@ -4,17 +4,18 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from email.policy import default
+from xmlrpc.client import DateTime
 from apps.exceptions.exception import InvalidUsage
 import datetime as dt
 from sqlalchemy.orm import relationship
 from enum import Enum
-
+import hashlib
 
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
-
+import uuid
 from apps import db, login_manager
 from apps.authentication.util import hash_pass
 
@@ -385,7 +386,14 @@ class CustomerDocumentImage(db.Model):
 
 
 
+
+
 class DeviceInfo(db.Model):
+    """
+    نموذج لتخزين معلومات الجهاز مع إدارة التراخيص
+    """
+    __tablename__ = 'device_info'
+    
     id = db.Column(db.Integer, primary_key=True)
     hostname = db.Column(db.String(255), unique=True, nullable=False)
     system = db.Column(db.String(100))
@@ -397,9 +405,211 @@ class DeviceInfo(db.Model):
     ip_address = db.Column(db.String(100))
     cpu_cores = db.Column(db.Integer)
     ram_gb = db.Column(db.Float)
-    license_key = db.Column(db.String(255))
+    license_key = db.Column(db.String(255), nullable=False)
+    license_hash = db.Column(db.String(255), nullable=False)
     is_authorized = db.Column(db.Boolean, default=False)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        # توليد هاش للترخيص عند الإنشاء
+        if 'license_key' in kwargs:
+            kwargs['license_hash'] = self._generate_license_hash(kwargs['license_key'])
+        super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Device {self.hostname}>"
+        return f"<Device {self.hostname} - {'Authorized' if self.is_authorized else 'Unauthorized'}>"
+
+    @staticmethod
+    def _generate_license_hash(license_key):
+        """توليد هاش مشفر لمفتاح الترخيص"""
+        return hashlib.sha256(license_key.encode()).hexdigest()
+
+    def verify_license(self, license_key):
+        """التحقق من صحة الترخيص"""
+        return self.license_hash == self._generate_license_hash(license_key)
+
+    def authorize_device(self, valid_licenses):
+        """
+        تفعيل الجهاز إذا كان الترخيص صالحًا
+        valid_licenses: قائمة بمفاتيح التراخيص الصالحة
+        """
+        self.is_authorized = self.license_key in valid_licenses
+        self.last_seen = datetime.utcnow()
+        return self.is_authorized
+  
+  
+
+
+
+class DeviceLicense(db.Model):
+    __tablename__ = 'device_licenses'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    hostname = db.Column(db.String(255))
+    ip_address = db.Column(db.String(100))
+    system = db.Column(db.String(100))  # أضف هذا الحقل
+    processor = db.Column(db.String(255))  # أضف هذا الحقل
+    is_approved = db.Column(db.Boolean, default=False)
+    hardware_id = db.Column(db.String(128), unique=True, nullable=False)  # المعرف الفعلي للجهاز
+    license_key = db.Column(db.String(64), nullable=False)
+    is_active = db.Column(db.Boolean, default=False)
+    activated_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc),
+                         onupdate=lambda: datetime.now(timezone.utc))
+        
+    __table_args__ = (
+        db.UniqueConstraint('hardware_id', 'license_key', name='_hardware_license_uc'),
+    )
+
+    @classmethod
+    def generate_hardware_id(cls):
+        """إنشاء معرف فريد للجهاز بناءً على خصائصه"""
+        import hashlib, platform
+        h = hashlib.sha256()
+        h.update(platform.node().encode())  # اسم الجهاز
+        h.update(platform.processor().encode())  # المعالج
+        return h.hexdigest()
+    def __init__(self, device_id, **kwargs):
+        self.device_id = device_id
+        super().__init__(**kwargs)
+    def __repr__(self):
+        return f'<DeviceLicense {self.device_id}>'
+    
+    @staticmethod
+    def generate_hash(data):
+        return hashlib.sha256(data.encode()).hexdigest()
+
+
+
+
+
+class Device(db.Model):
+    """
+    نموذج موحد لإدارة أجهزة والتراخيص مع حل مشكلة التكرار
+    """
+    __tablename__ = 'devices'
+    
+    # الحقول الأساسية
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(255), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    hardware_hash = db.Column(db.String(255), unique=True, nullable=False)  # للتفرقة بين الأجهزة
+    
+    # معلومات الجهاز
+    hostname = db.Column(db.String(255))
+    system = db.Column(db.String(100))
+    release = db.Column(db.String(100))
+    processor = db.Column(db.String(255))
+    ip_address = db.Column(db.String(100))
+    mac_address = db.Column(db.String(100))
+    cpu_cores = db.Column(db.Integer)
+    ram_gb = db.Column(db.Float)
+    
+    # معلومات الترخيص
+    license_key = db.Column(db.String(255))
+    license_hash = db.Column(db.String(255))
+    is_authorized = db.Column(db.Boolean, default=False)
+    license_expiry = db.Column(db.DateTime)
+    
+    # التواريخ
+    first_seen = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc))
+    last_seen = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, 
+                         default=lambda: datetime.now(timezone.utc),
+                         onupdate=lambda: datetime.now(timezone.utc))
+    
+    __table_args__ = (
+        db.UniqueConstraint('hardware_hash', 'license_key', name='_hw_license_uc'),
+    )
+    @classmethod
+    def generate_hardware_id(cls):
+        """إنشاء معرف فريد للجهاز بناءً على خصائصه"""
+        import hashlib, platform
+        h = hashlib.sha256()
+        h.update(platform.node().encode())  # اسم الجهاز
+        h.update(platform.processor().encode())  # المعالج
+        return h.hexdigest()
+
+    def __init__(self, **kwargs):
+        # توليد الهاشات التلقائية
+        if 'license_key' in kwargs:
+            kwargs['license_hash'] = self._generate_hash(kwargs['license_key'])
+        
+        if 'hardware_info' in kwargs:
+            kwargs['hardware_hash'] = self._generate_hardware_hash(kwargs.pop('hardware_info'))
+        
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<Device {self.device_id} ({'Authorized' if self.is_authorized else 'Pending'})>"
+
+    # ==============
+    #  الأساليب الثابتة
+    # ==============
+    @staticmethod
+    def _generate_hash(data):
+        """توليد هاش مشفر لأي بيانات"""
+        return hashlib.sha256(data.encode()).hexdigest()
+
+    @staticmethod
+    def get_hardware_info():
+        """جمع معلومات الجهاز الفريدة"""
+        import platform, socket, subprocess, re
+        
+        def get_mac():
+            try:
+                mac = subprocess.getoutput("cat /sys/class/net/*/address | head -1")
+                if not mac:
+                    mac = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+                return mac
+            except:
+                return "00:00:00:00:00:00"
+        
+        return {
+            'hostname': socket.gethostname(),
+            'mac': get_mac(),
+            'processor': platform.processor(),
+            'machine': platform.machine()
+        }
+
+    @staticmethod
+    def _generate_hardware_hash(hardware_info):
+        """إنشاء هاش فريد للجهاز"""
+        h = hashlib.sha256()
+        for k, v in sorted(hardware_info.items()):
+            h.update(f"{k}:{v}".encode())
+        return h.hexdigest()
+
+    # ==============
+    #  أساليب الترخيص
+    # ==============
+    def verify_license(self, license_key):
+        """التحقق من صحة الترخيص"""
+        return self.license_hash == self._generate_hash(license_key)
+
+    def authorize(self, valid_licenses, expiry_days=365):
+        """
+        تفعيل الجهاز مع التحقق من الترخيص
+        """
+        if self.license_key in valid_licenses:
+            self.is_authorized = True
+            self.license_expiry = datetime.utcnow() + timedelta(days=expiry_days)
+            return True
+        return False
+
+    def check_status(self):
+        """فحص حالة الترخيص الحالية"""
+        if not self.is_authorized:
+            return "غير مرخص"
+        elif datetime.utcnow() > self.license_expiry:
+            return "منتهي الصلاحية"
+        return "نشط"

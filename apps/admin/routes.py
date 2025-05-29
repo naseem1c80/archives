@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for
 from apps import db
-from apps.models import DeviceInfo
+from apps.models import DeviceInfo,DeviceLicense
 
 blueprint = Blueprint('blueprint', __name__, url_prefix='/admin')
 
@@ -22,3 +22,14 @@ def deauthorize_device(device_id):
     device.is_authorized = False
     db.session.commit()
     return redirect(url_for('blueprint.device_list'))
+
+
+
+
+@blueprint.route('/licenses')
+def manage_licenses():
+    pending_licenses = DeviceLicense.query.filter_by(is_approved=False).all()
+    approved_licenses = DeviceLicense.query.filter_by(is_approved=True).all()
+    return render_template('admin/licenses.html', 
+                         pending=pending_licenses,
+                         approved=approved_licenses)

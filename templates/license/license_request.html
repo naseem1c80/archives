@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>طلب ترخيص</h1>
+<form method="POST">
+    <div class="form-group">
+        <label>كود الترخيص</label>
+        <input type="text" name="license_key" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">إرسال الطلب</button>
+</form>
+{% endblock %}
