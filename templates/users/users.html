@@ -1,280 +1,228 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Tables {% endblock %} 
+{% block title %} إدارة المستخدمين {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--single,
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+    }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    .status-inactive {
+        background-color: #fef2f2;
+        color: #dc2626;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
-  <script sr="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- [ Main Content ] start -->
-    <section class="pcoded-main-container">
-        <div class="pcoded-content">
-            <!-- [ breadcrumb ] start -->
-            <div class="page-header">
-                <div class="page-block">
-                    <div class="row align-items-center">
-                        <div class="col-md-12">
-                            <div class="page-header-title">
-                                <h5 class="m-b-10">
-                                     إدارة المستخدمين  
-                                </h5>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+{% block title2 %}  إدارة المستخدمين {% endblock %} 
+
+{% block title5 %}  إضافة وتعديل وإدارة حسابات المستخدمين في النظام {% endblock %} 
+
+<div class="container mx-auto px-4 py-6">
+    <!-- رأس الصفحة -->
+    <div class="mb-8">
+        
+
+        <!-- رسائل التنبيه -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="space-y-3">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show flex items-center justify-between p-4 rounded-lg border" role="alert">
+                  <div class="flex items-center">
+                    {% if category == 'success' %}
+                      <i class="fas fa-check-circle text-green-500 ml-2"></i>
+                    {% elif category == 'danger' %}
+                      <i class="fas fa-exclamation-circle text-red-500 ml-2"></i>
+                    {% else %}
+                      <i class="fas fa-info-circle text-blue-500 ml-2"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                  </div>
+                  <button type="button" class="btn-close text-gray-500 hover:text-gray-700" data-bs-dismiss="alert" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <!-- نموذج إضافة/تعديل المستخدم -->
+        <div class="xl:col-span-1">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h5 class="text-lg font-semibold text-gray-800" id="modalTitle">إضافة مستخدم جديد</h5>
+                </div>
+                
+                <div class="p-6">
+                    <form id="userForm" onsubmit="submitUser(event)">
+                        <div id="res_data" class="mb-4"></div>
+                        <input type="hidden" id="userId">
+                        
+                        <div class="space-y-4">
+                            <!-- الاسم الكامل -->
+                            <div>
+                                <label for="full_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    الاسم الكامل <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="full_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
                             </div>
-                            <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
-                                <li class="breadcrumb-item"><a href="#"> إدارة المستخدمين  </a></li>
-                            </ul>
+
+                            <!-- رقم الهاتف -->
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    رقم الهاتف <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="phone" maxlength="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+                            </div>
+
+                            <!-- كلمة المرور -->
+                            <div id="passwordField">
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                    كلمة المرور <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">يجب أن تكون كلمة المرور أطول من 6 أحرف</p>
+                            </div>
+
+                            <!-- الفرع -->
+                            <div>
+                                <label for="branch" class="block text-sm font-medium text-gray-700 mb-2">
+                                    الفرع <span class="text-red-500">*</span>
+                                </label>
+                                <select id="branch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+                                    <option value="">جاري التحميل...</option>
+                                </select>
+                            </div>
+
+                            <!-- القسم -->
+                            <div>
+                                <label for="section" class="block text-sm font-medium text-gray-700 mb-2">
+                                    القسم <span class="text-red-500">*</span>
+                                </label>
+                                <select id="section" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+                                    <option value="">جاري التحميل...</option>
+                                </select>
+                            </div>
+
+                            <!-- الصلاحية -->
+                            <div>
+                                <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+                                    الصلاحية <span class="text-red-500">*</span>
+                                </label>
+                                <select id="role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+                                    <option value="1">موظف</option>
+                                    <option value="2">مدير</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="flex gap-3 mt-6 pt-4 border-t border-gray-200">
+                            <button type="button" onclick="clearForm()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+                                تفريغ 
+                            </button>
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+                                حفظ 
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول المستخدمين -->
+        <div class="xl:col-span-3">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <h5 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">قائمة المستخدمين</h5>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <span class="text-sm text-gray-500">إجمالي المستخدمين:</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium" id="totalUsers">0</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-
-
-
-
-            <!-- [ breadcrumb ] end -->
-            <!-- [ Main Content ] start -->
-            <div class="row  align-items-center m-auto" dir="rtl">
-                <!-- [ basic-table ] start -->
-                <div class="col-8">
-                    <div class="card">
-                        <div class="card-header " >
-  <h5 class="modal-title" id="modalTitle">إضافة مستخدم</h5>
-                        </div>
-                            
-
-<div class="card-body table-border-style">
-
-      <form id="userForm" onsubmit="submitUser(event)">
-       
-          <div id="res_data"></div>
-          <input type="hidden" id="userId">
-          <div class="mb-3">
-            <label>الاسم الكامل</label>
-            <input type="text" id="full_name" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label>رقم الهاتف</label>
-            <input type="text" id="phone" maxlength="15" class="form-control" required>
-          </div>
-          <div class="mb-3" id="passwordField">
-            <label>كلمة المرور</label>
-            <input type="text" id="password" class="form-control">
-          </div>
-     
-          <div class="mb-3">
-  <label>الفرع</label>
-  <select id="branch" class="form-control" required>
-    <option value="">جاري التحميل...</option>
-  </select>
-</div>
-       
-       
-          <div class="mb-3">
-            <label>الصلاحية</label>
-            <select id="role" class="form-select form-control tag-select" required>
-              <option value="1">موظف</option>
-              <option value="2">مدير</option>
-              
-            </select>
-          </div>
-
-
-    
-      </form>
-
-          <div class="modal-footer">
-          <button class="btn btn-secondary"  onclick="clearForm()">تفريغ</button>
-          <button type="submit" class="btn btn-primary" onclick="$('#userForm').submit()">حفظ</button>
-        </div>
-   
-
-
-     </div>
-    </div>
-  </div>
-</div>
-
-
-            <!-- [ breadcrumb ] end -->
-            <!-- [ Main Content ] start -->
-            <div class="row">
-                <!-- [ basic-table ] start -->
-                <div class="col-md-18">
-                    <div class="card">
-                        <div class="card-header">
-                            
-
-
-
-
-                                <div class="card-header d-flex justify-content-between align-items-center " dir="rtl">
-    <h5>
-                        إدارة المستخدمين   
-                            </h5>
-       </div>
-                        </div>
-                        <div class="card-body table-border-style">
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="container mt-3">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
-                          <div class="table-responsive">
-                    
-                            
-
-<table
-  id="table"
-  class="table table-striped table-bordered"
-  dir="rtl"
-  data-toggle="table"
-  data-ajax="ajaxRequest"
-  data-pagination="true"
-  data-side-pagination="server"
-  data-page-list="[10, 20, 50, 100]"
-  data-search="true"
-  data-show-refresh="true"
-  data-show-toggle="true"
-  data-sort-name="id"
-  data-sort-order="asc"
->
-                            <thead>
-                            <tr>
-
-     <!-- <table class="table table-bordered table-striped text-center"  dir="rtl" id="mainTable">
-        <thead class="table-success">
-          <tr>-->
- <th data-formatter="getactionlogouser">Logo</th>
-							
-                           
-                                <th class="text-center py-1 px-2"
-                                data-field="id" data-align="center"
-                                data-sortable="true">ID</th>
-                                
-
-            <th  data-field="full_name" data-sortable="true">الاسم </th>
-             <th data-field="phone" data-sortable="true"> الهاتف </th>
-            <th data-field="branch.name" data-align="center"
-                                data-sortable="true"> الفرع</th>
-            <th data-field="active" data-align="center" class="text-center py-1 px-2"
-                                data-sortable="true">الحالة</th>
-                                
-            <th data-field="role.name" data-align="center" class="text-center py-1 px-2"
-                                data-sortable="true">الصلاحية</th>
-                 <th class="text-center py-1 px-2" data-field="created_at" data-align="center"
-                                data-sortable="true">التاريخ</th>
-<th data-align="center"     data-formatter="getactionuser"
- width="100px"  class="text-center py-1 px-2"> action
-</th>
-						
-                         
-          </tr>
-        </thead>
-        <!--<tbody id="userTable"></tbody>-->
-      </table>
-
-
-
-<script>
-  
- window.getactionlogouser = (value, row) => {
-  return [`<img src="/get_imgae_user/${row['id']}"
-            class="img-radius wid-40"
-                                alt="User-Profile-Image">`];
-}
-                                    window.getactionuser = (value, row) => {
-   // function getactiondocument(value,row,index){
-			    
-			    return [`<div style="width:140px"><button class="btn btn-sm btn-primary"
-			    onclick="openEditModal(${row['id']}, '${row['full_name']}', '${row['phone']}','${row['role_id']}','${row['branch_id']}')"> <i class="feather icon-edit"></i></button>
-              ${row['active'] ?
-              `<button class="btn btn-sm btn-danger" onclick="disableUser(${row['id']})">
-                              <i class="feather icon-stop-circle"></i>
-              </button>`:`<button class="btn btn-sm btn-info" onclick="disableUser(${row['id']})">
-                              <i class="feather icon-play-circle"></i>
-              </button>`}
-               <a href="/profile/${row['id']}" class="btn btn-sm btn-success"
-               target="_blank">
-               
-                <i class="feather icon-eye"></i>
-                </a></div>`];
-			}
-</script>
-
-
-
-
-
-
-
-
-
-
-   
-                            </div>
-                        </div>
+                <div class="p-6">
+                    <div class="table-responsive">
+                        <table
+                            id="table"
+                            class="table table-striped table-bordered w-full"
+                            dir="rtl"
+                            data-toggle="table"
+                             data-auto-refresh="true"
+                            data-ajax="ajaxRequest"
+                            data-pagination="true"
+                            data-side-pagination="server"
+                            data-page-list="[10, 20, 50, 100]"
+                            data-search="true"
+                            data-show-refresh="true"
+                            data-show-toggle="true"
+                            data-sort-name="id"
+                            data-sort-order="asc"
+                        >
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th data-formatter="getactionlogouser" data-width="60" data-align="center">الصورة</th>
+                                    <th data-field="id" data-sortable="true" data-width="80" data-align="center">ID</th>
+                                    <th data-field="full_name" data-sortable="true">الاسم</th>
+                                    <th data-field="phone" data-sortable="true">الهاتف</th>
+                                    <th data-field="branch.name" data-sortable="true">الفرع</th>
+                                    <th data-field="active" data-sortable="true" data-align="center" data-formatter="statusFormatter">الحالة</th>
+                                    <th data-field="role.name" data-sortable="true">الصلاحية</th>
+                                    <th data-field="created_at" data-sortable="true" data-align="center">التاريخ</th>
+                                    <th data-formatter="getactionuser" data-width="140" data-align="center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
-              
-           
-             
-               
-          
             </div>
-            <!-- [ Main Content ] end -->
         </div>
-    </section>
-    <!-- [ Main Content ] end -->
-
-
-
-<div id="loadingOverlay" style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background-color: rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1055;
-  display: none;
-">
-  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-    <span class="visually-hidden">جارٍ التحميل...</span>
-  </div>
+    </div>
 </div>
 
 
-
-
-
-
-
-
 <script>
-
-function clearForm() {
-  document.getElementById("userForm").reset();
-  openAddModal();
-}
-
-
+    const $table = $('#table')
+// تهيئة Select2
 $(document).ready(function() {
     $('.tag-select').select2({
-        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        tags: true,
         dir: "rtl",
-        width: 'resolve',
+        width: '100%',
         language: {
             noResults: function () {
                 return "لا توجد نتائج";
@@ -286,222 +234,244 @@ $(document).ready(function() {
     });
 });
 
+// دوال التنسيق للجدول
+window.getactionlogouser = (value, row) => {
+    return [
+        `<img src="/get_imgae_user/${row['id']}" 
+              class="user-avatar" 
+              alt="صورة المستخدم"
+              onerror="this.src='https://via.placeholder.com/40'">`
+    ];
+};
 
+window.getactionuser = (value, row) => {
+    return [
+        `<div class="action-buttons">
+            <button class="btn btn-sm btn-primary" 
+                    onclick="openEditModal(${row['id']}, '${row['full_name']}', '${row['phone']}', '${row['role_id']}', '${row['branch_id']}', '${row['section_id']}')">
+                <i class="fas fa-edit"></i>
+            </button>
+            ${row['active'] ?
+                `<button class="btn btn-sm btn-danger" onclick="disableUser(${row['id']})">
+                    <i class="fas fa-user-slash"></i>
+                </button>` :
+                `<button class="btn btn-sm btn-info" onclick="disableUser(${row['id']})">
+                    <i class="fas fa-user-check"></i>
+                </button>`
+            }
+            <a href="/profile/${row['id']}" class="btn btn-sm btn-success" target="_blank">
+                <i class="fas fa-eye"></i>
+            </a>
+        </div>`
+    ];
+};
 
+function statusFormatter(value, row) {
+    return value ? 
+        '<span class="status-badge status-active">نشط</span>' : 
+        '<span class="status-badge status-inactive">غير نشط</span>';
+}
 
-  
-  window.ajaxRequest = function (params) {
-    // إذا لم يكن هناك بيانات في الطلب، أنشئ كائن data
+// باقي الدوال JavaScript تبقى كما هي مع تعديلات طفيفة للتنسيق
+window.ajaxRequest = function (params) {
     if (!params.data) {
-      params.data = {};
+        params.data = {};
     }
     const url = "{{ url_for('users_blueprint.getusers') }}";
 
-    // تنفيذ الطلب
     $.get(`${url}?${$.param(params.data)}`).then(function (res) {
-      // تمرير النتائج إلى bootstrap-table
-      params.success(res);
+        params.success(res);
     }).catch(function (err) {
-      console.error("Error fetching documents:", err);
+        console.error("Error fetching users:", err);
     });
-  };
-</script>
+};
 
-<script>
-let roles=[];
-let branches=[];
-   loadBranches();
-    loadRoles();
+// دوال إدارة المستخدمين
+let roles = [];
+let branches = [];
+let sections = [];
 
+loadBranches();
+loadRoles();
+loadSections();
 
-
- // دالة لجلب الفروع من الـ API
-  async function loadRoles() {
+async function loadRoles() {
     const roleSelect = document.getElementById('role');
-   
-    
     try {
-      if(roles.length<1){
+        if(roles.length < 1) {
             roleSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('settings_blueprint.get_roles') }}"); // غيّر الرابط حسب API الخاص بك
-       roles = await response.json();
-
-      }
-      // ملء القائمة المنسدلة
-      roleSelect.innerHTML = '';
-      roles.roles.forEach(role => {
-        const option = document.createElement('option');
-        option.value = role.id; // أو branch.code حسب هيكل البيانات
-        option.textContent = role.name;
-        roleSelect.appendChild(option);
-      });
+            const response = await fetch("{{
+            url_for('settings_blueprint.get_roles') }}?limit=50");
+            roles = await response.json();
+        }
+        
+        roleSelect.innerHTML = '';
+        roles.rows.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role.id;
+            option.textContent = role.name;
+            roleSelect.appendChild(option);
+        });
     } catch (error) {
-      roleSelect.innerHTML = '<option value="">فشل التحميل</option>';
-     showError('خطأ في تحميل الصلاحيات:');
-      console.error('خطأ في تحميل الصلاحيات:', error);
+        roleSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('خطأ في تحميل الصلاحيات:', error);
     }
-  }
-  // دالة لجلب الفروع من الـ API
-  async function loadBranches() {
+}
+
+async function loadBranches() {
     const branchSelect = document.getElementById('branch');
-   
-    
     try {
-      if(branches.length<1){
+        if(branches.length < 1) {
             branchSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('branchs_blueprint.getbranchs') }}"); // غيّر الرابط حسب API الخاص بك
-       branches = await response.json();
-
-      }
-      // ملء القائمة المنسدلة
-      branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
-      branches.forEach(branch => {
-        const option = document.createElement('option');
-        option.value = branch.id; // أو branch.code حسب هيكل البيانات
-        option.textContent = branch.name;
-        branchSelect.appendChild(option);
-      });
+            const response = await fetch("{{ url_for('branchs_blueprint.getbranchs') }}");
+            branches = await response.json();
+        }
+        
+        branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+        branches.forEach(branch => {
+            const option = document.createElement('option');
+            option.value = branch.id;
+            option.textContent = branch.name;
+            branchSelect.appendChild(option);
+        });
     } catch (error) {
-      branchSelect.innerHTML = '<option value="">فشل التحميل</option>';
-      console.error('خطأ في تحميل الفروع:', error);
+        branchSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('خطأ في تحميل الفروع:', error);
     }
-  }
-
- 
-
-function showLoading() {
-  document.getElementById('loadingOverlay').style.display = 'flex';
 }
 
-function hideLoading() {
-  document.getElementById('loadingOverlay').style.display = 'none';
+async function loadSections() {
+    const sectionSelect = document.getElementById('section');
+    try {
+        if(sections.length < 1) {
+            sectionSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+            const response = await fetch("{{ url_for('admin_blueprint.getsections') }}");
+            sections = await response.json();
+        }
+        
+        sectionSelect.innerHTML = '<option value="">اختر القسم</option>';
+        sections.forEach(section => {
+            const option = document.createElement('option');
+            option.value = section.id;
+            option.textContent = section.name;
+            sectionSelect.appendChild(option);
+        });
+    } catch (error) {
+        sectionSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('خطأ في تحميل الأقسام:', error);
+    }
 }
 
 
-</script>
+function clearForm() {
+    document.getElementById("userForm").reset();
+    openAddModal();
+}
 
-<script>
- 
-  let currentId = null;
-
- 
-
-  function openAddModal() {
-    document.getElementById("modalTitle").innerText = "إضافة مستخدم";
-     document.getElementById("passwordField").style.display = "block";
+function openAddModal() {
+    document.getElementById("modalTitle").textContent = "إضافة مستخدم جديد";
+    document.getElementById("passwordField").style.display = "block";
     document.getElementById("userId").value = "";
-    document.getElementById("full_name").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("role").value = 1;
-  }
+}
 
-  function openEditModal(id, name, phone, role_id,branch_id) {
-    document.getElementById("modalTitle").innerText = "تعديل مستخدم";
+function openEditModal(id, name, phone, role_id, branch_id, section_id) {
+    document.getElementById("modalTitle").textContent = "تعديل بيانات المستخدم";
     document.getElementById("userId").value = id;
     document.getElementById("full_name").value = name;
     document.getElementById("phone").value = phone;
     document.getElementById("role").value = role_id;
     document.getElementById("branch").value = branch_id;
+    document.getElementById("section").value = section_id;
     document.getElementById("passwordField").style.display = "none";
-    //const modal = new bootstrap.Modal(document.getElementById("userModal"));
-  //  modal.show();
-  }
+}
 
-  function submitUser(e) {
+function submitUser(e) {
     e.preventDefault();
-        document.getElementById('res_data').innerHTML='';
-  
+    document.getElementById('res_data').innerHTML = '';
+    
     const id = document.getElementById("userId").value;
     const data = {
-      full_name: document.getElementById("full_name").value,
-      phone: document.getElementById("phone").value,
-      branch_id: document.getElementById("branch").value,
-      role: document.getElementById("role").value,
+        full_name: document.getElementById("full_name").value,
+        phone: document.getElementById("phone").value,
+        branch_id: document.getElementById("branch").value,
+        section_id: document.getElementById("section").value,
+        role: document.getElementById("role").value,
     };
+    
     if (!id) {
-     var password = document.getElementById("password").value;
-     if (password.length <= 6) {
-        alert("يجب أن تكون كلمة المرور أطول من 6 أحرف");
-        return false; // يمنع إرسال النموذج أو المتابعة
-    }
-     data.password=password;
-  showLoading();
-      axios.post("/add_user", data).then((res) => {
-       
-        alert(JSON.stringify(res.data));
-        if(res.data.success){
-          clearForm();
-         $('#table').bootstrapTable('refresh');  // إعادة تحميل قائمة المستخدمين
-      hideLoading();
+        const password = document.getElementById("password").value;
+        if (password.length <= 6) {
+            showToast('يجب أن تكون كلمة المرور أطول من 6 أحرف', 'error');
+            return false;
         }
-        else{
-         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
-        }
-    })
-    .catch((error) => {
-      console.error("حدث خطأ:", error);
-      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
-    })
-    .finally(() => {
-      hideLoading();
-    });
-    } else {
-      axios.put(`/api/users/${id}`, data)
- 
- .then((res) => {
-       
+        data.password = password;
         
-        if(res.data.success){
-showSuccess(res.data.message);
-    clearForm();
-         $('#table').bootstrapTable('refresh');  // إعادة تحميل قائمة المستخدمين
-      hideLoading();
-        }
-        else{
-          showError(res.data.message);
-         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
-        }
-    })
-    .catch((error) => {
-      console.error("حدث خطأ:", error);
-      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
-    })
-    .finally(() => {
-      hideLoading();
-    });
-        //bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
-        //hideLoading();
-        //   $('#table').bootstrapTable('refresh'); 
-      
+        showLoading();
+        axios.post("/add_user", data)
+            .then((res) => {
+                if(res.data.success) {
+                    showToast('تم إضافة المستخدم بنجاح');
+                    clearForm();
+                  //  $('#table').bootstrapTable('refresh');
+                } else {
+                    document.getElementById('res_data').innerHTML = `<div class="alert alert-danger">${res.data.message}</div>`;
+                    showToast(res.data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error("حدث خطأ:", error);
+                showToast("فشل في العملية. الرجاء المحاولة مرة أخرى.", 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+    } else {
+        showLoading();
+        axios.put(`/api/users/${id}`, data)
+            .then((res) => {
+                if(res.data.success) {
+                    showToast('تم تحديث بيانات المستخدم بنجاح');
+                    clearForm();
+                    //$table
+                    //$('#table').bootstrapTable('refresh');
+                      ///  $table.bootstrapTable('refresh');
+                } else {
+                    document.getElementById('res_data').innerHTML = `<div class="alert alert-danger">${res.data.message}</div>`;
+                    showToast(res.data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error("حدث خطأ:", error);
+                showToast("فشل في العملية. الرجاء المحاولة مرة أخرى.", 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
     }
-  }
+}
 
-  function disableUser(id) {
-    if (confirm("هل أنت متأكد من إغلاق هذا الحساب؟")) {
-      axios.post(`/api/users/${id}/disable`).then((res) => {
-       
-        alert(JSON.stringify(res.data));
-        if(res.data.success){
-    clearForm();
-         $('#table').bootstrapTable('refresh');  // إعادة تحميل قائمة المستخدمين
-      hideLoading();
-        }
-        else{
-         document.getElementById('res_data').innerHTML=`<div class="alert alert-danger">${res.data.message}</div>`;
-        }
-    })
-    .catch((error) => {
-      console.error("حدث خطأ:", error);
-      showError("فشل في العملية. الرجاء المحاولة مرة أخرى.");
-    })
-    .finally(() => {
-      hideLoading();
-    });//then(() => loadUsers());
+function disableUser(id) {
+    const action = confirm("هل أنت متأكد من تغيير حالة هذا المستخدم؟");
+    if (action) {
+        showLoading();
+        axios.post(`/api/users/${id}/disable`)
+            .then((res) => {
+                if(res.data.success) {
+                    showToast('تم تغيير حالة المستخدم بنجاح');
+                    $('#table').bootstrapTable('refresh');
+                } else {
+                    showToast(res.data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error("حدث خطأ:", error);
+                showToast("فشل في العملية. الرجاء المحاولة مرة أخرى.", 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
     }
-  }
-
-
+}
 </script>
 {% endblock content %}
 

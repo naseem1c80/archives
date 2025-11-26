@@ -19,10 +19,10 @@ from apps.authentication.forms import LoginForm, CreateAccountForm
 from apps.models import Users
 from apps.config import Config
 from apps.authentication.util import verify_pass
-
-
+from apps.admin.routes import seed_sections
 @blueprint.route('/')
 def route_default():
+    seed_sections()
     return redirect(url_for('authentication_blueprint.login'))
 
 

@@ -23,17 +23,15 @@ from apps.models import Users,Notification,Role
 import re
 from flask_login import login_required
 
+from flask_cors import cross_origin
 @blueprint.route('/users')
 @login_required
 def users():
-#  print(f"*****has_permission{current_user.has_permission('users')}")
-  #if not current_user.has_permission('users'):
-   # return render_template('home/page-no-permission.html'), 404
-    #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
   return render_template('users/users.html')
 
 @blueprint.route('/getusers')
-@login_required
+#@login_required
+@cross_origin(origins="*", methods=["GET"])
 def getusers():
     #users = Users.query.all()
     limit = request.args.get('limit', default=10, type=int)
@@ -87,6 +85,12 @@ def getusers():
 
     return jsonify([user.to_dict() for user in users])
 
+@blueprint.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('authentication_blueprint.login'))
+
+
 @blueprint.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
@@ -105,7 +109,7 @@ def add_user():
         return jsonify({'message':'اسم المستخدم او رقم الهاتف موجود مسبقاً',
                                    'success':False})
 
-     user = Users(branch_id=data['branch_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id,job_id=1) 
+     user = Users(branch_id=data['branch_id'],section_id=data['section_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id,job_id=1) 
         #user = Users(**request.form)
      db.session.add(user)
      db.session.commit()     #user.save()
@@ -124,6 +128,7 @@ def update_user(user_id):
      data = request.json
      user.full_name = data["full_name"]
      user.branch_id = data["branch_id"]
+     user.section_id = data["section_id"]
      user.role_id = data["role"]
      db.session.commit()
      return  jsonify({'message':'تم تحديث الحساب بنجاح','success':True})

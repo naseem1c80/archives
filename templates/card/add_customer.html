@@ -1,125 +1,0 @@
-{% extends "card/header.html" %}
-
-{% block title %} المستندات {% endblock %} 
-
-<!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
-
-{% block content %}
-   
-   <!-- إضافة عميل -->
-        <div id="addCustomer" class="tab-content active">
-            <form class="customer-form" id="customerForm">
-                <h2 id="formTitle"><i class="fas fa-user-plus"></i> إضافة عميل جديد</h2>
-                <div class="form-grid">
-                    <div>
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> الاسم الكامل</label>
-                            <input type="text" id="fullName" placeholder="الاسم الكامل">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-phone"></i> رقم الجوال *</label>
-                            <input type="tel" id="phone" pattern="[0-9]{9}" required placeholder="7XXXXXXXX">
-                        </div>
-                      
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label><i class="fas fa-map-marker-alt"></i> العنوان</label>
-                            <input type="text" id="address" placeholder="العنوان التفصيلي">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-info-circle"></i> ملاحظات</label>
-                            <textarea id="notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
-                        </div>
-                    </div>
-                </div>
-                           <input type="file" id="fileInput" accept="image/*,.pdf" multiple hidden>
-                    <div class="form-group">
-                        <label><i class="fas fa-tag"></i> نوع الملف</label>
-                        <select id="fileType" required>
-                            <option value="id">بطاقة هوية</option>
-                            <option value="passport">جواز سفر</option>
-                            <option value="other">أخرى</option>
-                        </select>
-                    </div>
-
-
-
-
-
- <div class="card p-4 mx-auto border shadow-sm rounded-3 mb-4 document-block col-md-6" style="max-width: 500px;">
-      
-        
-        <div class="mb-3">
-            <div class="btn-group w-100" role="group">
-                <button type="button" class="btn btn-outline-secondary" onclick="openCamera(1)">📷  </button>
-                <button type="button" class="btn btn-outline-success" onclick="scan(1)">🖨️  </button>
-                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file-input-1').click()">📁  </button>
-            </div>
-              <input type="text" id="file-path-1" required readonly
-                     name="docs[1][path]" class="form-control"/>
-                     
-               </div>
-
-        <div id="preview-1" class="preview-box border rounded p-2 text-center" style="min-height: 150px;">
-            <em class="text-muted">لا توجد صورة بعد.</em>
-        </div>
-
-        <div class="mb-2 mt-4">
-            <label class="form-label fw-bold">تفاصيل المستند</label>
-            <span class="btn btn-sm btn-outline-info" onclick="toggleDetails(1, this)">عرض التفاصيل</span>
-            <div class="progress mt-2 d-none" id="progress-1">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progress-bar-1">0%</div>
-            </div>
-            <div class="details_doc mt-2" style="display:none">
-                <textarea name="docs[1][details]" class="form-control mb-2" rows="3" placeholder="أدخل ملاحظات أو وصف المستند..."></textarea>
-                <pre id="pre-1" class="bg-light p-2 rounded"></pre>
-                <div id="pre2-1" class="row" lass="bg-light p-2 rounded"></div>
-            </div>
-        </div>
-
-        
-    </div>
-
-
-
-
-
-
-
-
-
-
-                <div class="form-group">
-                                <!-- حقل رفع صورة منفصل -->
-                       <label><i class="fas fa-image"></i> صورة</label>
-                    <div class="file-upload-area" onclick="document.getElementById('file-input-1').click()">
-                   <i class="fas fa-cloud-upload-alt"></i>
-                    <p>انقر لرفع صورة</p>
-                   <small>الحد الأقصى لحجم الملف: 2MB</small>
-                   <input type="file" id="file-input-1" accept="*/*" name="docs[1][file]" class="form-control d-none"  style="display:flex;" onchange="loadFilePreview(this, 1)">
-     
-                  </div>
-         </div>
-
-                  <div class="form-group">
-                                  <!-- حقل المرفقات الأصلي (PDF أو صورتين) -->
-                        <label><i class="fas fa-file-upload"></i> المرفقات (PDF واحد أو صورتين)</label>
-                     <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>انقر لرفع ملف (PDF) أو صورتين</p>
-                        <small>الحد الأقصى لحجم الملف: 5MB</small>
-                       <input type="file" id="fileInput" accept=".pdf,image/*" multiple style="display:none;">
-                   </div>
-              </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn btn-success" id="submitBtn"><i class="fas fa-save"></i> حفظ البيانات</button>
-                    <button type="button" class="btn btn-danger" onclick="resetForm()"><i class="fas fa-times"></i> إلغاء</button>
-                    <button type="button" class="btn btn-warning" onclick="simulateScan()"><i class="fas fa-camera"></i> مسح ضوئي</button>
-                </div>
-                <div class="alert" id="message"></div>
-            </form>
-        </div>
-{% endblock %}

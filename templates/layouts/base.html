@@ -1,429 +1,406 @@
 <!DOCTYPE html>
-<html  lang="ar" >
+<html lang="ar" dir="rtl">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ناس تك - {% block title %}{% endblock %} | الارشفة الالكترونية</title>
 
-    <title>
-       ناس تك - {% block title %}{% endblock %} | الارشفة الالكترونية
-    </title>
+    <!-- جميع الروابط والأنماط السابقة -->
+    <script sr="https://cdn.tailwindcss.com"></script>
+<script src="{{url_for('static',filename='tailwindcss.js')}}"></script>
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="" />
-    <meta name="keywords" content="">
-    <meta name="author" content="Codedthemes, AppSeed" />
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script
-src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-
-    <!-- Favicon icon -->
-    <link rel="icon" href="/static/assets/images/favicon.ico" type="image/x-icon">
-
-    <!-- vendor css -->
-
-  <link rel="stylesheet"
-  href="{{url_for('static',filename='/assets/style_card/style.css')}}" />
-
-        <link rel="stylesheet" href="/static/assets/css/style.css">
-    <!-- Specific Page CSS goes HERE  -->
-    {% block stylesheets %}{% endblock stylesheets %}
-    	    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
-
-<style>
-  form{direction: rtl; text-align: right;}
-th,td,button{
-  font-size: 14px;
-}
-</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+    <!-- SweetAlert2 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+    -->
     
- <link rel="stylesheet" hre="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <style>
-    .page-header{
-      direction: rtl;
-    }
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --warning-color: #f4ac00;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --gray-color: #95a5a6;
-        }
-        
-     
-        
-      
-        
-        
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .card-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--dark-color);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--dark-color);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-            outline: none;
-        }
-        
-        .permission-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        
-        .permission-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            background-color: var(--light-color);
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-        
-        .permission-item:hover {
-            background-color: #e0e0e0;
-        }
-        
-        .permission-item input[type="checkbox"] {
-            margin-left: 10px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        
-        .permission-item label {
-            font-size: 15px;
-            cursor: pointer;
-            flex-grow: 1;
-        }
-        
-        .btnw{
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .btn-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        .btn i {
-            margi-left: 8px;
-        }
-        
-        .table-responsive {
-            overflow-x: auto;
-        }
-        
-        table {
-            
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            paddin: 12px 15px;
-            text-alig: right;
-            border-bottom: 1px solid #eee;
-        }
-        
-        th {
-            background-color: var(--light-color);
-            color: var(--dark-color);
-            font-weight: bold;
-        }
-        
-        tr:hover {
-            background-color: #f9f9f9;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .badge-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .badge-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
 
-        
-        
-        
-        .badge-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .badge-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-                .badge-warning {
-            background-color: var(--warning-color);
-            color: white;
-        }
+<link rel="stylesheet"
+  hre="{{url_for('static',filename='sweetalert2.min.css')}}" />
 
-        
-        
-        
-        .alert {
-            padding: 15px;
-            border-radius: 4px;
-          
-             margin-bottom: 20px;
-          /* display: none;*/
-         /*position: fixed;
-    bottom: 300px;
-    left: 200px;*/
+<script src="{{url_for('static',filename='sweetalert2@11.js')}}"></script>
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.22.0/dist/bootstrap-table.min.css">
+    <script sr="https://unpkg.com/bootstrap-table@1.22.0/dist/bootstrap-table.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+
+    <!-- 
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+jQuery 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+<script src="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.js"></script>
+    
+<script src="https://unpkg.com/bootstrap-table@1.21.4/dist/locale/bootstrap-table-ar-SA.min.js"></script>
+    
+    -->
+
+
+
+    <script src="{{url_for('static',filename='jquery-3.6.0.min.js')}}"></script>
+
+<script src="{{url_for('static',filename='bootstrap-table.min.js')}}"></script>
+<script
+src="{{url_for('static',filename='bootstrap-table-ar-SA.min.js')}}"></script>
+    <script
+    src="{{url_for('static',filename='assets/select2.min.js')}}"></script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
         }
-        /*
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .sidebar {
+            transition: all 0.3s ease;
         }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }*/
-        
-        .action-buttons button {
-            margin-left: 5px;
-        }
-        
-        .search-box {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .search-box input {
-            flex-grow: 1;
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-        
-        .search-box button {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-        }
-        
         @media (max-width: 768px) {
-           
-            
-            .main-content {
-                margin-right: 70px;
+            .sidebar {
+                transform: translateX(100%);
             }
-            
-            .permission-grid {
-                grid-template-columns: 1fr;
+            .sidebar.active {
+                transform: translateX(0);
             }
+        }
+        .stat-card {
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .shortcut-key {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        /* أنماط إضافية للقائمة الجانبية */
+        .nav-item.active > a {
+            background-color: #f3f4f6;
+            color: #3b82f6;
+        }
+        .nav-item a:hover {
+            background-color: #f9fafb;
+        }
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .submenu.active {
+            max-height: 500px;
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
         }
     </style>
-<style>
-    body { font-family: 'Cairo', sans-serif; background-color: #f4f4f4; }
-    .card { box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 1rem; }
-    .btn-scan { background-color: #198754; color: white; }
-    .btn-scan:hover { background-color: #157347; }
-    .preview-box { border: 2px dashed #aaa; padding: 10px; text-align: center; margin-top: 10px; border-radius: 10px; background-color: #fff; max-height: 300px; overflow: auto; }
-    .preview-box img { max-width: 100%; border-radius: 5px; }
-    #sign_users { min-height: 100px; }
-</style>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.24.1/dist/bootstrap-table.min.css">
-<link rel="stylesheet" href="static/assets/bootstrap-icons-1.13.1/bootstrap-icons.css">
-<script sr="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-   <script sr="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-<body class="text-right" >
-
-	<!-- [ Pre-loader ] start -->
-	<div class="loader-bg">
-		<div class="loader-track">
-			<div class="loader-fill"></div>
-		</div>
-	</div>
-	<!-- [ Pre-loader ] End -->
-
-    {% include 'includes/sidebar.html' %} 
-
-    {% include 'includes/navigation.html' %}
-
     
 
- 
-    {% block content %}{% endblock content %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
 
+<script
+src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!--  
+-->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 
-    
-    {% include 'includes/scripts.html' %} 
-
-    <!-- Specific Page JS goes HERE  -->
-    {% block javascripts %}{% endblock javascripts %}
-    
     <!-- أضف مكتبة Socket.IO -->
-<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+<script sr="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
 <!-- CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- رسائل التنبيه -->
-       <div id="toast-success" class="toast position-fixed bottom-0 end-0 m-3
-       text-bg-success alert alert-success" role="alert" data-bs-delay="1500">
-        <div id="alert-success" class="alert alert-success">
-             إدارة المستخدمين   
-        </div>
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- شريط التنقل العلوي -->
+    <nav class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center">
+            <button id="menuToggle" class="md:hidden text-gray-600 mr-4">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-cash-register text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold text-gray-800 hidden md:block"> 
+                    ناس تك - الارشفة الالكترونية
+                </span>
+            </div>
         </div>
         
-        <div id="toast-danger" class="alert alert-danger toast position-fixed
-        bottom-0 end-0 m-3 text-bg-danger">
-             إدارة المستخدمين   
+        <div class="flex items-center space-x-4 space-x-reverse">
+            <!-- اختصارات سريعة -->
+            <div class="hidden md:flex items-center space-x-2 space-x-reverse">
+                <!-- يمكن إضافة اختصارات هنا -->
+            </div>
+
+            <div class="relative">
+                <button class="text-gray-600 hover:text-blue-500">
+                    <i class="fas fa-bell text-xl"></i>
+                </button>
+                <!-- إشعارات -->
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    0
+                </span>
+            </div>
+            
+            <div class="relative">
+                <button class="flex items-center space-x-2 space-x-reverse text-gray-700">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <span class="hidden md:block"> 
+                        {{ current_user.full_name }}
+                    </span>
+                    <i class="fas fa-chevron-down text-sm"></i>
+                </button>
+            </div>
         </div>
-
-
-
-
-  <script>
- const userId = "{{current_user.id }}";
-    const socket = io();
-
-    socket.on('connect', () => {
-        console.log('Connected to WebSocket');
-    });
- 
-
-   const list = document.getElementById('notificationsList');
-   socket.on('new_notification', (data) => {
-    const list = document.getElementById('notificationsList');
+    </nav>
     
-    // فرضية: data.notifications هي قائمة
-    data.notifications.forEach(n => {
-        const li = document.createElement('li');
-        li.className = 'notification new';
+    <div class="flex">
+        <!-- الشريط الجانبي المحسّن -->
+        <div class="sidebar w-64 bg-white shadow-sm h-[calc(100vh-73px)] fixed md:relative z-40 overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold"> 
+                            {{ current_user.full_name }}
+                        </h3>
+                        <p class="text-gray-500 text-sm">  
+                            ناس تك - الارشفة الالكترونية
+                </p>
+                    </div>
+                </div>
+            </div>
 
-        const a = document.createElement('a');
-        a.href = `/notification/${n.id}`;  // حسب هيكل البيانات
-        a.className = 'dropdown-item';
-        a.innerHTML = `<i class="feather icon-mail"></i> ${n.message}`;
+            <nav class="mt-4 p-4">
+                <ul class="space-y-1">
+                    <!-- Dashboard -->
+                    <li class="nav-item">
+                        <a href="/" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-home text-gray-500"></i>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
 
-        li.appendChild(a);
-        list.appendChild(li);
-    });
-});
-    /*socket.on('/get_notifications', function(data) {
-      const li = document.createElement("li");
-      li.textContent = data.message;
-      document.getElementById("notifications").appendChild(li);
-    });*/
+                    <!-- المستندات -->
+                    <li class="nav-item has-submenu">
+                        <a href="#" class="flex items-center justify-between space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <div class="flex items-center space-x-3 space-x-reverse">
+                                <i class="fas fa-file-alt text-gray-500"></i>
+                                <span>المستندات</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                        </a>
+                        <ul class="submenu pl-8 mt-1 space-y-1">
+                            <li>
+                                <a href="{{ url_for('documents_blueprint.documents') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+                                    <i class="fas fa-eye text-xs"></i>
+                                    <span>عرض المستندات</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('documents_blueprint.create_document') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+                                    <i class="fas fa-plus text-xs"></i>
+                                    <span>إضافة مستند</span>
+                                </a>
+                            </li>
+                            
+                            <!-- وثائق العملاء -->
+                            <li class="has-submenu">
+                                <a href="#" class="flex items-center justify-between space-x-3 space-x-reverse p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+                                    <div class="flex items-center space-x-3 space-x-reverse">
+                                        <i class="fas fa-users text-xs"></i>
+                                        <span>وثائق العملاء</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                                </a>
+                                <ul class="submenu pl-4 mt-1 space-y-1">
+                                    <li>
+                                        <a href="{{ url_for('customers_blueprint.customers') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-xs text-gray-600 hover:bg-gray-100">
+                                            <i class="fas fa-eye text-xs"></i>
+                                            <span>عرض العملاء</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('customers_blueprint.add_customerdocument') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-xs text-gray-600 hover:bg-gray-100">
+                                            <i class="fas fa-plus text-xs"></i>
+                                            <span>إضافة وثيقة عميل</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
 
-  </script>
+                    <!-- عنوان الإدارة -->
+                    <li class="mt-6 mb-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        الإدارة
+                    </li>
+
+                    <!-- الموظفين -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('users_blueprint.users') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-users text-gray-500"></i>
+                            <span>الموظفين</span>
+                        </a>
+                    </li>
+
+                    <!-- الفروع -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('branchs_blueprint.branchs') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-map-marker-alt text-gray-500"></i>
+                            <span>الفروع</span>
+                        </a>
+                    </li>
+
+                    <!-- أنواع المستندات -->
+                    <li class="nav-item">
+                        <a href="/document_types" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-file-contract text-gray-500"></i>
+                            <span>أنواع المستندات</span>
+                        </a>
+                    </li>
+
+                    <!-- الأقسام -->
+                    <li class="nav-item">
+                        <a href="/sections" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-sitemap text-gray-500"></i>
+                            <span>الأقسام</span>
+                        </a>
+                    </li>
+
+                    <!-- الصلاحيات -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('settings_blueprint.user_permission') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-user-shield text-gray-500"></i>
+                            <span>الصلاحيات</span>
+                        </a>
+                    </li>
+
+                    <!-- تسجيل الخروج -->
+                    <li class="mt-6 border-t border-gray-200 pt-4">
+                        <form method="POST" action="{{ url_for('authentication_blueprint.logout') }}">
+                            <button type="submit" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-red-600 hover:bg-red-50 w-full text-right">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>تسجيل الخروج</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 p-2 overflow-auto md:mr-1">
+            <!-- رأس الصفحة -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold mb-2">
+                   {% block title2 %} {% endblock title2 %}
+                </h1>
+                <p class="text-gray-600">
+                    
+                    {% block data_title %} {% endblock  data_title %}
+                </p>
+            </div>
+            
+            {% block content %}{% endblock content %}
+
+
+
+
+<!-- نافذة التحميل -->
+<div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p class="text-gray-600 mt-3">جارٍ التحميل...</p>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300 z-50 hidden">
+    <div class="flex items-center">
+        <i class="fas fa-check-circle ml-2"></i>
+        <span id="toast-message">تمت العملية بنجاح!</span>
+    </div>
+</div>
+
+
+        </main>
+    </div>
+          
+
+    <script>
+        
+// دوال التحكم في الواجهة
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    toastMessage.textContent = message;
+    if (type === 'error') {
+        toast.classList.remove('bg-green-500');
+        toast.classList.add('bg-red-500');
+    } else {
+        toast.classList.remove('bg-red-500');
+        toast.classList.add('bg-green-500');
+    }
+    
+    toast.classList.remove('hidden', 'translate-y-full');
+    toast.classList.add('translate-y-0');
+    
+    setTimeout(() => {
+        toast.classList.remove('translate-y-0');
+        toast.classList.add('translate-y-full');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+    }, 3000);
+}
+    </script>
+
+    
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}{% endblock javascripts %}
+
+
+
 
 
 <script>
-
-
-   // عرض رسالة نجاح
-        function showSuccess(message) {
-            const alert = document.getElementById('toast-success');
-            alert.innerHTML ='<i class="feather icon-check-circle" style="font-size:20px;color:#fff"></i>'+ message;
-            alert.style.display = 'block';
-            const toast = new
-            bootstrap.Toast(document.getElementById('toast-success'));
-toast.show();
-           /* setTimeout(() => {
-                alert.style.display = 'none';
-            }, 5000);*/
-        }
-
-        // عرض رسالة خطأ
-        function showError(message) {
-            const alert = document.getElementById('toast-danger');
-               alert.innerHTML ='<i class="feather icon-alert-circle" style="font-size:20px;color:#fff"></i>'+ message;
-            alert.style.display = 'block';
-            const toast = new
-            bootstrap.Toast(document.getElementById('toast-danger'));
-toast.show();
-            setTimeout(() => {
-                alert.style.display = 'none';
-            }, 5000);
-        }
 
 
 /* const userId = "{{current_user.id }}";
@@ -444,6 +421,57 @@ toast.show();
     });*/
 </script>
 
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // تبديل القائمة الجانبية على الأجهزة المحمولة
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.querySelector('.sidebar');
+            
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            // تفعيل القوائم المنسدلة
+            const submenuToggles = document.querySelectorAll('.has-submenu > a');
+            
+            submenuToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const submenu = this.nextElementSibling;
+                    const icon = this.querySelector('.fa-chevron-down');
+                    
+                    submenu.classList.toggle('active');
+                    icon.classList.toggle('rotate-180');
+                });
+            });
+
+            // إغلاق القائمة الجانبية عند النقر خارجها (للأجهزة المحمولة)
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth < 768 && 
+                    !sidebar.contains(event.target) && 
+                    !menuToggle.contains(event.target) && 
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+            
+            // اختصارات لوحة المفاتيح
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F9') {
+                    e.preventDefault();
+                    // openPOS();
+                } else if (e.key === 'F10') {
+                    e.preventDefault();
+                    // openInventory();
+                } else if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    // إتمام البيع - يمكن تخصيصها حسب الحاجة
+                }
+            });
+        });
+    </script>
+    
+    <script sr="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script sr="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
 </body>
 </html>
-

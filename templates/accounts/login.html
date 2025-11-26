@@ -1,85 +1,128 @@
-{% extends "layouts/base-fullscreen.html" %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول</title>
+    
+    
+<script src="{{url_for('static',filename='tailwindcss.js')}}"></script>
 
-{% block title %} Login {% endblock %}
-
-{% block content %} 
-
-	<!-- [ auth-signin ] start -->
-	<div class="auth-wrapper">
-		<div class="auth-content">
-			<div class="card">
-				<div class="row align-items-center text-center">
-					<div class="col-md-12">
-						<div class="card-body">
-							<img src="/static/assets/images/logo-dark.png" alt="" class="img-fluid mb-3">
-
-							<div class="d-flex justify-content-center align-items-center gap-2 mb-3">
-								{% if has_github %}
-								<div class="text-center">
-								  <a href="{{ url_for('github.login') }}" style="cursor: pointer;" class="d-inline-block p-2 rounded border text-secondary">
-									<span class="pcoded-micon">
-										<i class="fab fa-github"></i>
-									</span>
-								  </a>
-								</div>
-								{% endif %}
-				  
-								{% if has_google %}
-								<div class="text-center">
-								  <a href="{{ url_for('google.login') }}" style="cursor: pointer;" class="d-inline-block p-2 rounded border text-secondary">
-									<span class="pcoded-micon">
-									  <i class="fab fa-google"></i>
-									</span>
-								  </a>
-								</div>
-								{% endif %}
-							</div>
-
-							<h4 class="mb-3 f-w-400">
-								تسجيل الدخول
-							</h4>
-							<span class="mb-2 text-muted">
-								{% if msg %}
-									<span class="text-danger">
-										{{ msg | safe }}
-									</span>
-								{% else %}
-									أضف بيانات الاعتماد الخاصة بك
-
-								{% endif %} 
-							</span>
-
-							<br /><br />
-
-							<form role="form" method="post" action="">
-
-								{{ form.hidden_tag() }} 
-
-								<div class="input-group mb-3">
-									<span class="input-group-text"><i class="feather icon-user"></i></span>
-									{{ form.phone(placeholder="اسم المستخدم او رقم الهاتف", class="form-control") }}
-								</div>
-								<div class="input-group mb-4">
-									<span class="input-group-text"><i class="feather icon-lock"></i></span>
-									{{ form.password(placeholder="كلمة المرور", class="form-control", type="password") }}
-								</div>
-
-								<button type="submit" name="login" class="btn btn-block btn-primary mt-2 mb-4"> 
-									دخول
-								</button>
-							
-							</form>
-
-							<p class="mb-2 " style="display:none">Don't have an account? <a href="{{ url_for('authentication_blueprint.register') }}" class="f-w-400">Sign UP</a></p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- [ auth-signin ] end -->
-
-{% endblock content %}
-
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %} 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <!-- Login Card -->
+        <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-l from-blue-600 to-purple-700 p-6 text-center">
+                <h1 class="text-2xl font-bold text-white mb-2"> </h1>
+                <p class="text-blue-100">نظام الارشفة الالكتروني </p>
+            </div>
+            
+            <!-- Social Login Section -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex justify-center space-x-4 space-x-reverse">
+                    {% if has_github %}
+                    <a href="{{ url_for('github.login') }}" class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 transition-colors duration-200">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    {% endif %}
+                    
+                    {% if has_google %}
+                    <a href="{{ url_for('google.login') }}" class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 transition-colors duration-200">
+                        <i class="fab fa-google text-xl"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4 flex items-center">
+                    <div class="flex-1 border-t border-gray-200"></div>
+                    <div class="mx-4 text-gray-500 text-sm">أو</div>
+                    <div class="flex-1 border-t border-gray-200"></div>
+                </div>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="p-6">
+                {% if msg %}
+                <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center">
+                    <i class="fas fa-exclamation-circle ml-2"></i>
+                    <span>{{ msg | safe }}</span>
+                </div>
+                {% else %}
+                <p class="text-gray-600 text-sm mb-6 text-center">أدخل بيانات الاعتماد الخاصة بك للمتابعة</p>
+                {% endif %}
+                
+                <form method="post" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Username/Phone Field -->
+                    <div class="mb-4">
+                        <label for="phone" class="block text-gray-700 text-sm font-medium mb-2">اسم المستخدم أو رقم الهاتف</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {{ form.phone(placeholder="أدخل اسم المستخدم أو رقم الهاتف", class="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none focus:border-blue-500 transition-colors duration-200") }}
+                        </div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-2">
+                        <label for="password" class="block text-gray-700 text-sm font-medium mb-2">كلمة المرور</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            {{ form.password(placeholder="أدخل كلمة المرور", class="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none focus:border-blue-500 transition-colors duration-200", type="password") }}
+                        </div>
+                    </div>
+                    
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="remember" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="remember" class="mr-2 block text-sm text-gray-700">تذكرني</label>
+                        </div>
+                        <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200">نسيت كلمة المرور؟</a>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" name="login" class="w-full bg-gradient-to-l from-blue-600 to-purple-700 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium">
+                        <span>تسجيل الدخول</span>
+                        <i class="fas fa-arrow-left mr-2"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Footer Section -->
+            
+        </div>
+        
+        <!-- Additional Info -->
+        <div class="mt-6 text-center text-white text-sm"  style="display: none;">
+            <p>© 2023 جميع الحقوق محفوظة</p>
+        </div>
+    </div>
+</body>
+</html>

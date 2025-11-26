@@ -2,85 +2,306 @@
 
 {% block title %} اضافة مستندات {% endblock %} 
 
-{% block stylesheets %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-<style>
-    body { font-family: 'Cairo', sans-serif; background-color: #f4f4f4; }
-    .card { box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 1rem; }
-    .btn-scan { background-color: #198754; color: white; }
-    .btn-scan:hover { background-color: #157347; }
-    .preview-box { border: 2px dashed #aaa; padding: 10px; text-align: center; margin-top: 10px; border-radius: 10px; background-color: #fff; max-height: 300px; overflow: auto; }
-    .preview-box img { max-width: 100%; border-radius: 5px; }
-    #sign_users { min-height: 100px; }
-</style>
-{% endblock %}
-
+{% block title2 %}  
+                    📂 اضافة مستندات جديدة 
+ {% endblock title2  %}
+    {% block data_title %}  
+                    أضف المستندات واملأ البيانات باستخدام الصوت أو النص
+ {% endblock data_title %} 
 {% block content %}
+<link hre="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<style>
+    
+    .card { 
+        box-shadow: 0 0 15px rgba(0,0,0,0.08); 
+        border-radius: 1rem; 
+        border: none;
+    }
+    
+    .btn-scan { 
+        background: linear-gradient(135deg, #198754, #157347); 
+        color: white; 
+        border: none;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-scan:hover { 
+        background: linear-gradient(135deg, #157347, #0d5c3a); 
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+    }
+    
+    .preview-box { 
+        border: 2px dashed #ced4da; 
+        padding: 15px; 
+        text-align: center; 
+        margin-top: 10px; 
+        border-radius: 12px; 
+        background-color: #fdfdfd; 
+        max-height: 300px; 
+        overflow: auto; 
+        transition: all 0.3s ease;
+    }
+    
+    .preview-box:hover {
+        border-color: #0d6efd;
+        background-color: #f8fbff;
+    }
+    
+    .preview-box img { 
+        max-width: 100%; 
+        border-radius: 8px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    #sign_users { 
+        min-height: 100px; 
+    }
+    </style>
+<style>
+    /* تصميم حاوية الإدخال مع المايكروفون */
+    .input-with-mic {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .input-with-mic:focus-within {
+        transform: translateY(-2px);
+    }
+    
+    .mic-btn-wrapper {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+    }
+    
+    .mic-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    
+    .mic-btn:hover {
+        background: linear-gradient(135deg, #5a6268, #3d4348);
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .mic-btn.recording {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        animation: pulse 1.5s infinite;
+    }
+    
+    .mic-btn.recording:hover {
+        background: linear-gradient(135deg, #c82333, #a71e2a);
+    }
+    
+    .mic-btn i {
+        font-size: 16px;
+    }
+    
+    @keyframes pulse {
+        0% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        70% { 
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+        100% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+    
+    /* تحسين مظهر الحقول مع وجود المايكروفون */
+    .form-control.with-mic {
+        padding-left: 50px;
+        border-radius: 10px;
+        border: 1.5px solid #e1e5e9;
+        transition: all 0.3s ease;
+        height: 48px;
+    }
+    
+    .form-control.with-mic:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+    
+    textarea.form-control.with-mic {
+        padding-left: 50px;
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    /* تحسين التسميات */
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-label i {
+        margin-left: 8px;
+        color: #6c757d;
+    }
+    
+    /* تصميم البطاقات الداخلية */
+    .inner-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    /* تحسين الأزرار */
+    .btn-outline-primary {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+    }
+    
+    /* تصميم السويتش */
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+    
+    /* رسالة المساعدة */
+    .mic-help {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
 <section class="pcoded-main-container">
     <div class="pcoded-content">
         <!-- Breadcrumb -->
-        <div class="page-header" dir="rtl">
-            <h5 class="m-b-10">اضافة مستندات 📂</h5>
-
-        </div>
-
-
-
-
-
-
-
+        
 
         <!-- Form -->
         <form id="multi-form" enctype="multipart/form-data">
-          
+            <div class="card p-4 mx-auto mb-4" style="max-width: 900px;">
+                <div class="inner-card">
+                    <h6 class="mb-3 fw-bold text-primary"><i class="fas fa-file-alt me-2"></i>معلومات المستند الأساسية</h6>
+                    
+                    <div class="row mb-3">
+                        <!-- نوع المستند -->
+                        <div class="col-md-6 mb-3">
+                            <label for="document_type" class="form-label">
+                                <i class="fas fa-tag"></i>اختر نوع المستند
+                            </label>
+                            <select class="form-select tag-select form-control" id="document_type" name="document_type_id">
+                            </select>
+                        </div>
+                      
+                        <!-- رقم المستند مع التعرف على الصوت -->
+                        <div class="col-md-6 mb-3">
+                            <label for="doc_id" class="form-label">
+                                <i class="fas fa-hashtag"></i>رقم المستند
+                            </label>
+                            <div class="input-with-mic">
+                                <input type="text" name="doc_id" dir="ltr" id="doc_id" class="form-control with-mic">
+                                <div class="mic-btn-wrapper">
+                                    <button type="button" class="mic-btn" onclick="startRecord('doc_id')" title="التحدث لملء الحقل">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="mic-help">انقر على المايكروفون للتحدث وملء الحقل تلقائياً</span>
+                        </div>
 
-          
-            <div class="card p-4 mx-auto mb-4" style="max-width: 800px;">
-                <div class="row mb-3">
-                                                <div class="col-md-6">
-                        <label for="document_type">اختر نوع المستند </label>
-                        <select class="form-select tag-select form-control"
-                        id="document_type" name="document_type_id" >
+                        <!-- رقم الحوالة مع التعرف على الصوت -->
+                        <div class="col-md-6 mb-3">
+                            <label for="transfer_number" class="form-label">
+                                <i class="fas fa-exchange-alt"></i>رقم الحوالة
+                            </label>
+                            <div class="input-with-mic">
+                                <input type="text" name="transfer_number" id="transfer_number" dir="ltr" class="form-control with-mic">
+                                <div class="mic-btn-wrapper">
+                                    <button type="button" class="mic-btn" onclick="startRecord('transfer_number')" title="التحدث لملء الحقل">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="mic-help">انقر على المايكروفون للتحدث وملء الحقل تلقائياً</span>
+                        </div>
 
-                        </select>
+                        <!-- تاريخ السند مع التعرف على الصوت -->
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">
+                                <i class="fas fa-calendar-alt"></i>تاريخ السند
+                            </label>
+                            <div class="input-with-mic">
+                                <input type="date" name="date" id="date" class="form-control with-mic">
+                                <div class="mic-btn-wrapper">
+                                    <button type="button" class="mic-btn" onclick="startRecord('date')" title="التحدث لملء الحقل">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="mic-help">انقر على المايكروفون للتحدث وملء الحقل تلقائياً</span>
+                        </div>
 
+                        <!-- تفاصيل السند مع التعرف على الصوت -->
+                        <div class="col-12 mb-3">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-align-left"></i>تفاصيل السند
+                            </label>
+                            <div class="input-with-mic">
+                                <textarea name="name" id="name" class="form-control with-mic" rows="3" placeholder="أدخل تفاصيل السند..."></textarea>
+                                <div class="mic-btn-wrapper" style="top: 24px; transform: none;">
+                                    <button type="button" class="mic-btn" onclick="startRecord('name')" title="التحدث لملء الحقل">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="mic-help">انقر على المايكروفون للتحدث وملء الحقل تلقائياً</span>
+                        </div>
                     </div>
-                  
-                    <div class="col-md-4">
-                        <label for="doc_id">رقم المستند</label>
-                        <input type="text" name="doc_id" class="form-control" id="doc_id">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="transfer_number">رقم الحوالة</label>
-                        <input type="text" name="transfer_number" class="form-control" id="transfer_number">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="name"> 
-                      تفاصيل السند
-                        </label>
-                        <textarea type="text" name="name" class="form-control"
-                        id="name"></textarea>
-                    </div>
-
-           
-
-                <div class="col-md-4">
-                    <label for="date"> تاريخ السند </label>
-                    <input type="date" name="date" class="form-control" id="date">
                 </div>
-     </div>
+
                 <!-- طلب توقيع المستند -->
-                <div class="card p-3 mb-4">
+                <div class="inner-card">
+                    <h6 class="mb-3 fw-bold text-primary"><i class="fas fa-signature me-2"></i>توقيع المستند</h6>
                     <div class="form-check form-switch mb-2">
                         <input class="form-check-input" type="checkbox" id="require_signature" name="is_signature">
-                        <label class="form-check-label" for="require_signature">طلب توقيع المستند</label>
+                        <label class="form-check-label fw-medium" for="require_signature">طلب توقيع المستند</label>
                     </div>
-                    <div class="mb-3 d-none " id="sign-users-container">
-                        <label for="sign_users">اختر المستخدمين للتوقيع</label>
-                        <select class="form-select tag-select" id="sign_users" name="user_signature" >
-
+                    <div class="mb-3 d-none" id="sign-users-container">
+                        <label for="sign_users" class="form-label">
+                            <i class="fas fa-users"></i>اختر المستخدمين للتوقيع
+                        </label>
+                        <select class="form-select tag-select" id="sign_users" name="user_signature">
                         </select>
                         <div class="invalid-feedback">يجب اختيار مستخدم واحد على الأقل للتوقيع.</div>
                     </div>
@@ -89,16 +310,17 @@
                 <!-- Documents Container -->
                 <div id="documents-container" class="row mb-3"></div>
 
-                <div class="text-end my-3">
-                    <button type="button" class="btn btn-outline-primary" id="add-doc">➕ إضافة مستند جديد</button>
+                <div class="text-end my-4">
+                    <button type="button" class="btn btn-outline-primary me-2" id="add-doc">
+                        <i class="fas fa-plus-circle me-1"></i> إضافة مستند جديد
+                    </button>
                 </div>
 
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary mb-2">حفظ</button>
-                </div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-scan">💾 حفظ كل المستندات</button>
+                <div class="text-center mt-4 pt-3 border-top">
+                    
+                    <button type="submit" class="btn btn-scan px-4">
+                        <i class="fas fa-save me-1"></i> حفظ كل المستندات
+                    </button>
                 </div>
 
                 <div id="result" class="mt-4"></div>
@@ -110,11 +332,121 @@
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
-
 <script>
+// تهيئة Select2 للعناصر ذات الكلاس tag-select
 $(document).ready(function() {
     $('.tag-select').select2({
-        tags: true, // للسماح بكتابة وإضافة خيارات جديدة
+        tags: true,
+        dir: "rtl",
+        width: 'resolve',
+        language: {
+            noResults: function () {
+                return "لا توجد نتائج";
+            },
+            searching: function () {
+                return "جاري البحث...";
+            }
+        }
+    });
+});
+
+// المتغيرات العامة للتعرف على الصوت
+let recognition;
+let activeInput = null;
+
+/**
+ * تهيئة Web Speech API للتعرف على الصوت
+ */
+function initializeSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = "ar-SA";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            if (activeInput) {
+                let el = document.getElementById(activeInput);
+                if (el.tagName === "TEXTAREA") {
+                    el.value += (el.value ? "\n" : "") + text;
+                } else {
+                    el.value = text;
+                }
+                
+                // إضافة تأثير مرئي عند ملء الحقل
+                el.classList.add('bg-success', 'bg-opacity-10');
+                setTimeout(() => {
+                    el.classList.remove('bg-success', 'bg-opacity-10');
+                }, 1000);
+            }
+            
+            // إخفاء تأثير التسجيل
+            const activeMic = document.querySelector(`.mic-btn[onclick="startRecord('${activeInput}')"]`);
+            if (activeMic) {
+                activeMic.classList.remove('recording');
+            }
+        };
+
+        recognition.onerror = function(e) {
+            console.log("Speech recognition error:", e.error);
+            const activeMic = document.querySelector(`.mic-btn[onclick="startRecord('${activeInput}')"]`);
+            if (activeMic) {
+                activeMic.classList.remove('recording');
+            }
+        };
+        
+        recognition.onend = function() {
+            const activeMic = document.querySelector(`.mic-btn[onclick="startRecord('${activeInput}')"]`);
+            if (activeMic) {
+                activeMic.classList.remove('recording');
+            }
+        };
+    } else {
+        alert("⚠ المتصفح لا يدعم تحويل الصوت إلى نص (يفضل Google Chrome).");
+    }
+}
+
+/**
+ * بدء تسجيل الصوت وتحويله إلى نص
+ */
+function startRecord(inputId) {
+    activeInput = inputId;
+    
+    if (!recognition) {
+        initializeSpeechRecognition();
+    }
+    
+    // إظهار تأثير التسجيل
+    const mic = document.querySelector(`.mic-btn[onclick="startRecord('${inputId}')"]`);
+    if (mic) {
+        mic.classList.add('recording');
+    }
+    
+    recognition.start();
+}
+
+// إظهار/إخفاء حقل التوقيع
+$('#require_signature').on('change', function() {
+    if ($(this).is(':checked')) {
+        $('#sign-users-container').removeClass('d-none');
+        $('#sign_users').attr('required', true);
+    } else {
+        $('#sign-users-container').addClass('d-none');
+        $('#sign_users').removeAttr('required').removeClass('is-invalid');
+    }
+});
+
+// تهيئة التعرف على الصوت عند تحميل الصفحة
+initializeSpeechRecognition();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+
+<script>
+// تهيئة Select2 للعناصر ذات الكلاس tag-select
+$(document).ready(function() {
+    $('.tag-select').select2({
+        tags: true, // السماح بكتابة وإضافة خيارات جديدة
         dir: "rtl",
         width: 'resolve',
         language: {
@@ -128,105 +460,380 @@ $(document).ready(function() {
     });
 });
 </script>
-<script>
-let users=[];
-    loadUsers();
-let documents_type=[];
-    loaddocuments_type();
 
+
+<script>
+// المتغيرات العامة لتخزين البيانات
+let users = [];
+let documents_type = [];
+
+/**
+ * تحميل أنواع المستندات من الخادم
+ */
 async function loaddocuments_type() {
     const doctypSelect = document.getElementById('document_type');
    
-    
     try {
-      if(users.length<1){
+        if(documents_type.length < 1){
             doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
-       documents_type = await response.json();
-
-      }
-      // ملء القائمة المنسدلة
-      doctypSelect.innerHTML  = '';
-      documents_type.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id; // أو branch.code حسب هيكل البيانات
-        option.textContent = user.name;
-        doctypSelect.appendChild(option);
-      });
+            const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}");
+            documents_type = await response.json();
+        }
+        
+        // ملء القائمة المنسدلة بأنواع المستندات
+        doctypSelect.innerHTML = '';
+        documents_type.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.name;
+            doctypSelect.appendChild(option);
+        });
     } catch (error) {
-      doctypSelect.innerHTML = '<option value="">فشل التحميل</option>';
-     showError('خطأ في تحميل الصلاحيات:');
-      console.error('خطأ في تحميل الاقسام:', error);
+        doctypSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('خطأ في تحميل أنواع المستندات:', error);
     }
-  }
- // دالة لجلب الفروع من الـ API
-  async function loadUsers() {
+}
+
+/**
+ * تحميل قائمة المستخدمين من الخادم
+ */
+async function loadUsers() {
     const userSelect = document.getElementById('sign_users');
    
-    
     try {
-      if(users.length<1){
+        if(users.length < 1){
             userSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('users_blueprint.getusers') }}"); // غيّر الرابط حسب API الخاص بك
-       users = await response.json();
-
-      }
-      // ملء القائمة المنسدلة
-      userSelect.innerHTML  = '<option value="0">اختيار الموظف </option>';
-      users.rows.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id; // أو branch.code حسب هيكل البيانات
-        option.textContent = user.full_name+"/"+user.phone;
-        userSelect.appendChild(option);
-      });
+            const response = await fetch("{{ url_for('users_blueprint.getusers') }}");
+            users = await response.json();
+        }
+        
+        // ملء القائمة المنسدلة بالمستخدمين
+        userSelect.innerHTML = '<option value="0">اختيار الموظف </option>';
+        users.rows.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.full_name + "/" + user.phone;
+            userSelect.appendChild(option);
+        });
     } catch (error) {
-      userSelect.innerHTML = '<option value="">فشل التحميل</option>';
-     showError('خطأ في تحميل الصلاحيات:');
-      console.error('خطأ في تحميل الصلاحيات:', error);
+        userSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('خطأ في تحميل المستخدمين:', error);
     }
-    userSelect.value=0;
-  }
-  </script>
+    userSelect.value = 0;
+}
+
+// تحميل البيانات عند بدء التشغيل
+loadUsers();
+loaddocuments_type();
+</script>
+
+
+
+
+<style>
+/* حاوية الأزرار */
+.ai-buttons-container {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+
+/* تصميم زر Gemini AI */
+.gemini-btn-wrapper {
+    position: relative;
+}
+
+.gemini-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(142, 68, 173, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.gemini-btn:hover {
+    background: linear-gradient(135deg, #7d3c98, #8e44ad);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+}
+
+.gemini-btn.processing {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    animation: gemini-pulse 1.5s infinite;
+}
+
+.gemini-btn.processing:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+.gemini-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gemini-btn:hover .gemini-icon {
+    transform: scale(1.1);
+}
+
+.gemini-btn.processing .gemini-icon {
+    animation: gemini-spin 2s linear infinite;
+}
+
+/* تصميم زر PyTesseract */
+.pytesseract-btn-wrapper {
+    position: relative;
+}
+
+.pytesseract-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.pytesseract-btn:hover {
+    background: linear-gradient(135deg, #229954, #27ae60);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+.pytesseract-btn.processing {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    animation: pytesseract-pulse 1.5s infinite;
+}
+
+.pytesseract-btn.processing:hover {
+    background: linear-gradient(135deg, #d35400, #ba4a00);
+}
+
+.pytesseract-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.pytesseract-btn:hover i {
+    transform: scale(1.1);
+}
+
+.pytesseract-btn.processing i {
+    animation: pytesseract-bounce 1s infinite;
+}
+
+/* الأنيميشن */
+@keyframes gemini-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(142, 68, 173, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0);
+    }
+}
+
+@keyframes pytesseract-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+@keyframes gemini-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pytesseract-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* التلميحات */
+.ai-tooltip {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+    font-family: 'Cairo', sans-serif;
+}
+
+.gemini-btn:hover .ai-tooltip,
+.pytesseract-btn:hover .ai-tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: -40px;
+}
+
+/* تحديث الحقول لاستيعاب الأزرار */
+.form-control.with-ai-buttons {
+    padding-left: 100px;
+}
+
+/* تحسين التخطيط للزرين */
+.voice-ai-buttons-container {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+
+/* تصميم زر المايكروفون المعدل */
+.mic-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.mic-btn:hover {
+    background: linear-gradient(135deg, #5a6268, #3d4348);
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.mic-btn.recording {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    animation: mic-pulse 1.5s infinite;
+}
+
+.mic-btn.recording:hover {
+    background: linear-gradient(135deg, #c82333, #a71e2a);
+}
+
+.mic-btn i {
+    font-size: 16px;
+}
+
+@keyframes mic-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+</style>
+
 <script>
+// المتغيرات العامة لإدارة المستندات
 let docIndex = 0;
+
+/**
+ * إنشاء كتلة مستند جديدة
+ * @param {number} index - فهرس المستند
+ * @returns {string} HTML للكتلة الجديدة
+ */
 function createDocBlock(index) {
     return `
     <div class="card p-4 mx-auto border shadow-sm rounded-3 mb-4 document-block col-md-6" style="max-width: 500px;">
         <h5 class="mb-3 fw-bold text-primary">📄 مستند رقم ${index + 1}</h5>
         
         <div class="mb-3">
-        
-                       <div class="btn-group">   
-            <span class="btn btn-sm btn-outline-info"
-            onclick="document.getElementById('file-input-${index}').click()">
-                تحميل ملف 
-                   <i class="fas fa-cloud-upload-alt"></i> </span>
+            <div class="btn-group">   
+                <span class="btn btn-sm btn-outline-info"
+                onclick="document.getElementById('file-input-${index}').click()">
+                    تحميل ملف 
+                    <i class="fas fa-cloud-upload-alt"></i> 
+                </span>
 
+                <span class="btn btn-sm btn-outline-info" onclick="scan(${index})">
+                    اسكانير    
+                    <i class="fas fas fa-scanner"></i>
+                    <i class="fas fa-scanner-keyboard"></i>
+                    🖨️
+                </span>
+            </div>
             
-            <span class="btn btn-sm btn-outline-info" onclick="scan(${index})">
-            اسكانير    
-             <i class="fas fas fa-scanner"></i>
-             <i class="fas fa-scanner-keyboard    "></i>
-       🖨️
-            </span>
-            </div>
-        
-        
-        
-            <div class="btn-group w-100" role="group">
-                <button type="button" class="btn btn-outline-secondary" onclick="openCamera(${index})">📷  </button>
-                <button type="button" class="btn btn-outline-success" onclick="scan(${index})">🖨️  </button>
-                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file-input-${index}').click()">📁  </button>
-            </div>
-              <input type="text" id="file-path-${index}" required readonly
-                     name="docs[${index}][path]" class="form-control"/>
-                     
+            <input type="text" id="file-path-${index}" required readonly
+                   name="docs[${index}][path]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"/>
+                   
             <input type="file" id="file-input-${index}" accept="*/*" name="docs[${index}][file]" class="form-control d-none" onchange="loadFilePreview(this, ${index})">
         </div>
 
         <div id="preview-${index}" class="preview-box border rounded p-2 text-center" style="min-height: 150px;">
             <em class="text-muted">لا توجد صورة بعد.</em>
         </div>
+<div class="ai-buttons-container">
+    <!-- زر PyTesseract -->
+    <div class="pytesseract-btn-wrapper">
+        <button type="button" class="pytesseract-btn" onclick="startReadpytesseract(this, ${index})" title="قراءة النص باستخدام PyTesseract">
+            <i class="fas fa-font"></i>
+            <span class="ai-tooltip">قراءة النص</span>
+        </button>
+    </div>
+    
+    <!-- زر Gemini AI -->
+    <div class="gemini-btn-wrapper">
+        <button type="button" class="gemini-btn" onclick="startReadGemini(this, ${index})" title="   Gemini AI">
+            <img src="static/assets/images/gemini-app-icon-hd.webp" alt="Gemini AI" class="gemini-icon">
+            <span class="ai-tooltip">تحليل ذكي</span>
+        </button>
+    </div>
+</div>
 
         <div class="mb-2 mt-4">
             <label class="form-label fw-bold">تفاصيل المستند</label>
@@ -245,21 +852,33 @@ function createDocBlock(index) {
     </div>
     `;
 }
+
+/**
+ * فتح الكاميرا لالتقاط صورة
+ * @param {number} index - فهرس المستند
+ */
 function openCamera(index) {
     const input = document.getElementById(`file-input-${index}`);
     input.setAttribute('capture', 'environment');
     input.click();
 }
 
+/**
+ * تحميل معاينة الملف
+ * @param {object} input - عنصر الإدخال
+ * @param {number} index - فهرس المستند
+ */
 function loadFilePreview(input, index) {
     const file = input.files[0];
     const previewBox = document.getElementById(`preview-${index}`);
-uploadDocument(file, index);
+    
+    // رفع المستند للمعالجة
+    uploadDocument(file, index);
+    
     if (file && file.type.startsWith("image")) {
         const reader = new FileReader();
         reader.onload = function (e) {
             previewBox.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded shadow-sm" style="max-height: 300px;">`;
-            
         };
         reader.readAsDataURL(file);
     } else {
@@ -267,22 +886,20 @@ uploadDocument(file, index);
     }
 }
 
+/**
+ * تبديل عرض/إخفاء تفاصيل المستند
+ * @param {number} index - فهرس المستند
+ * @param {object} btn - زر التبديل
+ */
 function toggleDetails(index, btn) {
     const details = btn.closest(".card").querySelector(".details_doc");
     details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
     btn.textContent = details.style.display === 'block' ? 'إخفاء التفاصيل' : 'عرض التفاصيل';
 }
 
-
-
-
-
-function show_details_doc(index, e) {
-    const det = $(e).closest('.cdetails').find('.details_doc');
-    det.slideToggle();
-    $(e).text(det.is(':visible') ? '-' : '+');
-}
-
+/**
+ * تحديث معالجات الأحداث للعناصر الديناميكية
+ */
 function updateHandlers() {
     $('.source-select').off('change').on('change', function() {
         const index = $(this).data('index');
@@ -302,98 +919,247 @@ function updateHandlers() {
     });
 }
 
-function loadfile(f) {
-    const index = $(f).data('index');
-    const file = f.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            $(`#progress-${index}`).removeClass('d-none');
-            $(`#preview-${index}`).html(`<img src="${e.target.result}" alt="Preview">`);
-            uploadDocument(file, index);
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function scan(index) {
+/**
+ * مسح المستند باستخدام الماسح الضوئي
+ * @param {number} index - فهرس المستند
+ */
+function scan(index) { 
     $(`#result-${index} .alert`).html('جاري المسح للعرض فقط...');
-    $.ajax({ url: '/scan', type: 'POST', success: function(response) {
-        if (response.success) {
-            $(`#preview-${index}`).html(`<img src="${response.image_url}" alt="Preview">`);
-        var inp=$(`input[name="docs[${index}][path]"]`)
-        inp.attr('readonly',false);
-        inp.val(response.image_url);
-        inp.attr('readonly',true);
-            uploadDocument(null,index,response.image_url);
-        } else {
-            $(`#result-${index} .alert`).html('خطأ: ' + response.error);
+    $.ajax({ 
+        url: '/scan', 
+        type: 'POST', 
+        success: function(response) {
+            if (response.success) {
+                $(`#preview-${index}`).html(`<img src="${response.image_url}" alt="Preview">`);
+                var inp = $(`input[name="docs[${index}][path]"]`);
+                inp.attr('readonly', false);
+                inp.val(response.image_url);
+                inp.attr('readonly', true);
+                uploadDocument(null, index, response.image_url);
+            } else {
+                $(`#result-${index} .alert`).html('خطأ: ' + response.error);
+            }
+        }, 
+        error: function() {
+            $(`#result-${index} .alert`).html('فشل الاتصال بالخادم.');
         }
-    }, error: function() {
-        $(`#result-${index} .alert`).html('فشل الاتصال بالخادم.');
-    }});
+    });
 }
 
-function uploadDocument(file=null, index,path=null) {
- // alert(index+'');
- $(`#progress-${index}`).removeClass('d-none');
+/**
+ * رفع المستند للمعالجة باستخدام PyTesseract و Gemini
+ * @param {File|null} file - ملف المستند
+ * @param {number} index - فهرس المستند
+ * @param {string|null} path - مسار الصورة (اختياري)
+ */
+function uploadDocument(file = null, index, path = null) {
+    $(`#progress-${index}`).removeClass('d-none');
     const formData = new FormData();
-    if(path!==null){
-      formData.append('path', path);
-    }else{
-    formData.append('file', file);
+    
+    if(path !== null){
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
     }
-    const xhr = new XMLHttpRequest(); xhr.open('POST', '/read-doc', true);
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/read-doc', true);
+    
+    // متابعة تقدم الرفع
     xhr.upload.addEventListener('progress', function(e) {
         if (e.lengthComputable) {
             const percent = Math.round((e.loaded / e.total) * 100);
             $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
         }
     });
+    
+    // معالجة الاستجابة
     xhr.onload = function() {
         if (xhr.status === 200) {
             const res = JSON.parse(xhr.responseText);
             if (res.success) {
                 $(`#progress-${index}`).addClass('d-none');
-               $(`#pre-${index}`).html(res.text);
-               convert(res.text);
-               const sentences = res.text.match(/[^.!?]+[.!?]+[\n]*/g) || [res.text];
-const badges = sentences.map((s, i) => 
-    `<div class="col"><span class="badge bg-primary m-2 copy-badge "
-    data-text="${s.trim()}" style="cursor:pointer;">${s.trim()}</span></div>`
-).join('');
-$(`#pre2-${index}`).html(badges);
-// التعامل مع النسخ عند الضغط على الجملة
-
-               
-
+                $(`#pre-${index}`).html("");
+                
+                // تحويل النص واستخراج البيانات
+                convert(res.text);
+                
+                // إخفاء شريط التقدم
+                $(`#progress-${index}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
                 $(`textarea[name="docs[${index}][details]"]`).val(res.text);
                 $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
-                $(`#preview-${index}`).append(`<img src="${res.processed_image_path}" alt="Preview">`);
                 
-                $(`#pre2-${index}`).on('click', '.copy-badge',function () {
-    const text = $(this).data('text');
-    navigator.clipboard.writeText(text).then(() => {
-        // إشعار بسيط
-        //alert('✅ تم نسخ الجملة إلى الحافظة');
-        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
-toast.show();
-
-        // أو يمكنك استخدام Toast إن أردت تنسيقًا أجمل
-        // showToast('✅ تم النسخ!');
-    }).catch(err => {
-        alert('❌ حدث خطأ أثناء النسخ');
-    });
-});
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index}`).on('click', '.copy-badge', function () {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
             }
         } else {
-            //$(`#progress-${index}`).addClass('d-none');
+            console.error('فشل في معالجة المستند');
         }
     };
     xhr.send(formData);
 }
 
-// توقيع المستند: إظهار/إخفاء وحقل إلزامي
+
+
+
+function startReadGemini(e,index){
+    $(`#progress-${index}`).removeClass('d-none');
+ $(`#progress-bar-${index}`).css('width', 0 + '%').text(0 + '%');
+   const path=$(`input[name="docs[${index}][path]"]`).val();//ile-path-${index}
+    const formData = new FormData();
+    
+    if(path !== null){
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
+    }
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/gemini-ocr/upload', true);
+    
+    // متابعة تقدم الرفع
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    
+    // معالجة الاستجابة
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index}`).addClass('d-none');
+               $(`#pre-${index}`).html("");
+                
+                // تحويل النص واستخراج البيانات
+                convert(res.gemini_text);
+                createCopyBadges(res.lines, index);
+                // إخفاء شريط التقدم
+                $(`#progress-${index}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
+                $(`textarea[name="docs[${index}][details]"]`).val(res.gemini_text);
+               // $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index}`).on('click', '.copy-badge', function () {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
+            }
+        } else {
+            console.error('فشل في معالجة المستند');
+        }
+    };
+    xhr.send(formData);
+}
+/*
+
+function startReadpytesseract(e,index){
+    $(`#progress-${index}`).removeClass('d-none');
+ $(`#progress-bar-${index}`).css('width', 0 + '%').text(0 + '%');
+   const path=$(`input[name="docs[${index}][path]"]`).val();//ile-path-${index}
+    const formData = new FormData();
+    
+    if(path !== null){
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
+    }
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/read-doc', true);
+    
+    // متابعة تقدم الرفع
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    
+    // معالجة الاستجابة
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index}`).addClass('d-none');
+                $(`#pre-${index}`).html(res.text);
+                
+                // تحويل النص واستخراج البيانات
+                convert(res.pytesseract_lines);
+                
+                // إخفاء شريط التقدم
+                $(`#progress-${index}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
+                $(`textarea[name="docs[${index}][details]"]`).val(res.text);
+               // $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index}`).on('click', '.copy-badge', function () {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
+            }
+        } else {
+            console.error('فشل في معالجة المستند');
+        }
+    };
+    xhr.send(formData);
+}
+*/
+
+/**
+ * استخراج البيانات من النص باستخدام التعابير النمطية
+ * @param {string} text - النص المستخرج من المستند
+ */
+function convert(text) {
+    // استخراج البيانات بالتعابير النمطية
+    const remittanceNumber = text.match(/رقم الحوالة\/\s*\|?\s*(\d+)/)?.[1] || "غير موجود";
+    const senderName = text.match(/اسم المرسل\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+    const receiverName = text.match(/اسم المستلم\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
+    const receiptNumber = text.match(/رقم السند\s*\/\s*(\d+)/)?.[1] || "غير موجود";
+    const date = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/)?.[1] || "غير موجود";
+    
+    // تعبئة الحقول تلقائياً
+    $("#sender_name").val(senderName);
+    $("#recipient_name").val(receiverName);
+    $("#transfer_number").val(remittanceNumber);
+    $("#date").val(date);
+    $("#doc_id").val(receiptNumber);
+    
+    // طباعة النتائج في الكونسول
+    console.log("رقم الحوالة:", remittanceNumber);
+    console.log("اسم المرسل:", senderName);
+    console.log("اسم المستلم:", receiverName);
+    console.log("رقم السند:", receiptNumber);
+    console.log("التاريخ:", date);
+}
+
+// إظهار/إخفاء حقل التوقيع بناءً على حالة التبديل
 $('#require_signature').on('change', function() {
     if ($(this).is(':checked')) {
         $('#sign-users-container').removeClass('d-none');
@@ -404,21 +1170,18 @@ $('#require_signature').on('change', function() {
     }
 });
 
-// إضافة مستند
+// إضافة مستند جديد
 $('#add-doc').on('click', function() {
     $('#documents-container').append(createDocBlock(docIndex));
-    updateHandlers(); docIndex++;
+    updateHandlers(); 
+    docIndex++;
 });
 
-// فحص قبل الإرسال
-
-
-// إضافة أول مستند تلقائيًا
-$('#add-doc').click();
-
-
+// إرسال النموذج
 $('#multi-form').on('submit', function (e) {
     e.preventDefault();
+    
+    // التحقق من صحة حقل التوقيع إذا كان مطلوباً
     if ($('#require_signature').is(':checked') && $('#sign_users').val().length === 0) {
         e.preventDefault();
         $('#sign_users').addClass('is-invalid');
@@ -440,9 +1203,9 @@ $('#multi-form').on('submit', function (e) {
                 $('#multi-form')[0].reset();
                 $('#documents-container').empty();
                 docIndex = 0;
-                document.getElementById('sign_users').value=0;
-                        $('#sign-users-container').addClass('d-none');
-        $('#sign_users').removeAttr('required').removeClass('is-invalid');
+                document.getElementById('sign_users').value = 0;
+                $('#sign-users-container').addClass('d-none');
+                $('#sign_users').removeAttr('required').removeClass('is-invalid');
             } else {
                 $('#result').html('❌ خطأ: ' + res.message);
             }
@@ -453,32 +1216,251 @@ $('#multi-form').on('submit', function (e) {
     });
 });
 
+// إضافة أول مستند تلقائياً عند التحميل
+$('#add-doc').click();
 
-function convert(text){
-	  // استخراج البيانات بالتعابير النمطية
-const remittanceNumber = text.match(/رقم الحوالة\/\s*\|?\s*(\d+)/)?.[1] || "غير موجود";
-const senderName = text.match(/اسم المرسل\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
-const receiverName = text.match(/اسم المستلم\s*\/\s*[.|]?\s*(.+)/)?.[1]?.trim() || "غير موجود";
-const receiptNumber = text.match(/رقم السند\s*\/\s*(\d+)/)?.[1] || "غير موجود";
-const date = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/)?.[1] || "غير موجود";
-//transfer_number
-      //      doc_id
+
+
+
+
+
+
+function startReadpytesseract(e, index) {
+    $(`#progress-${index}`).removeClass('d-none');
+    $(`#progress-bar-${index}`).css('width', 0 + '%').text(0 + '%');
+    
+    const path = $(`input[name="docs[${index}][path]"]`).val();
+    const formData = new FormData();
+    
+    if (path !== null) {
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
+    }
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/read-doc', true);
+    
+    // متابعة تقدم الرفع
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    
+    // معالجة الاستجابة
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index}`).addClass('d-none');
+                $(`#pre-${index}`).html(res.text);
+                
+                // تحويل النص واستخراج البيانات
+                convert(res.text);
+                
+                // إنشاء badges باستخدام Tailwind CSS
+                createCopyBadges(res.pytesseract_lines, index);
+                
+                // إخفاء شريط التقدم
+                $(`#progress-${index}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
+                $(`textarea[name="docs[${index}][details]"]`).val(res.text);
+                
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index}`).on('click', '.copy-badge', function() {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                        
+                        // تأثير مرئي عند النسخ
+                        $(this).addClass('bg-green-500');
+                        setTimeout(() => {
+                            $(this).removeClass('bg-green-500');
+                        }, 500);
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
+            }
+        } else {
+            console.error('فشل في معالجة المستند');
+        }
+    };
+    xhr.send(formData);
+}
+
+// دالة لإنشاء badges قابلة للنسخ باستخدام Tailwind CSS
+function createCopyBadges(lines, index) {
+    if (!lines || !Array.isArray(lines) || lines.length === 0) {
+        $(`#pre2-${index}`).html(`
+            <div class="text-center text-gray-500 py-4">
+                <i class="fas fa-exclamation-triangle text-yellow-500 text-xl mb-2"></i>
+                <p>لا توجد بيانات لعرضها</p>
+            </div>
+        `);
+        return;
+    }
+
+    const badgesHTML = lines.map((line, i) => {
+        if (!line || line.trim() === '') return '';
+        
+        const cleanLine = line.trim();
+        return `
+            <div class="inline-flex flex-col items-start mb-2 mr-2">
+                <button 
+                    type="button"
+                    class="copy-badge inline-flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 bg-blue-100 text-blue-800 hover:bg-blue-200 border border-blue-300 cursor-pointer shadow-sm"
+                    data-text="${cleanLine.replace(/"/g, '&quot;')}"
+                    title="انقر للنسخ: ${cleanLine}"
+                >
+                    <span class="max-w-xs truncate">${cleanLine}</span>
+                    <i class="fas fa-copy mr-1 text-blue-600 text-xs"></i>
+                </button>
+                <span class="text-xs text-gray-500 mt-1">#${i + 1}</span>
+            </div>
+        `;
+    }).join('');
+
+    // إضافة زر نسخ الكل
+    const copyAllButton = `
+        <div class="w-full mb-4 border-b pb-2">
+            <button 
+                type="button"
+                id="copy-all-${index}"
+                class="copy-all-btn inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-green-100 text-green-800 hover:bg-green-200 border border-green-300 cursor-pointer shadow-sm"
+                title="نسخ جميع النصوص"
+            >
+                <i class="fas fa-copy mr-2"></i>
+                نسخ الكل
+                <span class="text-xs bg-green-500 text-white rounded-full px-2 py-1 mr-2">${lines.length}</span>
+            </button>
+        </div>
+    `;
+
+    $(`#pre2-${index}`).html(`
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            ${copyAllButton}
+            <div class="flex flex-wrap gap-2">
+                ${badgesHTML}
+            </div>
             
+            <!-- إحصائيات -->
+            <div class="mt-4 pt-3 border-t border-gray-200">
+                <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span class="inline-flex items-center">
+                        <i class="fas fa-list-ol mr-1"></i>
+                        عدد الأسطر: ${lines.length}
+                    </span>
+                    <span class="inline-flex items-center">
+                        <i class="fas fa-font mr-1"></i>
+                        الأحرف: ${lines.join('').length}
+                    </span>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // إضافة معالج نسخ الكل
+    $(`#copy-all-${index}`).on('click', function() {
+        const allText = lines.join('\n');
+        navigator.clipboard.writeText(allText).then(() => {
+            const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+            toast.show();
             
-            $("#sender_name").val(senderName);
-            $("#recipient_name").val(receiverName);
-            $("#transfer_number").val(remittanceNumber);
-            $("#date").val(date);
-            $("#doc_id").val(receiptNumber);
-// طباعة النتائج
-console.log("رقم الحوالة:", remittanceNumber);
-console.log("اسم المرسل:", senderName);
-console.log("اسم المستلم:", receiverName);
-console.log("رقم السند:", receiptNumber);
-console.log("التاريخ:", date);
-	}
+            // تأثير على جميع الأزرار
+            $(this).addClass('bg-green-500 text-white');
+            $(`#pre2-${index} .copy-badge`).addClass('bg-green-500 text-white');
+            
+            setTimeout(() => {
+                $(this).removeClass('bg-green-500 text-white');
+                $(`#pre2-${index} .copy-badge`).removeClass('bg-green-500 text-white');
+            }, 1000);
+        }).catch(err => {
+            alert('❌ حدث خطأ أثناء نسخ جميع النصوص');
+        });
+    });
+}
+
+// دالة بديلة إذا كنت تريد تقسيم النص إلى جمل
+function createSentenceBadges(text, index) {
+    if (!text) return;
+    
+    // تقسيم النص إلى جمل
+    const sentences = text.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0);
+    
+    const badgesHTML = sentences.map((sentence, i) => {
+        const cleanSentence = sentence.trim();
+        if (cleanSentence.length === 0) return '';
+        
+        return `
+            <div class="inline-flex flex-col items-start mb-2 mr-2">
+                <button 
+                    type="button"
+                    class="copy-badge inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 bg-purple-100 text-purple-800 hover:bg-purple-200 border border-purple-300 cursor-pointer shadow-sm"
+                    data-text="${cleanSentence.replace(/"/g, '&quot;')}"
+                    title="انقر للنسخ: ${cleanSentence}"
+                >
+                    <span class="max-w-xs truncate">${cleanSentence}</span>
+                    <i class="fas fa-copy mr-1 text-purple-600 text-xs"></i>
+                </button>
+                <span class="text-xs text-gray-500 mt-1">الجملة ${i + 1}</span>
+            </div>
+        `;
+    }).join('');
+
+    $(`#pre2-${index}`).html(`
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h6 class="text-sm font-semibold text-gray-700 mb-3">الجمل المستخرجة:</h6>
+            <div class="flex flex-wrap gap-2">
+                ${badgesHTML}
+            </div>
+        </div>
+    `);
+}
+
+// إضافة CSS إضافي لتحسين المظهر
+const additionalStyles = `
+.copy-badge {
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.copy-badge:active {
+    transform: scale(0.95);
+}
+
+.copy-badge.copied {
+    background-color: #10B981 !important;
+    color: white !important;
+}
+
+/* تحسين التصميم للعربية */
+[dir="rtl"] .copy-badge {
+    text-align: right;
+    direction: rtl;
+}
+
+/* تأثير hover محسن */
+.copy-badge:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+`;
+
+// إضافة الـ styles إلى head إذا لم تكن موجودة
+if (!document.querySelector('#copy-badges-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'copy-badges-styles';
+    styleSheet.textContent = additionalStyles;
+    document.head.appendChild(styleSheet);
+}
 
 </script>
+
+<!-- Toast للإشعارات -->
 <div id="toast-copy" class="toast position-fixed bottom-0 end-0 m-3 text-bg-success" role="alert" data-bs-delay="1500">
   <div class="toast-body">تم النسخ ✅</div>
 </div>

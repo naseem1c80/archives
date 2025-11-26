@@ -8,13 +8,14 @@
 {% endblock %}
 
 {% block content %}
+{% block title2 %} 
+إدارة وثائق العملاء 📂
+{% endblock %} 
+
+
 <section class="pcoded-main-container">
     <div class="pcoded-content">
         <!-- Breadcrumb -->
-        <div class="page-header" dir="rtl">
-            <h5 class="m-b-10">إدارة وثائق العملاء 📂</h5>
-         
-        </div>
 
 
 
@@ -266,6 +267,25 @@ function createDocBlock(ind) {
                        <img id="img-${ind}"
                        
                        style="width:100%;"/>
+
+
+                       <div class="ai-buttons-container">
+    <!-- زر PyTesseract -->
+    <div class="pytesseract-btn-wrapper">
+        <button type="button" class="pytesseract-btn" onclick="startReadpytesseract(this, ${ind})" title="قراءة النص باستخدام PyTesseract">
+            <i class="fas fa-font"></i>
+            <span class="ai-tooltip">قراءة النص</span>
+        </button>
+    </div>
+    
+    <!-- زر Gemini AI -->
+    <div class="gemini-btn-wrapper">
+        <button type="button" class="gemini-btn" onclick="startReadGemini(this, ${ind})" title="   Gemini AI">
+            <img src="static/assets/images/gemini-app-icon-hd.webp" alt="Gemini AI" class="gemini-icon">
+            <span class="ai-tooltip">تحليل ذكي</span>
+        </button>
+    </div>
+</div>
                     <div class="file-upload-area" id="file-upload-area-${ind}" >
                         
                             <input type="file" id="file-input-${ind}"
@@ -463,9 +483,380 @@ $('#multi-form').on('submit', function (e) {
     });
 });
 
+
+
+
+function startReadGemini(e,index2){
+    $(`#progress-${index2}`).removeClass('d-none');
+ $(`#progress-bar-${index2}`).css('width', 0 + '%').text(0 + '%');
+   const path=$(`input[name="docs[${index2}][path]"]`).val();//ile-path-${index}
+    const formData = new FormData();
+    
+    if(path !== null){
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
+    }
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/gemini-ocr/upload', true);
+    
+    // متابعة تقدم الرفع
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index2}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    
+    // معالجة الاستجابة
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index2}`).addClass('d-none');
+                $(`#pre-${index2}`).html(res.text);
+                
+                // تحويل النص واستخراج البيانات
+              //  convert(res.gemini_text);
+                
+                // إخفاء شريط التقدم
+                $(`#progress-${index2}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
+                $(`textarea[name="docs[${index2}][details]"]`).val(res.gemini_text);
+               // $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index2}`).on('click', '.copy-badge', function () {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
+            }
+        } else {
+            console.error('فشل في معالجة المستند');
+        }
+    };
+    xhr.send(formData);
+}
+
+function startReadpytesseract(e,index2){
+    $(`#progress-${index2}`).removeClass('d-none');
+ $(`#progress-bar-${index2}`).css('width', 0 + '%').text(0 + '%');
+   const path=$(`input[name="docs[${index2}][path]"]`).val();//ile-path-${index}
+    const formData = new FormData();
+    
+    if(path !== null){
+        formData.append('path', path);
+    } else {
+        formData.append('file', file);
+    }
+    
+    const xhr = new XMLHttpRequest(); 
+    xhr.open('POST', '/read-doc', true);
+    
+    // متابعة تقدم الرفع
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            $(`#progress-bar-${index2}`).css('width', percent + '%').text(percent + '%');
+        }
+    });
+    
+    // معالجة الاستجابة
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                $(`#progress-${index2}`).addClass('d-none');
+                $(`#pre-${index2}`).html(res.text);
+                
+                // تحويل النص واستخراج البيانات
+               // convert(res.text);
+                
+                // إخفاء شريط التقدم
+                $(`#progress-${index2}`).addClass('d-none');
+                
+                // تعبئة حقل التفاصيل بالنص المستخرج
+                $(`textarea[name="docs[${index2}][details]"]`).val(res.text);
+               // $(`input[name="docs[${index}][path]"]`).val(res.processed_image_path);
+                
+                // إضافة معالج نسخ النص
+                $(`#pre2-${index2}`).on('click', '.copy-badge', function () {
+                    const text = $(this).data('text');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const toast = new bootstrap.Toast(document.getElementById('toast-copy'));
+                        toast.show();
+                    }).catch(err => {
+                        alert('❌ حدث خطأ أثناء النسخ');
+                    });
+                });
+            }
+        } else {
+            console.error('فشل في معالجة المستند');
+        }
+    };
+    xhr.send(formData);
+}
+
 </script>
 <div id="toast-copy" class="toast position-fixed bottom-0 end-0 m-3 text-bg-success" role="alert" data-bs-delay="1500">
   <div class="toast-body">تم النسخ ✅</div>
 </div>
+
+
+
+<style>
+/* حاوية الأزرار */
+.ai-buttons-container {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+
+/* تصميم زر Gemini AI */
+.gemini-btn-wrapper {
+    position: relative;
+}
+
+.gemini-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(142, 68, 173, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.gemini-btn:hover {
+    background: linear-gradient(135deg, #7d3c98, #8e44ad);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+}
+
+.gemini-btn.processing {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    animation: gemini-pulse 1.5s infinite;
+}
+
+.gemini-btn.processing:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+.gemini-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gemini-btn:hover .gemini-icon {
+    transform: scale(1.1);
+}
+
+.gemini-btn.processing .gemini-icon {
+    animation: gemini-spin 2s linear infinite;
+}
+
+/* تصميم زر PyTesseract */
+.pytesseract-btn-wrapper {
+    position: relative;
+}
+
+.pytesseract-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.pytesseract-btn:hover {
+    background: linear-gradient(135deg, #229954, #27ae60);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+.pytesseract-btn.processing {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    animation: pytesseract-pulse 1.5s infinite;
+}
+
+.pytesseract-btn.processing:hover {
+    background: linear-gradient(135deg, #d35400, #ba4a00);
+}
+
+.pytesseract-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.pytesseract-btn:hover i {
+    transform: scale(1.1);
+}
+
+.pytesseract-btn.processing i {
+    animation: pytesseract-bounce 1s infinite;
+}
+
+/* الأنيميشن */
+@keyframes gemini-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(142, 68, 173, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0);
+    }
+}
+
+@keyframes pytesseract-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+@keyframes gemini-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pytesseract-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* التلميحات */
+.ai-tooltip {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+    font-family: 'Cairo', sans-serif;
+}
+
+.gemini-btn:hover .ai-tooltip,
+.pytesseract-btn:hover .ai-tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: -40px;
+}
+
+/* تحديث الحقول لاستيعاب الأزرار */
+.form-control.with-ai-buttons {
+    padding-left: 100px;
+}
+
+/* تحسين التخطيط للزرين */
+.voice-ai-buttons-container {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+
+/* تصميم زر المايكروفون المعدل */
+.mic-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.mic-btn:hover {
+    background: linear-gradient(135deg, #5a6268, #3d4348);
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.mic-btn.recording {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    animation: mic-pulse 1.5s infinite;
+}
+
+.mic-btn.recording:hover {
+    background: linear-gradient(135deg, #c82333, #a71e2a);
+}
+
+.mic-btn i {
+    font-size: 16px;
+}
+
+@keyframes mic-pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+</style>
 
 {% endblock %}

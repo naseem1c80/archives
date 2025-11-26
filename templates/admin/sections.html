@@ -1,0 +1,389 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} إدارة الأقسام {% endblock %} 
+
+
+{% block content %}
+
+<!-- [ Main Content ] start -->
+<section class="pcoded-main-container">
+    <div class="pcoded-content">
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">إدارة الأقسام</h5>
+                        </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="#">الأقسام</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ breadcrumb ] end -->
+        
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <!-- [ basic-table ] start -->
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-0 py-3" dir="rtl">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-primary font-weight-bold">قائمة الأقسام</h5>
+                            <button class="btn btn-primary d-flex align-items-center" onclick="openAddModal()">
+                                <i class="feather icon-plus me-2"></i>
+                                إضافة قسم جديد
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- مؤشر التحميل -->
+                        <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">جاري التحميل...</span>
+                            </div>
+                            <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table
+                                id="sectionsTable"
+                                class="table table-striped table-bordered"
+                                dir="rtl"
+                                data-toggle="table"
+                                data-ajax="ajaxRequest"
+                                data-pagination="true"
+                                data-side-pagination="server"
+                                data-page-list="[10, 20, 50, 100]"
+                                data-search="true"
+                                data-search-align="right"
+                                data-show-refresh="true"
+                                data-show-toggle="true"
+                                data-show-columns="true"
+                                data-sort-name="id"
+                                data-sort-order="asc"
+                                data-locale="ar-SA">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="text-center py-2 px-3"
+                                            data-field="id" 
+                                            data-align="center"
+                                            data-sortable="true">#</th>
+                                        <th class="py-2 px-3"
+                                            data-field="name" 
+                                            data-sortable="true"
+                                            data-align="right">اسم القسم</th>
+                                        <th class="text-center py-2 px-3"
+                                            data-field="created_at" 
+                                            data-sortable="true"
+                                            data-align="center"
+                                            data-formatter="dateFormatter">تاريخ الإضافة</th>
+                                        <th class="text-center py-2 px-3"
+                                            data-align="center"
+                                            data-formatter="operateFormatter"
+                                            data-events="operateEvents"
+                                            width="150px">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ Main Content ] end -->
+    </div>
+</section>
+<!-- [ Main Content ] end -->
+
+<!-- Modal: إضافة -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <form id="addForm" onsubmit="submitAddForm(event)">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">إضافة قسم جديد</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-gray-700">اسم القسم</label>
+                        <input name="name" class="form-control border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                               placeholder="أدخل اسم القسم" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-gray-50">
+                    <button type="submit" class="btn btn-primary px-4" id="addSubmitBtn">
+                        <span id="addButtonText">حفظ</span>
+                        <div id="addSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></div>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: تعديل -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <form id="editForm" onsubmit="submitEditForm(event)">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">تعديل القسم</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <input type="hidden" name="id">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-gray-700">اسم القسم</label>
+                        <input name="name" class="form-control border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                               placeholder="أدخل اسم القسم" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-gray-50">
+                    <button type="submit" class="btn btn-success px-4" id="editSubmitBtn">
+                        <span id="editButtonText">تحديث</span>
+                        <div id="editSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></div>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// تهيئة جدول Bootstrap Table
+function operateFormatter(value, row, index) {
+    return [
+        `<button class="btn btn-sm btn-outline-warning me-1" title="تعديل">
+            <i class="fas fa-edit"></i>
+        </button>`,
+        `<button class="btn btn-sm btn-outline-danger" title="حذف">
+            <i class="fas fa-trash"></i>
+        </button>`
+    ].join('');
+}
+
+window.operateEvents = {
+    'click .btn-outline-warning': function (e, value, row, index) {
+        openEditModal(row.id, row.name);
+    },
+    'click .btn-outline-danger': function (e, value, row, index) {
+        deleteSection(row.id);
+    }
+};
+
+// تنسيق التاريخ
+function dateFormatter(value, row, index) {
+    if (!value) return '-';
+    return new Date(value).toLocaleDateString('ar-SA');
+}
+
+// إظهار رسالة SweetAlert
+function showAlert(icon, title, text) {
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#3085d6',
+    });
+}
+
+// إظهار رسالة خطأ
+function ShowError(message) {
+    showAlert('error', 'خطأ', message);
+}
+
+// إظهار/إخفاء مؤشر التحميل
+function toggleLoading(show, type = 'table') {
+    if (type === 'table') {
+        const spinner = document.getElementById('loadingSpinner');
+        spinner.style.display = show ? 'block' : 'none';
+    } else if (type === 'add') {
+        const spinner = document.getElementById('addSpinner');
+        const buttonText = document.getElementById('addButtonText');
+        const submitBtn = document.getElementById('addSubmitBtn');
+        
+        if (show) {
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'جاري الحفظ...';
+            submitBtn.disabled = true;
+        } else {
+            spinner.style.display = 'none';
+            buttonText.textContent = 'حفظ';
+            submitBtn.disabled = false;
+        }
+    } else if (type === 'edit') {
+        const spinner = document.getElementById('editSpinner');
+        const buttonText = document.getElementById('editButtonText');
+        const submitBtn = document.getElementById('editSubmitBtn');
+        
+        if (show) {
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'جاري التحديث...';
+            submitBtn.disabled = true;
+        } else {
+            spinner.style.display = 'none';
+            buttonText.textContent = 'تحديث';
+            submitBtn.disabled = false;
+        }
+    }
+}
+
+// فتح نافذة الإضافة
+function openAddModal() {
+    document.getElementById('addForm').reset();
+    const modal = new bootstrap.Modal(document.getElementById('addModal'));
+    modal.show();
+}
+
+// فتح نافذة التعديل
+function openEditModal(id, name) {
+    document.getElementById('editForm').reset();
+    document.querySelector('#editForm input[name="id"]').value = id;
+    document.querySelector('#editForm input[name="name"]').value = name;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+}
+
+// إرسال نموذج الإضافة
+function submitAddForm(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    toggleLoading(true, 'add');
+    
+    axios.post("/sections/add", data)
+        .then(response => {
+            if (response.data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();
+                $('#sectionsTable').bootstrapTable('refresh');
+                showAlert('success', 'تمت العملية', 'تم إضافة القسم بنجاح');
+            } else {
+                ShowError(response.data.message || 'حدث خطأ أثناء الإضافة');
+            }
+        })
+        .catch(error => {
+            console.error("Error adding section:", error);
+            ShowError('حدث خطأ أثناء إضافة القسم');
+        })
+        .finally(() => {
+            toggleLoading(false, 'add');
+        });
+}
+
+// إرسال نموذج التعديل
+function submitEditForm(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    
+    toggleLoading(true, 'edit');
+    
+    axios.post(`/sections/update/${id}`, data)
+        .then(response => {
+            if (response.data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                $('#sectionsTable').bootstrapTable('refresh');
+                showAlert('success', 'تمت العملية', 'تم تعديل القسم بنجاح');
+            } else {
+                ShowError(response.data.message || 'حدث خطأ أثناء التحديث');
+            }
+        })
+        .catch(error => {
+            console.error("Error updating section:", error);
+            ShowError('حدث خطأ أثناء تعديل القسم');
+        })
+        .finally(() => {
+            toggleLoading(false, 'edit');
+        });
+}
+
+// حذف القسم
+function deleteSection(id) {
+    Swal.fire({
+        title: 'هل أنت متأكد؟',
+        text: "لن تتمكن من التراجع عن هذا الإجراء!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'نعم، احذفه!',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            toggleLoading(true, 'table');
+            axios.post(`/sections/delete/${id}`)
+                .then(response => {
+                    if (response.data.success) {
+                        $('#sectionsTable').bootstrapTable('refresh');
+                        showAlert('success', 'تم الحذف', 'تم حذف القسم بنجاح');
+                    } else {
+                        ShowError(response.data.message || 'حدث خطأ أثناء الحذف');
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting section:", error);
+                    ShowError('حدث خطأ أثناء حذف القسم');
+                })
+                .finally(() => {
+                    toggleLoading(false, 'table');
+                });
+        }
+    });
+}
+
+// طلب AJAX للجدول
+window.ajaxRequest = function (params) {
+    if (!params.data) {
+        params.data = {};
+    }
+
+    const url = "{{ url_for('admin_blueprint.getsections') }}";
+
+    // إظهار مؤشر التحميل
+    toggleLoading(true, 'table');
+
+    // تنفيذ الطلب
+    $.get(`${url}?${$.param(params.data)}`)
+        .then(function (res) {
+            params.success(res);
+            toggleLoading(false, 'table');
+        })
+        .catch(function (err) {
+            console.error("Error fetching sections:", err);
+            ShowError('حدث خطأ أثناء تحميل البيانات');
+            toggleLoading(false, 'table');
+        });
+};
+
+// تهيئة الجدول عند تحميل الصفحة
+$(document).ready(function() {
+    $('#sectionsTable').bootstrapTable();
+});
+
+// معالجة الأحداث عند فتح النماذج
+document.getElementById('addModal').addEventListener('show.bs.modal', function () {
+    toggleLoading(false, 'add');
+});
+
+document.getElementById('editModal').addEventListener('show.bs.modal', function () {
+    toggleLoading(false, 'edit');
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

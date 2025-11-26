@@ -5,6 +5,8 @@ Copyright (c) 2019 - present AppSeed.us
 
 from email.policy import default
 from xmlrpc.client import DateTime
+
+from flask import current_app
 from apps.exceptions.exception import InvalidUsage
 import datetime as dt
 from sqlalchemy.orm import relationship
@@ -99,6 +101,7 @@ class Document(db.Model):
     status = db.Column(db.Integer,default=0)
     verify_user = db.Column(db.Integer,db.ForeignKey('users.id'))
     branch_id= db.Column(db.Integer,  db.ForeignKey('branchs.id'))
+    section_id= db.Column(db.Integer,  db.ForeignKey('sections.id'))
     description = db.Column(db.Text, nullable=True)
     document_type_id = db.Column(db.Integer, db.ForeignKey('document_types.id'), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=dt.datetime.utcnow())
@@ -114,7 +117,7 @@ class Document(db.Model):
     branch = db.relationship("Branch", backref="documents", lazy=True)
     files = db.relationship("Files", backref="documents", lazy=True)
     signer = db.relationship("Users", foreign_keys=[user_signature], backref="signed_documents", lazy=True)
-
+    section = db.relationship('Section', backref='documents')
         # علاقة مع المستندات
     type_document = db.relationship('DocumentType', backref='documents', lazy=True)
 
@@ -217,10 +220,12 @@ class Users(db.Model, UserMixin):
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job_title.id'))
+    section_id = db.Column(db.Integer, db.ForeignKey('sections.id'))
     is_admin = db.Column(db.Boolean, default=False)
     role = db.relationship('Role', backref='users')
     brnach = db.relationship('Branch', backref='users')
     job = db.relationship('JobTitle', backref='users')
+    section = db.relationship('Section', backref='users')
     #notifications = db.relationship('Notification', backref='users')
       # Define both relationships explicitly
         # FIXED: back_populates name must match the corresponding property
@@ -239,6 +244,7 @@ class Users(db.Model, UserMixin):
             'phone': self.phone,
             'full_name': self.full_name,
             'branch_id': self.branch_id,
+            'section_id': self.section_id,
             'created_at': self.created_at,
             'active': self.active,
             'role': {
@@ -250,6 +256,10 @@ class Users(db.Model, UserMixin):
                 'id': self.brnach.id,
                 'name': self.brnach.name
             } if self.brnach else None,
+            'section': {
+                'id': self.section.id,
+                'name': self.section.name
+            } if self.section else None,
              'job': {
                 'id': self.role.id,
                 'name': self.role.name
@@ -349,7 +359,7 @@ class CustomerDocument(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
-    issue_date = db.Column(db.Date, nullable=False)
+    issue_date = db.Column(db.Date, nullable=False,default=datetime.utcnow)
     expiry_date = db.Column(db.Date, nullable=False)
     address = db.Column(db.String(255), nullable=True)
     place_of_issue = db.Column(db.String(255), nullable=True)
@@ -357,8 +367,28 @@ class CustomerDocument(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     images = db.relationship('CustomerDocumentImage', backref='document', cascade="all, delete", lazy=True)
-    
-    def save(self) -> None:
+    def save(self):
+        try:
+            # معالجة الحقول التاريخية الفارغة
+            if self.issue_date == "" or self.issue_date is None:
+                self.issue_date = None
+            elif isinstance(self.issue_date, str) and self.issue_date.strip():
+                # تحويل النص إلى تاريخ إذا كان غير فارغ
+                self.issue_date = datetime.strptime(self.issue_date, '%Y-%m-%d').date()
+                
+            if self.expiry_date == "" or self.expiry_date is None:
+                self.expiry_date = None
+            elif isinstance(self.expiry_date, str) and self.expiry_date.strip():
+                self.expiry_date = datetime.strptime(self.expiry_date, '%Y-%m-%d').date()
+                
+            db.session.add(self)
+            db.session.commit()
+            return self
+        except Exception as e:
+            #db.session.rollback()
+            raise InvalidUsage(str(e), 500)
+        
+    def save2(self) -> None:
      try:
          db.session.add(self)
          db.session.commit()
@@ -388,106 +418,18 @@ class CustomerDocumentImage(db.Model):
 
 
 
-class DeviceInfo(db.Model):
-    """
-    نموذج لتخزين معلومات الجهاز مع إدارة التراخيص
-    """
-    __tablename__ = 'device_info'
+class Section(db.Model):
+    __tablename__ = 'sections'
     
+    # الحقول الأساسية
     id = db.Column(db.Integer, primary_key=True)
-    hostname = db.Column(db.String(255), unique=True, nullable=False)
-    system = db.Column(db.String(100))
-    release = db.Column(db.String(100))
-    version = db.Column(db.String(100))
-    machine = db.Column(db.String(100))
-    processor = db.Column(db.String(255))
-    architecture = db.Column(db.String(50))
-    ip_address = db.Column(db.String(100))
-    cpu_cores = db.Column(db.Integer)
-    ram_gb = db.Column(db.Float)
-    license_key = db.Column(db.String(255), nullable=False)
-    license_hash = db.Column(db.String(255), nullable=False)
-    is_authorized = db.Column(db.Boolean, default=False)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __init__(self, **kwargs):
-        # توليد هاش للترخيص عند الإنشاء
-        if 'license_key' in kwargs:
-            kwargs['license_hash'] = self._generate_license_hash(kwargs['license_key'])
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<Device {self.hostname} - {'Authorized' if self.is_authorized else 'Unauthorized'}>"
-
-    @staticmethod
-    def _generate_license_hash(license_key):
-        """توليد هاش مشفر لمفتاح الترخيص"""
-        return hashlib.sha256(license_key.encode()).hexdigest()
-
-    def verify_license(self, license_key):
-        """التحقق من صحة الترخيص"""
-        return self.license_hash == self._generate_license_hash(license_key)
-
-    def authorize_device(self, valid_licenses):
-        """
-        تفعيل الجهاز إذا كان الترخيص صالحًا
-        valid_licenses: قائمة بمفاتيح التراخيص الصالحة
-        """
-        self.is_authorized = self.license_key in valid_licenses
-        self.last_seen = datetime.utcnow()
-        return self.is_authorized
-  
-  
-
-
-
-class DeviceLicense(db.Model):
-    __tablename__ = 'device_licenses'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
-    hostname = db.Column(db.String(255))
-    ip_address = db.Column(db.String(100))
-    system = db.Column(db.String(100))  # أضف هذا الحقل
-    processor = db.Column(db.String(255))  # أضف هذا الحقل
-    is_approved = db.Column(db.Boolean, default=False)
-    hardware_id = db.Column(db.String(128), unique=True, nullable=False)  # المعرف الفعلي للجهاز
-    license_key = db.Column(db.String(64), nullable=False)
-    is_active = db.Column(db.Boolean, default=False)
-    activated_at = db.Column(db.DateTime)
+    name = db.Column(db.String(255), nullable=False)  # للتفرقة بين الأجهزة
     created_at = db.Column(db.DateTime, 
                          default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, 
                          default=lambda: datetime.now(timezone.utc),
                          onupdate=lambda: datetime.now(timezone.utc))
-        
-    __table_args__ = (
-        db.UniqueConstraint('hardware_id', 'license_key', name='_hardware_license_uc'),
-    )
-
-    @classmethod
-    def generate_hardware_id(cls):
-        """إنشاء معرف فريد للجهاز بناءً على خصائصه"""
-        import hashlib, platform
-        h = hashlib.sha256()
-        h.update(platform.node().encode())  # اسم الجهاز
-        h.update(platform.processor().encode())  # المعالج
-        return h.hexdigest()
-    def __init__(self, device_id, **kwargs):
-        self.device_id = device_id
-        super().__init__(**kwargs)
-    def __repr__(self):
-        return f'<DeviceLicense {self.device_id}>'
     
-    @staticmethod
-    def generate_hash(data):
-        return hashlib.sha256(data.encode()).hexdigest()
-
-
-
-
 
 class Device(db.Model):
     """
@@ -526,7 +468,7 @@ class Device(db.Model):
     updated_at = db.Column(db.DateTime, 
                          default=lambda: datetime.now(timezone.utc),
                          onupdate=lambda: datetime.now(timezone.utc))
-    
+    licenses = db.relationship("License", back_populates="device", cascade="all, delete-orphan")
     __table_args__ = (
         db.UniqueConstraint('hardware_hash', 'license_key', name='_hw_license_uc'),
     )
@@ -613,3 +555,117 @@ class Device(db.Model):
         elif datetime.utcnow() > self.license_expiry:
             return "منتهي الصلاحية"
         return "نشط"
+    
+
+
+
+
+class License(db.Model):
+    """
+    جدول تراخيص الأجهزة مع نظام متكامل للإدارة
+    """
+    __tablename__ = 'licenses'
+    
+    # الحقول الأساسية
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    key_hash = db.Column(db.String(128), unique=True, nullable=False)
+    device_id = db.Column(db.String(36), db.ForeignKey('devices.device_id'))
+    
+    # معلومات الترخيص
+    license_type = db.Column(db.String(20), default='STANDARD')  # STANDARD, PREMIUM, ENTERPRISE
+    is_active = db.Column(db.Boolean, default=True)
+    activation_count = db.Column(db.Integer, default=0)
+    max_activations = db.Column(db.Integer, default=1)
+    
+    # فترات الصلاحية
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    activated_at = db.Column(db.DateTime)
+    expires_at = db.Column(db.DateTime)
+    
+    # علاقات
+    device = db.relationship('Device', back_populates='licenses')
+    
+    # إعدادات الجدول
+    __table_args__ = (
+        db.Index('ix_license_key_hash', 'key_hash'),
+        db.CheckConstraint('max_activations >= 1', name='check_max_activations'),
+    )
+
+    def __init__(self, **kwargs):
+        if 'key' in kwargs:
+            kwargs['key_hash'] = self._generate_hash(kwargs['key'])
+        super().__init__(**kwargs)
+    
+    def __repr__(self):
+        return f'<License {self.key[:8]}... ({self.license_type})>'
+    
+
+    # ==============
+    #  الأساليب الثابتة
+    # ==============
+    @staticmethod
+    def _generate_hash(key):
+        """توليد هاش مشفر للترخيص"""
+        salt = current_app.config.get('LICENSE_SALT', 'default_salt')
+        return hashlib.sha512(f"{salt}{key}".encode()).hexdigest()
+    
+    @staticmethod
+    def generate_license_key(length=16):
+      """إنشاء كود ترخيص عشوائي"""
+      import secrets
+      import string
+      chars = string.ascii_uppercase + string.digits
+      return '-'.join([''.join(secrets.choice(chars) for _ in range(4)) for _ in range(4)])
+    
+    # ==============
+    #  أساليب الترخيص
+    # ==============
+    def can_activate(self, device_id=None):
+        """التحقق من إمكانية تفعيل الترخيص"""
+        conditions = [
+            self.is_active,
+            self.activation_count < self.max_activations,
+            (self.expires_at is None) or (datetime.utcnow() < self.expires_at),
+            (device_id is None) or (self.device_id in [None, device_id])
+        ]
+        return all(conditions)
+    
+    def activate(self, device_id, days_valid=365):
+        """تفعيل الترخيص على جهاز معين"""
+        if not self.can_activate(device_id):
+            return False
+        
+        self.device_id = device_id
+        self.activation_count += 1
+        self.activated_at = datetime.utcnow()
+        self.expires_at = datetime.utcnow() + timedelta(days=days_valid)
+        
+        try:
+            db.session.commit()
+            return True
+        except:
+            db.session.rollback()
+            return False
+    
+    def revoke(self):
+        """إلغاء تفعيل الترخيص"""
+        self.device_id = None
+        self.is_active = False
+        db.session.commit()
+    
+    def status(self):
+        """حالة الترخيص الحالية"""
+        if not self.is_active:
+            return "REVOKED"
+        if self.expires_at and datetime.utcnow() > self.expires_at:
+            return "EXPIRED"
+        if self.activation_count >= self.max_activations:
+            return "MAX_USED"
+        return "ACTIVE"
+    
+    def remaining_days(self):
+        """الأيام المتبقية للانتهاء"""
+        if not self.expires_at:
+            return float('inf')
+        return (self.expires_at - datetime.utcnow()).days

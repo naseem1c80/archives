@@ -100,6 +100,7 @@ def getdocuments():
         offset = request.args.get('offset', default=0, type=int)
         status = request.args.get('status', default=None)
         document_type = request.args.get('document_type', default=None)
+        is_signature= request.args.get('is_signature', default=None)
         sort_by = request.args.get('sort', default='id')
         sort_order = request.args.get('order', default='asc')
         search = request.args.get('search', default=None, type=str)
@@ -138,6 +139,13 @@ def getdocuments():
         
         if document_type is not None:
             query = query.filter(Document.document_type_id == document_type)
+        if is_signature is not None:
+             print(f"is_signature {is_signature} {bool(is_signature)}")
+             if is_signature == 'false':
+                 query = query.filter(Document.is_signature==False)
+             else:
+                 query = query.filter(Document.is_signature==True)
+
         # الحصول على العدد الكلي قبل التقسيم
         total = query.count()
 
@@ -416,13 +424,13 @@ def getdocument_types():
   
 @blueprint.route("/document_types", methods=["GET"])
 def view_document_types():
-    types = DocumentType.query.all()
-    return render_template("document_types/document_types.html", types=types)
+    return render_template("document_types/document_types.html")
 
 @blueprint.route("/document_types/add", methods=["POST"])
 def add_document_type():
     try:
-        name = request.form.get("name")
+        data = request.json
+        name =data['name']# request.form.get("name")
         if not name:
             return jsonify(success=False, message="الاسم مطلوب")
         new_type = DocumentType(name=name)
@@ -435,7 +443,8 @@ def add_document_type():
 @blueprint.route("/document_types/update/<int:type_id>", methods=["POST"])
 def update_document_type(type_id):
     try:
-        name = request.form.get("name")
+        data = request.json
+        name =data['name']# request.form.get("name")
         doc_type = DocumentType.query.get(type_id)
         if not doc_type:
             return jsonify(success=False, message="النوع غير موجود")

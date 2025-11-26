@@ -1,0 +1,162 @@
+
+<div class="profile_document">
+    
+   
+   <style>
+        .document-box {
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .signature-box {
+            background-color: #e7f5ff;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .file-preview {
+            margin-bottom: 15px;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 500px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+    </style>
+
+
+    
+
+    <div class="document-box mb-4" dir="rtl">
+        <p><strong>رقم المستند:</strong> {{ document.id }}</p>
+        <p><strong>الاسم:</strong> {{ document.name }}</p>
+        <p><strong>رقم الهاتف:</strong> {{ document.phone }}</p>
+        <p><strong>نوع المستند:</strong> {{ document.document_type if document.document_type else 'غير محدد' }}</p>
+        <p><strong>الفرع:</strong> {{ document.branch.name if document.branch else 'غير محدد' }}</p>
+        <p><strong>تاريخ الإنشاء:</strong> {{ document.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    </div>
+
+
+<script>
+    $(document).ready(function () {
+        function toggleReasonField() {
+            const status = $('#statusSelect').val();
+            $('#returnReasonDiv').toggle(status === '2');
+        }
+
+        toggleReasonField();
+        $('#statusSelect').change(toggleReasonField);
+
+        $('#saveStatusBtn').click(function () {
+            const status = $('#statusSelect').val();
+            const reason = $('#returnReason').val();
+
+            if (status === '2' && reason.trim() === '') {
+                alert('يرجى كتابة سبب الإرجاع');
+                return;
+            }
+
+            $.ajax({
+                url: '/update-document-status/{{ document.id }}',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: status, reason: reason }),
+                success: function (response) {
+                    $('#statusMessage').html('<div class="alert alert-success">' + response.message + '</div>');
+                },
+                error: function () {
+                    $('#statusMessage').html('<div class="alert alert-danger">فشل في تحديث الحالة</div>');
+                }
+            });
+        });
+    });
+</script>
+
+
+
+
+
+    <h4>الملفات المرفقة</h4>
+    <div class="row">
+        {% for file in document.images %}
+        <pre dir="rtl">
+  {{ file.description }}
+</pre>
+            <div class="col-md-6 file-preview">
+                <h6>{{ file.name }}</h6>
+                {% if file.image_path.endswith('.pdf') %}
+                    <iframe src="{{ file.image_path}}"></iframe>
+                {% else %}
+                    <img src="{{file.image_path}}" alt="صورة">
+                {% endif %}
+            </div>
+        {% else %}
+            <p>لا توجد ملفات مرفقة.</p>
+        {% endfor %}
+    </div>
+
+   
+</div>
+   
+    <script>
+
+    
+    $('#verifyBtn').click(function() {
+        $.ajax({
+            url: '/verify-document/{{ document.id }}',
+            type: 'POST',
+            success: function(response) {
+                $('#result').html('<p style="color:green;">تم التوثيق بنجاح</p>');
+            },
+            error: function() {
+                $('#result').html('<p style="color:red;">فشل في التوثيق</p>');
+            }
+        });
+    });
+
+        $('#signBtn').click(function () {
+            $.post("/sign-document/{{ document.id }}", function (response) {
+                if (response.status === 'success') {
+                    $('#signResult').html('<div class="alert alert-success">' + response.message + '</div>');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    $('#signResult').html('<div class="alert alert-danger">حدث خطأ أثناء التوقيع</div>');
+                }
+            });
+        });
+    </script>
+<button class="btn btn-secondary mb-3" onclick="printDocument()">🖨️ طباعة المستند</button>
+<script>
+function printDocument() {
+    const printContents = document.querySelector('.profile_document').outerHTML;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>طباعة المستند</title>
+                <style>
+                    body { direction: rtl; font-family: 'Arial'; padding: 20px; }
+                    .document-box, .signature-box { border: 1px solid #dee2e6; border-radius: 15px; padding: 20px; margin-bottom: 20px; background-color: #f8f9fa; }
+                    img { max-width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; }
+                    iframe { width: 100%; height: 500px; border: none; margin-bottom: 10px; }
+                    h4, h6, p { margin: 5px 0; }
+                </style>
+            </head>
+            <body>
+                ${printContents}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    // Optionally close after print:
+    // printWindow.close();
+}
+</script>

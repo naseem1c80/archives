@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استخراج النص - Gemini AI</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Tahoma', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+        .upload-area:hover {
+            background: #eef2ff;
+            border-color: #764ba2;
+            transform: translateY(-2px);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn:disabled {
+            background: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+        .result-area {
+            margin-top: 30px;
+            display: none;
+        }
+        .text-output {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 16px;
+            direction: ltr;
+            text-align: left;
+        }
+        .stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            margin: 10px;
+            text-align: center;
+        }
+        .quality-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .high-quality { background: #28a745; color: white; }
+        .medium-quality { background: #ffc107; color: black; }
+        .low-quality { background: #dc3545; color: white; }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .passport-section {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-right: 5px solid #28a745;
+        }
+        .service-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 استخراج النص باستخدام Gemini AI</h1>
+            <p>أفضل حل لاستخراج النص العربي بدقة عالية</p>
+            <div class="service-badge">Google Gemini AI - دعم متقدم للغة العربية</div>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tiff,.tif,.webp" style="display: none;">
+            <div style="font-size: 64px; margin-bottom: 20px;">📁</div>
+            <h3>اسحب وأفلت الملف هنا أو انقر للاختيار</h3>
+            <p>يدعم جميع formats الصور: PNG, JPG, JPEG, PDF, TIFF, WebP</p>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">
+                اختر ملف
+            </button>
+        </div>
+
+        <div id="fileInfo" style="display: none; margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <strong>الملف المحدد:</strong> <span id="fileName" style="font-weight: bold;"></span>
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="extractText()" id="extractBtn">
+                    🧠 استخراج النص باستخدام Gemini
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h3>جاري المعالجة باستخدام Gemini AI...</h3>
+            <p>هذا may take a few seconds</p>
+        </div>
+
+        <div class="result-area" id="resultArea">
+            <div class="stats" id="mainStats">
+                <div class="stat-item">
+                    <strong>الخدمة المستخدمة:</strong><br>
+                    <span id="serviceUsed">Gemini AI</span>
+                </div>
+                <div class="stat-item">
+                    <strong>الكلمات:</strong><br>
+                    <span id="wordCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>الأحرف:</strong><br>
+                    <span id="charCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>الأسطر:</strong><br>
+                    <span id="lineCount">0</span>
+                </div>
+            </div>
+
+            <div id="qualitySection" style="display: none;">
+                <h3>📊 تحليل الجودة</h3>
+                <div id="qualityStats" class="stats" style="background: #17a2b8; margin-bottom: 20px;"></div>
+            </div>
+
+            <div id="passportData" class="passport-section" style="display: none;">
+                <h3>🛂 بيانات المستند</h3>
+                <div id="passportInfo"></div>
+            </div>
+
+            <h3>📝 النص المستخرج</h3>
+            <div class="text-output" id="textOutput"></div>
+            
+            <div style="margin-top: 25px; text-align: center;">
+                <button class="btn" onclick="copyToClipboard()">📋 نسخ النص</button>
+                <button class="btn" onclick="downloadText()">💾 تحميل كملف</button>
+                <button class="btn" onclick="clearResults()" style="background: #6c757d;">🗑️ مسح النتائج</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+
+        // إعداد سحب وإفلات الملفات
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#eef2ff';
+            uploadArea.style.borderColor = '#764ba2';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = '#f8f9ff';
+            uploadArea.style.borderColor = '#667eea';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#f8f9ff';
+            uploadArea.style.borderColor = '#667eea';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file.type.match('image.*') && !file.type.match('application/pdf')) {
+                alert('يرجى اختيار ملف صورة أو PDF');
+                return;
+            }
+
+            if (file.size > 20 * 1024 * 1024) {
+                alert('حجم الملف يجب أن يكون أقل من 20MB');
+                return;
+            }
+
+            currentFile = file;
+            document.getElementById('fileName').textContent = `${file.name} (${formatFileSize(file.size)})`;
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('resultArea').style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function extractText() {
+            if (!currentFile) {
+                alert('يرجى اختيار ملف أولاً');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('extractBtn').disabled = true;
+
+            try {
+                const response = await fetch('/gemini-ocr/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    alert('خطأ: ' + data.error);
+                }
+            } catch (error) {
+                alert('خطأ في الاتصال: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('extractBtn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // تحديث الإحصائيات الرئيسية
+            document.getElementById('wordCount').textContent = data.word_count;
+            document.getElementById('charCount').textContent = data.character_count;
+            document.getElementById('lineCount').textContent = data.lines.length;
+            document.getElementById('serviceUsed').textContent = data.service_used;
+
+            // عرض تحليل الجودة
+            if (data.quality_analysis) {
+                const quality = data.quality_analysis;
+                let qualityClass = 'high-quality';
+                if (quality.quality_score < 60) qualityClass = 'medium-quality';
+                if (quality.quality_score < 30) qualityClass = 'low-quality';
+
+                document.getElementById('qualityStats').innerHTML = `
+                    <div class="stat-item">
+                        <strong>درجة الجودة:</strong><br>
+                        <span class="quality-badge ${qualityClass}">${quality.quality_score}/100</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>مستوى الثقة:</strong><br>
+                        <span>${quality.confidence}</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>الأسطر المستخرجة:</strong><br>
+                        <span>${quality.total_lines}</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>الأحرف المفيدة:</strong><br>
+                        <span>${quality.useful_chars}</span>
+                    </div>
+                `;
+                document.getElementById('qualitySection').style.display = 'block';
+            }
+
+            // عرض بيانات الجواز إذا كانت موجودة
+            if (data.structured_info && data.structured_info.passport_data) {
+                displayPassportData(data.structured_info.passport_data);
+            }
+
+            // عرض النص المستخرج
+            document.getElementById('textOutput').textContent = data.extracted_text;
+            document.getElementById('resultArea').style.display = 'block';
+        }
+
+        function displayPassportData(passportData) {
+            let passportHTML = '';
+            const personalInfo = passportData.personal_info || {};
+            const documentInfo = passportData.document_info || {};
+            
+            if (personalInfo.surname) {
+                passportHTML += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>اللقب:</strong> ${personalInfo.surname}
+                </div>`;
+            }
+            if (personalInfo.given_names) {
+                passportHTML += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>الأسماء:</strong> ${personalInfo.given_names}
+                </div>`;
+            }
+            if (documentInfo.passport_number) {
+                passportHTML += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>رقم الجواز:</strong> ${documentInfo.passport_number}
+                </div>`;
+            }
+            if (personalInfo.date_of_birth) {
+                passportHTML += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>تاريخ الميلاد:</strong> ${personalInfo.date_of_birth}
+                </div>`;
+            }
+            if (documentInfo.expiry_date) {
+                passportHTML += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>تاريخ الانتهاء:</strong> ${documentInfo.expiry_date}
+                </div>`;
+            }
+
+            if (passportHTML) {
+                document.getElementById('passportInfo').innerHTML = passportHTML;
+                document.getElementById('passportData').style.display = 'block';
+            }
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('textOutput').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('تم نسخ النص إلى الحافظة!');
+            });
+        }
+
+        function downloadText() {
+            const text = document.getElementById('textOutput').textContent;
+            const blob = new Blob([text], { type: 'text/plain; charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `نص_مستخرج_${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('تم تحميل الملف بنجاح!');
+        }
+
+        function clearResults() {
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('textOutput').textContent = '';
+            document.getElementById('passportData').style.display = 'none';
+            document.getElementById('qualitySection').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

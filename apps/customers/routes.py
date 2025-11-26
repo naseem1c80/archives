@@ -15,12 +15,20 @@ from apps.models import CustomerDocument,CustomerDocumentImage
 
 from apps import db, login_manager
 from flask_cors import cross_origin
-
+import base64
+import traceback
 ALLOWED_EXTENSIONS = {'png', 'pdf'}
 
-def allowed_file(filename):
+def allowed_file2(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def allowed_file(filename):
+    """التحقق من نوع الملف المسموح به"""
+    if not filename:
+        return False
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'pdf', 'gif'}
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @blueprint.route('/getcustomers', methods=['GET', 'OPTIONS'])
 @cross_origin()
@@ -121,12 +129,138 @@ def customers():
 def add_customer():
     return render_template("card/add_customer.html")
 
+@blueprint.route('/customer/<int:doc_id>')
+def customer_profile(doc_id):
+    document = CustomerDocument.query.get_or_404(doc_id)
+    return render_template('customers/customer_profile.html', document=document)
 
 @blueprint.route('/add_customer_doc', methods=['POST'])
 def add_customer_doc():
     try:
+        print("=== بيانات الطلب المستلمة ===")
+        print("Form data:", dict(request.form))
+        print("Files:", dict(request.files))
+        
         all_docs = []
-        name =request.form.get('name')
+        
+        # جلب البيانات من النموذج
+        name = request.form.get('name')
+        phone = request.form.get('phone')
+        document_type = request.form.get('document_type_id')
+        
+        print(f"البيانات الأساسية - الاسم: {name}, الهاتف: {phone}, النوع: {document_type}")
+
+        # التحقق من الحقول المطلوبة
+        if not name or not phone or not document_type:
+            return jsonify({
+                'success': False, 
+                'error': 'جميع الحقول (الاسم، الهاتف، نوع الوثيقة) مطلوبة'
+            })
+
+        # إنشاء المستند في قاعدة البيانات
+        doc = CustomerDocument(
+            name=name,
+            phone=phone,
+            issue_date=request.form.get('issue_date', '2025-11-22'),
+            expiry_date=request.form.get('expiry_date', '2025-11-22'),
+            address=request.form.get('address', ''),
+            place_of_issue=request.form.get('place_of_issue', ''),
+            document_type=document_type
+        )
+        doc.save()
+        print(f"تم إنشاء المستند برقم: {doc.id}")
+
+        # إنشاء المجلد
+        base_dir = os.path.join('static', 'uploads', 'doc_customer', phone)
+        os.makedirs(base_dir, exist_ok=True)
+        print(f"المجلد المستهدف: {base_dir}")
+
+        # معالجة الملفات المرفوعة
+        files_processed = 0
+        
+        # البحث عن جميع حقول الملفات في النموذج
+        for key in request.files:
+            if key.startswith('docs[') and 'path' in key:
+                file = request.files[key]
+                if file and file.filename:
+                    try:
+                        # توليد اسم فريد للملف
+                        ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else 'png'
+                        filename = f"{uuid.uuid4().hex}.{ext}"
+                        full_path = os.path.join(base_dir, filename)
+                        
+                        # حفظ الملف
+                        file.save(full_path)
+                        files_processed += 1
+                        
+                        all_docs.append({
+                            'doc_id': doc.id,
+                            'file_path': '/' + full_path.replace('\\', '/')
+                        })
+                        print(f"تم حفظ الملف: {filename}")
+                        
+                    except Exception as file_error:
+                        print(f"خطأ في حفظ الملف {key}: {file_error}")
+                        continue
+
+        # معالجة الملفات من المسارات (إذا كانت موجودة)
+        for key in request.form:
+            if key.startswith('docs[') and key.endswith('][path]') and request.form[key]:
+                file_path = request.form[key]
+                if file_path and not file_path.startswith('data:'):  # تجاهل بيانات base64
+                    try:
+                        if os.path.exists(file_path):
+                            # نسخ الملف من المسار المؤقت
+                            ext = file_path.rsplit('.', 1)[1].lower() if '.' in file_path else 'png'
+                            filename = f"{uuid.uuid4().hex}.{ext}"
+                            full_path = os.path.join(base_dir, filename)
+                            
+                            import shutil
+                            shutil.copy2(file_path, full_path)
+                            files_processed += 1
+                            
+                            all_docs.append({
+                                'doc_id': doc.id,
+                                'file_path': '/' + full_path.replace('\\', '/')
+                            })
+                            print(f"تم نسخ الملف من: {file_path} إلى: {full_path}")
+                            
+                    except Exception as path_error:
+                        print(f"خطأ في معالجة مسار الملف {key}: {path_error}")
+                        continue
+
+        print(f"تم معالجة {files_processed} ملف بنجاح")
+
+        # حفظ المعلومات في قاعدة البيانات
+        if all_docs:
+            try:
+                res = insert_files(all_docs)
+                print(f"تم إدراج {len(all_docs)} ملف في قاعدة البيانات")
+            except Exception as db_error:
+                print(f"خطأ في قاعدة البيانات: {db_error}")
+                return jsonify({
+                    'success': False, 
+                    'error': f'خطأ في حفظ الملفات في قاعدة البيانات: {str(db_error)}'
+                })
+
+        return jsonify({
+            'success': True, 
+            'message': f'تم إضافة {len(all_docs)} ملف بنجاح',
+            'doc_id': doc.id,
+            'docs_count': len(all_docs)
+        })
+
+    except Exception as e:
+        print(f"خطأ عام: {str(e)}")
+        import traceback
+        print(f"تفاصيل الخطأ: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': f'{str(e)}'})
+
+@blueprint.route('/add_customer_doc2', methods=['POST'])
+def add_customer_doc2():
+    try:
+        all_docs = []
+        name = request.form.get('name')
         phone = request.form.get('phone')
         issue_date =""# request.form['issue_date']
         expiry_date =""# request.form['expiry_date']
@@ -205,7 +339,7 @@ def add_customer_doc():
 
         return jsonify({'success': True})
     except Exception as e:
-        return jsonify({'success': False, 'errorgg': str(e)})
+        return jsonify({'success': False, 'errorgg':f'{str(e)}'})
 
 
 

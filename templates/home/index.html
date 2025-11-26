@@ -7,415 +7,315 @@
 
 {% block content %}
 
-    <!-- [ Main Content ] start -->
-    <div class="pcoded-main-container">
-        <div class="pcoded-content">
-            <!-- [ Main Content ] start -->
-            <div class="row">
-                <!-- order-card start -->
-                <div class="col-md-6 col-xl-3">
-                    <div class="card bg-c-blue order-card">
-                        <div class="card-body">
-                            <h6 class="text-white">
- المستندات المؤرشفة
-
-                            </h6>
-                            <h2 class="text-end text-white"><i class="feather icon-file-text float-start"></i><span  id="status_all_count">
-                            </span></h2>
-                            <p class="m-b-0  d-none">
-                                هذا الشهر
-                                <span class="float-end"> 0</span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                    <div class="card bg-c-green order-card">
-                        <div class="card-body">
-                            <h6 class="text-white">
-                                موثق
-                            </h6>
-                            <h2 class="text-end text-white"><i class="feather icon-award float-start"></i>  <span id="status_1_count">0</span> 
-                            </h2>
-                            <p class="m-b-0 d-none">
-                                 هذا الشهر
-                                <span class="float-end">0</span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                    <div class="card bg-c-yellow order-card">
-                        <div class="card-body">
-                            <h6 class="text-white">
-                                قيد المراجعة
-                            </h6>
-                            <h2 class="text-end text-white"><i
-                                    class="feather icon-repeat float-start"></i><span id="status_0_count">0</span></h2>
-                            <p class="m-b-0  d-none">
-                                 هذا الشهر
-                                <span class="float-end">0</span></p>
-                        </div>
-                    </div>
-                </div>
-                    
-                <div class="col-md-6 col-xl-3">
-                    <div class="card bg-c-red order-card">
-                        <div class="card-body">
-                            <h6 class="text-white">
-                                مرتجع
-                            </h6>
-                            <h2 class="text-end text-white"><i
-                                    class="feather icon-repeat float-start"></i><span id="status_2_count">0</span></h2>
-                            <p class="m-b-0  d-none">This Month<span class="float-end">0</span></p>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- order-card end -->
-                <!-- users visite start -->
-                <div class="col-md-12 col-xl-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Unique Visitor</h5>
-                        </div>
-                        <div class="card-body ps-0 pb-0">
-                            <div id="unique-visitor-chart"></div>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <div class="col-md-12 col-xl-6">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="card">
-                                <div class="card-body bg-patern">
-                                    <div class="row">
-                                        <div class="col-auto">
-                                            <span>
-                                  حصص الفروع           </span>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h2 class="mb-0"
-                                            id="total_chart_branch">0</h2>
-                                            <span class="text-c-green d-none">8.2%<i class="feather icon-trending-up ms-1"></i></span>
-                                        </div>
-                                    </div>
-                                    <div id="customer-chart"></div>
-                                    <div class="row mt-3 d-none">
-                                        <div class="col">
-                                            <h3 class="m-0"><i class="fas fa-circle f-10 m-r-5 text-success"></i>674</h3>
-                                            <span class="ms-3">New</span>
-                                        </div>
-                                        <div class="col">
-                                            <h3 class="m-0"><i class="fas fa-circle text-primary f-10 m-r-5"></i>182</h3>
-                                            <span class="ms-3">Return</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                      
-                      
-                      
-                        <div class="col-sm-6">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body bg-patern-white">
-                                    <div class="row">
-                                        <div class="col-auto">
-                                            <span>
-                                   حصص الايام خلال الشهر         </span>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h2 class="mb-0 text-white"
-                                            id="total_chart_month">0</h2>
-                                            <span class="text-white d-none">8.2%<i class="feather icon-trending-up ms-1"></i></span>
-                                        </div>
-                                    </div>
-                                    <div id="customer-chart1"></div>
-                                    <div class="row mt-3 d-none">
-                                        <div class="col">
-                                            <h3 class="m-0 text-white"><i class="fas fa-circle f-10 m-r-5 text-success"></i>674</h3>
-                                            <span class="ms-3">New</span>
-                                        </div>
-                                        <div class="col">
-                                            <h3 class="m-0 text-white"><i class="fas fa-circle f-10 m-r-5 text-white"></i>182</h3>
-                                            <span class="ms-3">Return</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-                        
-                        
-                        
-                                              
-                        <div class="col-sm-6">
-                            <div class="card bg-success text-white">
-                                <div class="card-body bg-patern-white">
-                                    <div class="row">
-                                        <div class="col-auto">
-                                            <span>
-                                 الحصص السنوية                      </span>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h2 class="mb-0 text-white"
-                                            id="total_chart_year">0</h2>
-                                            <span class="text-white d-none">8.2%<i class="feather icon-trending-up ms-1"></i></span>
-                                        </div>
-                                    </div>
-                                    <div id="customer-chart2"></div>
-                                    <div class="row mt-3 d-none">
-                                        <div class="col">
-                                            <h3 class="m-0 text-white"><i class="fas fa-circle f-10 m-r-5 text-success"></i>674</h3>
-                                            <span class="ms-3">New</span>
-                                        </div>
-                                        <div class="col">
-                                            <h3 class="m-0 text-white"><i class="fas fa-circle f-10 m-r-5 text-white"></i>182</h3>
-                                            <span class="ms-3">Return</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-                <!-- users visite end -->
 
 
 
 
 
-            </div>
-            <!-- [ Main Content ] end -->
-        </div>
+
+
+
+
+<div class="container mx-auto px-2 py-0">
+    <!-- رأس الصفحة -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">لوحة التحكم</h1>
+        <p class="text-gray-600">نظرة عامة على إحصائيات الأرشيف الإلكتروني</p>
     </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- القسم 2: لوحة التحكم الرئيسية -->
+        
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border-t-4 border-blue-500">
+                <h4 class="text-2xl font-semibold mb-6 text-blue-700">نظرة عامة على لوحة التحكم</h4>
+
+                <!-- إحصائيات سريعة -->
+                <div class="mb-8">
+                    <h5 class="text-xl font-semibold mb-4 text-gray-700">الإحصائيات السريعة والمؤشرات</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="stat-card bg-white p-6 rounded-lg shadow-md border-r-blue-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <h6 class="font-semibold text-gray-600"> 
+                                      المستندات المؤرشفة
+                                </h6>
+                                <div class="bg-blue-100 p-2 rounded-full">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold text-blue-600"  id="status_all_count">0</p>
+                            <p class="text-sm text-gray-500 mt-2">عملية أرشفة نشطة</p>
+                        </div>
+                        
+                        <div class="stat-card bg-white p-6 rounded-lg shadow-md border-r-blue-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <h6 class="font-semibold text-yellow-600"> 
+                                       
+                            قيد المراجعة
+                        
+                                </h6>
+                                <div class="bg-yellow-100 p-2 rounded-full">
+                                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold text-yellow-600"  id="status_0_count">0</p>
+                            <p class="text-sm text-gray-500 mt-2">عملية أرشفة 
+                            قيد المراجعة
+                        </p>
+                        </div>
+                        
+
+                        <div class="stat-card bg-white p-6 rounded-lg shadow-md border-r-green-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <h6 class="font-semibold text-gray-600">المستندات الموثقة</h6>
+                                <div class="bg-green-100 p-2 rounded-full">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold text-green-600" id="status_1_count">0</p>
+                            <p class="text-sm text-gray-500 mt-2">عملية مكتملة هذا الشهر</p>
+                        </div>
+                        
+                        <div class="stat-card bg-white p-6 rounded-lg shadow-md border-r-red-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <h6 class="font-semibold text-gray-600">المستندات المرتجعة</h6>
+                                <div class="bg-red-100 p-2 rounded-full">
+                                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold text-red-600"  id="status_2_count">0</p>
+                            <p class="text-sm text-gray-500 mt-2">تحتاج إلى تصحيح</p>
+                        </div>
+                        
+                        <div class="stat-card bg-white p-6 rounded-lg shadow-md border-r-purple-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <h6 class="font-semibold text-gray-600">إجمالي المساحة</h6>
+                                <div class="bg-purple-100 p-2 rounded-full">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold text-purple-600">75%</p>
+                            <p class="text-sm text-gray-500 mt-2">من سعة التخزين</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تقارير الفروع -->
+                <div class="mb-8">
+                    <h5 class="text-xl font-semibold mb-4 text-gray-700">تقارير استخدام المساحة لكل فرع</h5>
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <div class="space-y-4" id="branch-stats-container">
+                           
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+    <!-- [ Main Content ] start -->
+    
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Unique Visitor Chart -->
+        
+
+        <!-- Small Charts Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Branch Shares -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-sm font-medium text-gray-700">حصص الفروع</span>
+                    <h2 class="text-2xl font-bold text-gray-800" id="total_chart_branch">0</h2>
+                </div>
+                <div id="customer-chart"></div>
+                <div class="grid grid-cols-2 gap-4 mt-4 d-none">
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-green-500 text-xs mr-2"></i>674
+                        </h3>
+                        <span class="text-sm text-gray-600">جديد</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-blue-500 text-xs mr-2"></i>182
+                        </h3>
+                        <span class="text-sm text-gray-600">عائد</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Days Shares -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-sm font-medium opacity-90">حصص الأيام خلال الشهر</span>
+                    <h2 class="text-2xl font-bold" id="total_chart_month">0</h2>
+                </div>
+                <div id="customer-chart1"></div>
+                <div class="grid grid-cols-2 gap-4 mt-4 d-none">
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-green-300 text-xs mr-2"></i>674
+                        </h3>
+                        <span class="text-sm opacity-90">جديد</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-white text-xs mr-2"></i>182
+                        </h3>
+                        <span class="text-sm opacity-90">عائد</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Annual Shares -->
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-sm font-medium opacity-90">الحصص السنوية</span>
+                    <h2 class="text-2xl font-bold" id="total_chart_year">0</h2>
+                </div>
+                <div id="customer-chart2"></div>
+                <div class="grid grid-cols-2 gap-4 mt-4 d-none">
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-green-300 text-xs mr-2"></i>674
+                        </h3>
+                        <span class="text-sm opacity-90">جديد</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold m-0">
+                            <i class="fas fa-circle text-white text-xs mr-2"></i>182
+                        </h3>
+                        <span class="text-sm opacity-90">عائد</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Card (Placeholder) -->
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-sm font-medium opacity-90">إحصائيات إضافية</span>
+                    <h2 class="text-2xl font-bold">0</h2>
+                </div>
+                <div class="h-32 flex items-center justify-center">
+                    <p class="text-sm opacity-80">مخطط إضافي هنا</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // دالة جلب التقرير
     getreport();
+    
+
+function loadBranchStats() {
+    fetch('/get_branch_stats')
+        .then(response => response.json())
+        .then(data => {
+            updateBranchUI(data);
+        })
+        .catch(error => {
+            console.error('Error fetching branch stats:', error);
+        });
+}
+
+function updateBranchUI(branchData) {
+    const container = document.getElementById('branch-stats-container');
+    container.innerHTML = '';
+    
+    const colors = ['green', 'blue', 'yellow', 'purple', 'red'];
+    
+    branchData.forEach((branch, index) => {
+        const color = colors[index % colors.length];
+        
+        const branchElement = document.createElement('div');
+        branchElement.className = 'flex justify-between items-center';
+        branchElement.innerHTML = `
+            <span class="font-medium">${branch.name}</span>
+            <div class="w-1/2 bg-gray-200 rounded-full h-4">
+                <div class="bg-${color}-500 h-4 rounded-full" style="width: ${branch.percentage}%"></div>
+            </div>
+            <span class="text-sm text-gray-600">
+                ${branch.percentage}% (${branch.size_value} ${branch.size_unit}/${branch.max_size} ${branch.size_unit}) - ${branch.count} ملف
+            </span>
+        `;
+        
+        container.appendChild(branchElement);
+    });
+}
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadBranchStats();
+});
+
     function getreport(){
         $.ajax({
             url: '/report/documents',
             type: 'GET',
-            data: {},  // بدون بيانات
+            data: {},
             success: function (response) {
                 if (response.success) {
                     $('#status_all_count').html(`${response.status_all_count}`);
                     $('#status_0_count').html(`${response.status_0_count}`);
-                        $('#status_1_count').html(`${response.status_1_count}`);
-                        $('#status_2_count').html(`${response.status_2_count}`);
+                    $('#status_1_count').html(`${response.status_1_count}`);
+                    $('#status_2_count').html(`${response.status_2_count}`);
                 } else {
-                    $('#result').html('خطأ: ' + response.error);
+                    console.error('خطأ: ' + response.error);
                 }
             },
             error: function () {
-                $('#result').html('فشل الاتصال بالخادم.');
+                console.error('فشل الاتصال بالخادم.');
             }
         });
     }
                             
-</script>
-    <!-- [ Main Content ] end -->
+    // دالة تحميل بيانات المخططات
+    fetch('/getdataarchivs')
+    .then(response => response.json())
+    .then(data => {
+        // مخطط الفروع
+        const branchData = data.by_branch;
+        const branchLabels = Object.keys(branchData).map(branchId => `الفرع ${branchId}`);
+        const branchSeries = Object.values(branchData);
+        const totalBranch = branchSeries.reduce((acc, value) => acc + value, 0);
+        document.getElementById('total_chart_branch').innerHTML = totalBranch + "";
 
-{% endblock content %}
-
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-
-    <!-- Apex Chart -->
-    <script src="/static/assets/js/plugins/apexcharts.min.js"></script>
-
-    <!-- custom-chart js -->
-    <script sr="/static/assets/js/pages/dashboard-main.js"></script>
-<script>
-  
-  
-  fetch('/getdataarchivs') // غيّر المسار حسب API الحقيقي
-  .then(response => response.json())
-  .then(data => {
-    const branchData = data.by_branch;
-
-    // استخراج labels والأرقام
-    const labels = Object.keys(branchData).map(branchId => `الفرع ${branchId}`);
-    const series = Object.values(branchData);
-// حساب المجموع الكلي
-const total_chart_branch = series.reduce((acc, value) => acc + value, 0);
-document.getElementById('total_chart_branch').innerHTML=total_chart_branch+"";
-    const options = {
-      chart: {
-        height: 150,
-        type: 'donut',
-      },
-      dataLabels: {
-        enabled: false
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '75%'
-          }
-        }
-      },
-      labels: labels,
-      series: series,
-      legend: {
-        show: true
-      },
-      tooltip: {
-        theme: 'dark'
-      },
-      grid: {
-        padding: {
-          top: 20,
-          right: 0,
-          bottom: 0,
-          left: 0
-        },
-      },
-      colors: ["#4680ff", "#2ed8b6", "#ff5252", "#ffcb6b", "#00bcd4", "#4caf50"], // أضف المزيد حسب عدد الفروع
-      fill: {
-        opacity: 1
-      },
-      stroke: {
-        width: 0,
-      }
-    };
-
-    const chart = new ApexCharts(document.querySelector("#customer-chart"), options);
-    chart.render();
-    
-    
-    
-    
-      const daysdata = data.by_day;
-
-    // استخراج labels والأرقام
-    const labelsdays = Object.keys(daysdata).map(branchId => ` ${branchId}`);
-    const seriesdays = Object.values(daysdata);
-
-// حساب المجموع الكلي
-const total_chart_month = seriesdays.reduce((acc, value) => acc + value, 0);
-document.getElementById('total_chart_month').innerHTML=total_chart_month+"";
-
-    const options2 = {
-      chart: {
-        height: 150,
-        type: 'donut',
-      },
-      dataLabels: {
-        enabled: false
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '75%'
-          }
-        }
-      },
-      labels: labelsdays,
-      series: seriesdays,
-      legend: {
-        show: true
-      },
-      tooltip: {
-        theme: 'dark'
-      },
-      grid: {
-        padding: {
-          top: 20,
-          right: 0,
-          bottom: 0,
-          left: 0
-        },
-      },
-      colors: ["#4680ff", "#2ed8b6", "#ff5252", "#ffcb6b", "#00bcd4", "#4caf50"], // أضف المزيد حسب عدد الفروع
-      fill: {
-        opacity: 1
-      },
-      stroke: {
-        width: 0,
-      }
-    };
-
-    const chart2 = new ApexCharts(document.querySelector("#customer-chart1"),
-    options2);
-    chart2.render();
-    
-    
-    
-    
-    
-    
-    const yearsdata = data.by_year;
-
-    // استخراج labels والأرقام
-    const labelsyears = Object.keys(yearsdata).map(branchId => ` ${branchId}`);
-    const seriesyears= Object.values(yearsdata);
-
-// حساب المجموع الكلي
-const total_chart_year= seriesyears.reduce((acc, value) => acc + value, 0);
-document.getElementById('total_chart_year').innerHTML=total_chart_year+"";
-
-    const options3 = {
-      chart: {
-        height: 150,
-        type: 'donut',
-      },
-      dataLabels: {
-        enabled: false
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '75%'
-          }
-        }
-      },
-      labels: labelsyears,
-      series: seriesyears,
-      legend: {
-        show: true
-      },
-      tooltip: {
-        theme: 'dark'
-      },
-      grid: {
-        padding: {
-          top: 20,
-          right: 0,
-          bottom: 0,
-          left: 0
-        },
-      },
-      colors: ["#4680ff", "#2ed8b6", "#ff5252", "#ffcb6b", "#00bcd4", "#4caf50"], // أضف المزيد حسب عدد الفروع
-      fill: {
-        opacity: 1
-      },
-      stroke: {
-        width: 0,
-      }
-    };
-
-    const chart3 = new ApexCharts(document.querySelector("#customer-chart2"),
-    options3);
-    chart3.render();
-    
-    
-    
-    
-  })
-  .catch(error => {
-    console.error("فشل تحميل بيانات الفروع:", error);
-  });
-
-
-/*
-     (function () {
-        var options = {
+        const branchOptions = {
             chart: {
                 height: 150,
                 type: 'donut',
@@ -430,51 +330,11 @@ document.getElementById('total_chart_year').innerHTML=total_chart_year+"";
                     }
                 }
             },
-            labels: ['New', 'Return'],
-            series: [39, 10],
+            labels: branchLabels,
+            series: branchSeries,
             legend: {
-                show: false
-            },
-            tooltip: {
-                theme: 'datk'
-            },
-            grid: {
-                padding: {
-                    top: 20,
-                    right: 0,
-                    bottom: 0,
-                    left: 0
-                },
-            },
-            colors: ["#4680ff", "#2ed8b6"],
-            fill: {
-                opacity: [1, 1]
-            },
-            stroke: {
-                width: 0,
-            }
-        }
-        var chart = new ApexCharts(document.querySelector("#customer-chart"), options);
-        chart.render();
-        var options1 = {
-            chart: {
-                height: 150,
-                type: 'donut',
-            },
-            dataLabels: {
-                enabled: false
-            },
-            plotOptions: {
-                pie: {
-                    donut: {
-                        size: '75%'
-                    }
-                }
-            },
-            labels: ['New', 'Return'],
-            series: [20, 15],
-            legend: {
-                show: false
+                show: true,
+                position: 'bottom'
             },
             tooltip: {
                 theme: 'dark'
@@ -487,16 +347,133 @@ document.getElementById('total_chart_year').innerHTML=total_chart_year+"";
                     left: 0
                 },
             },
-            colors: ["#fff", "#2ed8b6"],
+            colors: ["#4680ff", "#2ed8b6", "#ff5252", "#ffcb6b", "#00bcd4", "#4caf50"],
             fill: {
-                opacity: [1, 1]
+                opacity: 1
             },
             stroke: {
                 width: 0,
             }
-        }
-        var chart = new ApexCharts(document.querySelector("#customer-chart1"), options1);
-        chart.render();
-    })();*/
+        };
+
+        const branchChart = new ApexCharts(document.querySelector("#customer-chart"), branchOptions);
+        branchChart.render();
+
+        // مخطط الأيام
+        const daysData = data.by_day;
+        const daysLabels = Object.keys(daysData).map(day => ` ${day}`);
+        const daysSeries = Object.values(daysData);
+        const totalDays = daysSeries.reduce((acc, value) => acc + value, 0);
+        document.getElementById('total_chart_month').innerHTML = totalDays + "";
+
+        const daysOptions = {
+            chart: {
+                height: 150,
+                type: 'donut',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '75%'
+                    }
+                }
+            },
+            labels: daysLabels,
+            series: daysSeries,
+            legend: {
+                show: true,
+                position: 'bottom'
+            },
+            tooltip: {
+                theme: 'dark'
+            },
+            grid: {
+                padding: {
+                    top: 20,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                },
+            },
+            colors: ["#ffffff", "#e6f7ff", "#b3e0ff", "#80c9ff", "#4db2ff", "#1a99ff"],
+            fill: {
+                opacity: 1
+            },
+            stroke: {
+                width: 0,
+            }
+        };
+
+        const daysChart = new ApexCharts(document.querySelector("#customer-chart1"), daysOptions);
+        daysChart.render();
+
+        // مخطط السنوات
+        const yearsData = data.by_year;
+        const yearsLabels = Object.keys(yearsData).map(year => ` ${year}`);
+        const yearsSeries = Object.values(yearsData);
+        const totalYears = yearsSeries.reduce((acc, value) => acc + value, 0);
+        document.getElementById('total_chart_year').innerHTML = totalYears + "";
+
+        const yearsOptions = {
+            chart: {
+                height: 150,
+                type: 'donut',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '75%'
+                    }
+                }
+            },
+            labels: yearsLabels,
+            series: yearsSeries,
+            legend: {
+                show: true,
+                position: 'bottom'
+            },
+            tooltip: {
+                theme: 'dark'
+            },
+            grid: {
+                padding: {
+                    top: 20,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                },
+            },
+            colors: ["#ffffff", "#e6f7e6", "#b3e6b3", "#80d480", "#4dc34d", "#1ab21a"],
+            fill: {
+                opacity: 1
+            },
+            stroke: {
+                width: 0,
+            }
+        };
+
+        const yearsChart = new ApexCharts(document.querySelector("#customer-chart2"), yearsOptions);
+        yearsChart.render();
+        
+    })
+    .catch(error => {
+        console.error("فشل تحميل بيانات الفروع:", error);
+    });
 </script>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <!-- Apex Chart -->
+    <script src="/static/assets/js/plugins/apexcharts.min.js"></script>
+
+    <!-- custom-chart js -->
+    <script src="/static/assets/js/pages/dashboard-main.js"></script>
 {% endblock javascripts %}
