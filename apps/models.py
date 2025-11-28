@@ -254,7 +254,7 @@ class Users(db.Model, UserMixin):
     role = db.relationship('Role', backref='users')
     brnach = db.relationship('Branch', backref='users')
     job = db.relationship('JobTitle', backref='users')
-    section = db.relationship('Section', backref='users')
+    section = db.relationship('Section', backref='users') 
     #notifications = db.relationship('Notification', backref='users')
       # Define both relationships explicitly
         # FIXED: back_populates name must match the corresponding property

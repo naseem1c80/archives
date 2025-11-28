@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Upload Screenshot</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; }
+    .preview { margin-top: 12px; max-width: 100%; border: 1px solid #ddd; padding: 8px;}
+    .drop-area { border: 2px dashed #aaa; padding: 20px; text-align: center; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>إرفاق سكرين‌شوت</h2>
+
+  <p>يمكنك: ١) سحب وإفلات / اختيار ملف ٢) لصق الصورة مباشرة (Ctrl+V) بعد أخذ السكرين‌شوت</p>
+
+  <!-- ملف تقليدي -->
+  <input id="fileInput" type="file" accept="image/*" />
+  <button id="sendFileBtn">رفع الملف</button>
+
+  <hr />
+
+  <!-- لصق من الحافظة -->
+  <div id="pasteArea" class="drop-area" tabindex="0">
+    اضغط هنا ثم الصق الصورة (Ctrl+V) أو انقر لرفع صورة
+  </div>
+  <button id="sendPasteBtn">رفع الصورة المُلصقة</button>
+
+  <div id="status"></div>
+  <img id="preview" class="preview" alt="preview" style="display:none;"/>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const sendFileBtn = document.getElementById('sendFileBtn');
+    const pasteArea = document.getElementById('pasteArea');
+    const sendPasteBtn = document.getElementById('sendPasteBtn');
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('status');
+
+    let lastBlobOrDataUrl = null; // السناريو: blob من اللصق أو الملف
+
+    // رفع كـ multipart/form-data
+    async function uploadFileBlob(blob, filename = 'screenshot.png') {
+      const fd = new FormData();
+      fd.append('screenshot', blob, filename);
+
+      status.textContent = 'جاري الرفع...';
+      try {
+        const res = await fetch('/upload_screenshot', { method: 'POST', body: fd });
+        const j = await res.json();
+        if (res.ok && j.ok) {
+          status.innerHTML = `تم الرفع: <a href="${j.url}" target="_blank">${j.filename}</a>`;
+        } else {
+          status.textContent = 'خطأ: ' + (j.error || res.statusText);
+        }
+      } catch (err) {
+        status.textContent = 'خطأ بالشبكة';
+      }
+    }
+
+    // رفع كـ base64 (بديل)
+    async function uploadBase64(dataUrl) {
+      const fd = new FormData();
+      fd.append('b64', dataUrl);
+      status.textContent = 'جاري الرفع (base64)...';
+      try {
+        const res = await fetch('/upload_screenshot', { method: 'POST', body: fd });
+        const j = await res.json();
+        if (res.ok && j.ok) {
+          status.innerHTML = `تم الرفع: <a href="${j.url}" target="_blank">${j.filename}</a>`;
+        } else {
+          status.textContent = 'خطأ: ' + (j.error || res.statusText);
+        }
+      } catch (err) {
+        status.textContent = 'خطأ بالشبكة';
+      }
+    }
+
+    // اختيار ملف عبر input
+    sendFileBtn.addEventListener('click', () => {
+      const f = fileInput.files[0];
+      if (!f) { status.textContent = 'اختر ملفًا أولاً'; return; }
+      lastBlobOrDataUrl = f;
+      previewFile(f);
+      uploadFileBlob(f, f.name);
+    });
+
+    // التعامل مع السحب والإفلات أو النقر
+    pasteArea.addEventListener('click', () => fileInput.click());
+    pasteArea.addEventListener('dragover', (e) => { e.preventDefault(); pasteArea.style.borderColor = '#666'; });
+    pasteArea.addEventListener('dragleave', () => { pasteArea.style.borderColor = '#aaa'; });
+    pasteArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      pasteArea.style.borderColor = '#aaa';
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) {
+        lastBlobOrDataUrl = f;
+        previewFile(f);
+        uploadFileBlob(f, f.name);
+      }
+    });
+
+    // لصق من الحافظة
+    pasteArea.addEventListener('paste', async (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (let i=0;i<items.length;i++){
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          lastBlobOrDataUrl = blob;
+          previewFile(blob);
+          // نرفع تلقائياً أو نترك زر الرفع
+          // هنا نرفع تلقائياً:
+          await uploadFileBlob(blob, 'pasted_screenshot.png');
+          break;
+        }
+      }
+    });
+
+    // زر لرفع الصورة الملصقة (إن لم ترفع تلقائياً)
+    sendPasteBtn.addEventListener('click', () => {
+      if (!lastBlobOrDataUrl) { status.textContent = 'لا توجد صورة مُلزقة'; return; }
+      if (lastBlobOrDataUrl instanceof Blob || lastBlobOrDataUrl instanceof File) {
+        uploadFileBlob(lastBlobOrDataUrl, 'pasted_screenshot.png');
+      } else if (typeof lastBlobOrDataUrl === 'string' && lastBlobOrDataUrl.startsWith('data:')) {
+        uploadBase64(lastBlobOrDataUrl);
+      }
+    });
+
+    // عرض المعاينة
+    function previewFile(fileOrBlob) {
+      if (!fileOrBlob) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        lastBlobOrDataUrl = fileOrBlob; // يحتفظ بالـ blob أو dataURL حسب المصدر
+      };
+      reader.readAsDataURL(fileOrBlob);
+    }
+
+    // دعم لصق عند التركيز على المستند كله (Ctrl+V)
+    document.addEventListener('paste', (e) => {
+      // خيارات: تفعيل فقط عندما يكون العنصر المختار هو pasteArea
+      // هنا نسمح بالالتقاط العالمي طالما هناك صورة في الكليببورد
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (let i=0;i<items.length;i++){
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          previewFile(blob);
+          // نرفع تلقائياً:
+          uploadFileBlob(blob, 'pasted_screenshot.png');
+          break;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
