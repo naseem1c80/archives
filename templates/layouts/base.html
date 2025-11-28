@@ -9,15 +9,24 @@
     <script sr="https://cdn.tailwindcss.com"></script>
 <script src="{{url_for('static',filename='tailwindcss.js')}}"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script src="{{url_for('static',filename='assets/eruda.js')}}"></script>
+ 
     <script>eruda.init();</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet"
+href="{{url_for('static',filename='assets/all.min.css')}}">
 
     <!-- SweetAlert2 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    
+       <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
     -->
@@ -29,15 +38,40 @@
 <script src="{{url_for('static',filename='sweetalert2@11.js')}}"></script>
     
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.22.0/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" hre="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous" />
+
     <script sr="https://unpkg.com/bootstrap-table@1.22.0/dist/bootstrap-table.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
+    <link hre="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link hre="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
-    <!-- 
+    <link
+    href="/static/assets/bootstrap.rtl.min.css"
+    rel="stylesheet">
+        <link rel="stylesheet"
+        href="/static/assets/bootstrap-table.min.css">
+            <link
+            href="/static/assets/bootstrap.min_5.3.0.css"
+            rel="stylesheet">
+            <script
+src="/static/assets/cropper.min.js"></script>
+    <link
+    href="/static/assets/cropper.min.css"
+    rel="stylesheet">
+    <!--
+        <link
+        hre="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css"
+        rel="stylesheet">
+    <script
+sr="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+        <link
+        hre="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+        <link rel="stylesheet"
+        hre="https://unpkg.com/bootstrap-table@1.22.0/dist/bootstrap-table.min.css">
+        <link
+        hre="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
@@ -109,23 +143,23 @@ src="{{url_for('static',filename='bootstrap-table-ar-SA.min.js')}}"></script>
     </style>
     
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
-
 <script
-src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+src="/static/assets/select2.min.js"></script>
+
+
+
+
+<script src="/static/assets/bootstrap.bundle.min.js"></script>
     <!--  
 -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script sr="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 
-    <!-- أضف مكتبة Socket.IO -->
-<script sr="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+    <!-- أضف مكتبة Socket.IO 
+<script sr="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>-->
 <!-- CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="/static/assets/select2.min.css" rel="stylesheet" />
 
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
 
 
@@ -297,11 +331,15 @@ src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script
                         </a>
                     </li>
 
-                    <!-- الصلاحيات -->
+
+
+
                     <li class="nav-item">
-                        <a href="{{ url_for('settings_blueprint.user_permission') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
+                        <a href="{{ url_for('admin_blueprint.activity_logs') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
                             <i class="fas fa-user-shield text-gray-500"></i>
-                            <span>الصلاحيات</span>
+                            <span>
+                   سجل العمليات
+                            </span>
                         </a>
                     </li>
 
@@ -471,7 +509,6 @@ function showToast(message, type = 'success') {
         });
     </script>
     
-    <script sr="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script sr="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+
 </body>
 </html>

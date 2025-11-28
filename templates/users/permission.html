@@ -1,105 +1,83 @@
-{% extends "layouts/base.html" %}
-
-{% block title %} الملف الشخصي {% endblock %}
-{% block title2 %} الملف الشخصي {% endblock %}
-{% block title3 %} {{ user.full_name }} {% endblock %}
-
-{% block content %}
-
+{{user.permissions}}
 <style>
-.profile-header {
+.permission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+.permission-item {
     display: flex;
-    gap: 20px;
     align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
 }
-.profile-header img {
-    width:120px;height:120px;
-    border-radius:50%;object-fit:cover;
+.permission-item:hover {
+    background: #e9ecef;
+    border-color: #007bff;
 }
-.tab-btn {
-    cursor:pointer;
-    padding:5px 1px;
-    border-radius:6px;
-    margin-left:5px;
+.permission-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
 }
-.tab-btn.active {
-    background:#007bff;color:white;
-    border:solid 0.2px #007bff;
+.permission-item label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
 }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-.permission-badge {
-    background:#e7f1ff;
-    padding:5px 10px;
-    border-radius:6px;
-    margin:3px;
+.permission-category {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
 }
-.log-item {
-    border-bottom:1px solid #eee;
-    padding:10px 0;
+.permission-category h6 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-weight: 600;
 }
 </style>
 
-<div class="container mt-4">
 
-    <!-- profile header -->
-    <div class="profile-header mb-4">
-        <img src="/get_imgae_user/{{user.id}}" alt="profile image">
-        <div>
-            <h3>{{ user.full_name }}</h3>
-            <p class="text-muted">رقم الهاتف: {{ user.phone }}</p>
+<!-- [ Main Content ] start -->
+<section class="pcoded-main-container">
+    <div class="pcoded-content">
+      <h1>
+        {{user.full_name}}
+      </h1>
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">إدارة صلاحيات الموظفين</h5>
+                        </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="#">صلاحيات الموظفين</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <!-- TABS -->
-    <div class="mb-3">
-        <span class="tab-btn active" onclick="switchTab('info')">معلومات الموظف</span>
-        <span class="tab-btn" onclick="switchTab('password')">تغيير كلمة المرور</span>
-        <span class="tab-btn" onclick="switchTab('permissions')">الصلاحيات</span>
-        <span class="tab-btn" onclick="switchTab('logs')">السجلات</span>
-    </div>
-
-    <!-- TAB 1: معلومات الموظف -->
-    <div id="info" class="tab-content active card p-4">
-
-        <form id="updateUserForm" onsubmit="updateUser(event)">
-            <div class="mb-3">
-                <label>اسم الموظف</label>
-                <input class="form-control" name="full_name" value="{{user.full_name}}">
-            </div>
-
-            <div class="mb-3">
-                <label>رقم الهاتف</label>
-                <input class="form-control" name="phone" value="{{user.phone}}">
-            </div>
-
-            <button class="btn btn-primary">تحديث البيانات</button>
-        </form>
-    </div>
-
-    <!-- TAB 2: تغيير كلمة المرور -->
-    <div id="password" class="tab-content card p-4">
-
-        <form onsubmit="changePassword(event)">
-            <div class="mb-3">
-                <label>كلمة المرور الجديدة</label>
-                <input id="newPassword" class="form-control" type="password">
-            </div>
-            <div class="mb-3">
-                <label>تأكيد كلمة المرور</label>
-                <input id="confirmPassword" class="form-control" type="password">
-            </div>
-
-            <button class="btn btn-primary">تحديث كلمة المرور</button>
-            <div id="msgPass" class="mt-2"></div>
-        </form>
-
-    </div>
-
-    <!-- TAB 3: صلاحيات المستخدم -->
-    <div id="permissions" class="tab-content card p-4">
-        <h5>صلاحيات المستخدم</h5>
-
+        <!-- [ breadcrumb ] end -->
+        
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <div class="col-lg-6">
+                <!-- بطاقة إضافة صلاحية جديدة -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 text-primary font-weight-bold" id="form-title">
+                            <i class="feather icon-plus-circle me-2"></i>
+                            إضافة صلاحية جديدة
+                        </h5>
+                    </div>
                     <div class="card-body">
                         <form id="permission-form" onsubmit="savePermission(event)">
 
@@ -217,70 +195,22 @@
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
 
 
-    </div>
-
-    <!-- TAB 4: السجلات -->
-    <div id="logs" class="tab-content card p-4">
-
-        <h5 class="mb-3">سجلات النشاط</h5>
-
-        {% for log in user.activity_logs %}
-        <div class="log-item">
-            <strong>{{ log.action }}</strong> على جدول 
-            <strong>{{ log.table_name }}</strong>
-            <br>
-            <small class="text-muted">{{ log.created_at }}</small>
-            <br>
-            <small class="text-muted">IP: {{ log.ip_address }} — {{ log.device_type }} — {{ log.browser }}</small>
         </div>
-        {% endfor %}
+        <!-- [ Main Content ] end -->
     </div>
-
-</div>
-<!-- Modal عرض المستند -->
-
-<script>
-  
-
-function switchTab(tab){
-    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(tabC => tabC.classList.remove("active"));
-
-    event.target.classList.add("active");
-    document.getElementById(tab).classList.add("active");
-}
-
-function changePassword(e){
-    e.preventDefault();
-    const p1 = newPassword.value;
-    const p2 = confirmPassword.value;
-
-    if(p1 !== p2){
-        msgPass.innerHTML = "<div class='alert alert-danger'>كلمة المرور غير متطابقة</div>";
-        return;
-    }
-
-    fetch("/update_password",{
-        method:"POST",
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:`user_id={{user.id}}&new_password=${p1}`
-    })
-    .then(r=>r.json())
-    .then(data=>{
-        msgPass.innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
-    })
-}
-</script>
+</section>
 <script>
 const userId = {{ user.id }};
 
 // تحميل الصلاحيات عند فتح الصفحة
-document.addEventListener("DOMContentLoaded", () =>{
-//function getpermissions(id){
+//document.addEventListener("DOMContentLoaded", () =>
+function getpermissions(id){
   //alert("5y");
-    fetch(`/user/${userId}/permissions`)
+    fetch(`/user/${id}/permissions`)
         .then(res => res.json())
         .then(data => {
             if (data.status === "success") {
@@ -293,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () =>{
                 });
             }
         });
-});
+}
 
 
 // حفظ الصلاحيات
@@ -332,46 +262,5 @@ function deselectAllPermissions() {
     document.querySelectorAll('.permission-item input[type="checkbox"]').forEach(cb => cb.checked = false);
 }
 </script>
-<style>
-.permission-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 12px;
-    margin-top: 10px;
-}
-.permission-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-.permission-item:hover {
-    background: #e9ecef;
-    border-color: #007bff;
-}
-.permission-item input[type="checkbox"] {
-    margin-right: 10px;
-    transform: scale(1.2);
-}
-.permission-item label {
-    margin: 0;
-    cursor: pointer;
-    font-weight: 500;
-}
-.permission-category {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #007bff;
-}
-.permission-category h6 {
-    margin-bottom: 15px;
-    color: #2c3e50;
-    font-weight: 600;
-}
-</style>
-{% endblock %}
+
+<!-- [ Main Content ] end -->

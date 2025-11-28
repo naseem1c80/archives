@@ -85,6 +85,11 @@ class Notification(db.Model):
     user = db.relationship("Users", foreign_keys=[user_id], back_populates="notifications", lazy=True)
     from_user = db.relationship("Users", foreign_keys=[from_id], back_populates="from_notifications", lazy=True)
 
+class DocumentType(db.Model):
+    __tablename__ = 'document_types'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
 
 class Document(db.Model):
 
@@ -206,6 +211,29 @@ class Branch(db.Model):
 
 
 
+class ActivityLog(db.Model):
+    __tablename__ = "activity_logs"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)
+    table_name = db.Column(db.String(100), nullable=False)
+    record_id = db.Column(db.Integer, nullable=False)
+
+    old_data = db.Column(db.Text, nullable=True)
+    new_data = db.Column(db.Text, nullable=True)
+
+    # بيانات الجهاز
+    ip_address = db.Column(db.String(50), nullable=True)
+    device_type = db.Column(db.String(100), nullable=True)  # mobile / desktop
+    os = db.Column(db.String(100), nullable=True)
+    browser = db.Column(db.String(100), nullable=True)
+    user_agent = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("Users", backref="activity_logs")
 
 
 class Users(db.Model, UserMixin):
@@ -222,6 +250,7 @@ class Users(db.Model, UserMixin):
     job_id = db.Column(db.Integer, db.ForeignKey('job_title.id'))
     section_id = db.Column(db.Integer, db.ForeignKey('sections.id'))
     is_admin = db.Column(db.Boolean, default=False)
+    permissions = db.Column(db.JSON)
     role = db.relationship('Role', backref='users')
     brnach = db.relationship('Branch', backref='users')
     job = db.relationship('JobTitle', backref='users')
@@ -242,11 +271,13 @@ class Users(db.Model, UserMixin):
             'id': self.id,
             'role_id':self.role_id,
             'phone': self.phone,
+            'permissions_count': len(self.permissions) if self.permissions else None,
             'full_name': self.full_name,
             'branch_id': self.branch_id,
             'section_id': self.section_id,
             'created_at': self.created_at,
             'active': self.active,
+            'permissions':self.permissions,
             'role': {
                 'id': self.role.id,
                 'name': self.role.name,
@@ -303,7 +334,7 @@ class Users(db.Model, UserMixin):
             db.session.rollback()
             db.session.close()
             error = str(e.__dict__['orig'])
-            raise IntegrityError(error, 422)
+            raise IntegrityError(e, 422)
     
     def delete_from_db(self) -> None:
         try:
@@ -348,11 +379,7 @@ class JobTitle(db.Model):
     name = db.Column(db.String(255), nullable=False, unique=True)
 
 
-class DocumentType(db.Model):
-    __tablename__ = 'document_types'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False, unique=True)
 
 
 class CustomerDocument(db.Model):

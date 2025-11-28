@@ -4,6 +4,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from apps.customers import blueprint
+from apps.admin.routes import log_action
 from flask import request, jsonify,render_template
 import os
 import uuid
@@ -131,6 +132,7 @@ def add_customer():
 
 @blueprint.route('/customer/<int:doc_id>')
 def customer_profile(doc_id):
+    log_action(current_user.id, "customer_profile", "customer_document", doc_id)
     document = CustomerDocument.query.get_or_404(doc_id)
     return render_template('customers/customer_profile.html', document=document)
 
@@ -168,6 +170,7 @@ def add_customer_doc():
             document_type=document_type
         )
         doc.save()
+        log_action(current_user.id, "add_customer_doc", "customer_document", doc.id)
         print(f"تم إنشاء المستند برقم: {doc.id}")
 
         # إنشاء المجلد

@@ -98,7 +98,7 @@ def add_user():
      data=request.json
      print(f'{data}')
      phone = data['phone']
-     role_id=data['role']
+     #role_id=data['role']
      
      print(jsonify({'success': False, 'message':'', 'branch_id':data['branch_id'],'full_name':data['full_name'],'phone':data['phone'],'password':generate_password_hash(data['password'])}))
         #email = request.form['email']
@@ -109,7 +109,8 @@ def add_user():
         return jsonify({'message':'اسم المستخدم او رقم الهاتف موجود مسبقاً',
                                    'success':False})
 
-     user = Users(branch_id=data['branch_id'],section_id=data['section_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=role_id,job_id=1) 
+     user =Users(branch_id=data['branch_id'],section_id=data['section_id'],full_name=data['full_name'],phone=data['phone'],password=generate_password_hash(data['password']),role_id=None,job_id=1)
+     
         #user = Users(**request.form)
      db.session.add(user)
      db.session.commit()     #user.save()
@@ -118,6 +119,51 @@ def add_user():
      return jsonify({'success': False, 'message': str(e)})
 
 
+
+@blueprint.route('/user/<int:user_id>/permissions', methods=['POST'])
+@login_required
+def update_user_permissions(user_id):
+    user = Users.query.get_or_404(user_id)
+    print(f"request user **{request}")
+
+    data = request.get_json()
+    permissions = data.get("permissions", [])
+
+    # حفظ الصلاحيات داخل JSON
+    user.permissions =permissions# json.dumps(permissions)
+
+    db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "تم تحديث صلاحيات المستخدم بنجاح"
+    })
+
+@blueprint.route('/user/<int:user_id>/permissions', methods=['GET'])
+@login_required
+def get_user_permissions(user_id):
+    user = Users.query.get_or_404(user_id)
+
+    # تحويل النص إلى قائمة
+    permissions = []
+    if user.permissions:
+        try:
+            permissions =user.permissions# json.loads(user.permissions)
+        except:
+            permissions = []
+
+    return jsonify({
+        "status": "success",
+        "permissions": permissions
+    })
+
+
+@blueprint.route('/permission_user/<int:user_id>')
+@login_required
+def permission_user(user_id):
+  user = Users.query.get_or_404(user_id).to_dict()
+  return render_template("users/permission.html",user=user)
+    
 @blueprint.route("/api/users/<int:user_id>", methods=["PUT"])
 @login_required
 def update_user(user_id):
@@ -129,7 +175,7 @@ def update_user(user_id):
      user.full_name = data["full_name"]
      user.branch_id = data["branch_id"]
      user.section_id = data["section_id"]
-     user.role_id = data["role"]
+     #user.role_id = data["role"]
      db.session.commit()
      return  jsonify({'message':'تم تحديث الحساب بنجاح','success':True})
     except Exception as e:

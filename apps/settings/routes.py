@@ -73,15 +73,6 @@ def settings():
 
 
 
-@blueprint.route("/permissions", methods=["GET"])
-@login_required
-def user_permission():
-    try:
-        return render_template('permissions/permissions.html')
-    except Exception as e:
-     return jsonify({'success': False, 'message': str(e)})
-
-    return jsonify(success=True)
 
 @blueprint.route('/get_roles')
 @login_required

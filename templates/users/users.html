@@ -3,8 +3,12 @@
 {% block title %} إدارة المستخدمين {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+{% block title2 %}  إدارة المستخدمين {% endblock %} 
+
+{% block title5 %}  إضافة وتعديل وإدارة حسابات المستخدمين في النظام {% endblock %} 
+{% block content %}
 <style>
     .select2-container--default .select2-selection--single,
     .select2-container--default .select2-selection--multiple {
@@ -38,13 +42,8 @@
         justify-content: center;
     }
 </style>
-{% endblock stylesheets %}
 
-{% block content %}
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-{% block title2 %}  إدارة المستخدمين {% endblock %} 
 
-{% block title5 %}  إضافة وتعديل وإدارة حسابات المستخدمين في النظام {% endblock %} 
 
 <div class="container mx-auto px-4 py-6">
     <!-- رأس الصفحة -->
@@ -136,7 +135,7 @@
                                 </select>
                             </div>
 
-                            <!-- الصلاحية -->
+                            <!-- الصلاحية
                             <div>
                                 <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
                                     الصلاحية <span class="text-red-500">*</span>
@@ -145,7 +144,7 @@
                                     <option value="1">موظف</option>
                                     <option value="2">مدير</option>
                                 </select>
-                            </div>
+                            </div> -->
                         </div>
 
                         <!-- أزرار التحكم -->
@@ -201,7 +200,7 @@
                                     <th data-field="phone" data-sortable="true">الهاتف</th>
                                     <th data-field="branch.name" data-sortable="true">الفرع</th>
                                     <th data-field="active" data-sortable="true" data-align="center" data-formatter="statusFormatter">الحالة</th>
-                                    <th data-field="role.name" data-sortable="true">الصلاحية</th>
+                                    <th data-field="permissions_count" data-sortable="true">الصلاحية</th>
                                     <th data-field="created_at" data-sortable="true" data-align="center">التاريخ</th>
                                     <th data-formatter="getactionuser" data-width="140" data-align="center">الإجراءات</th>
                                 </tr>
@@ -213,6 +212,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 
 <script>
@@ -251,6 +253,7 @@ window.getactionuser = (value, row) => {
                     onclick="openEditModal(${row['id']}, '${row['full_name']}', '${row['phone']}', '${row['role_id']}', '${row['branch_id']}', '${row['section_id']}')">
                 <i class="fas fa-edit"></i>
             </button>
+
             ${row['active'] ?
                 `<button class="btn btn-sm btn-danger" onclick="disableUser(${row['id']})">
                     <i class="fas fa-user-slash"></i>
@@ -265,6 +268,8 @@ window.getactionuser = (value, row) => {
         </div>`
     ];
 };
+
+
 
 function statusFormatter(value, row) {
     return value ? 
@@ -287,13 +292,14 @@ window.ajaxRequest = function (params) {
 };
 
 // دوال إدارة المستخدمين
-let roles = [];
+//let roles = [];
 let branches = [];
 let sections = [];
 
 loadBranches();
-loadRoles();
+//loadRoles();
 loadSections();
+/*
 
 async function loadRoles() {
     const roleSelect = document.getElementById('role');
@@ -316,7 +322,7 @@ async function loadRoles() {
         roleSelect.innerHTML = '<option value="">فشل التحميل</option>';
         console.error('خطأ في تحميل الصلاحيات:', error);
     }
-}
+}*/
 
 async function loadBranches() {
     const branchSelect = document.getElementById('branch');
@@ -379,7 +385,7 @@ function openEditModal(id, name, phone, role_id, branch_id, section_id) {
     document.getElementById("userId").value = id;
     document.getElementById("full_name").value = name;
     document.getElementById("phone").value = phone;
-    document.getElementById("role").value = role_id;
+   // document.getElementById("role").value = role_id;
     document.getElementById("branch").value = branch_id;
     document.getElementById("section").value = section_id;
     document.getElementById("passwordField").style.display = "none";
@@ -395,7 +401,7 @@ function submitUser(e) {
         phone: document.getElementById("phone").value,
         branch_id: document.getElementById("branch").value,
         section_id: document.getElementById("section").value,
-        role: document.getElementById("role").value,
+       // role: document.getElementById("role").value,
     };
     
     if (!id) {

@@ -1,0 +1,239 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} إدارة المستندات {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+
+
+{% block content %}
+
+{% block title2 %} 
+  سجل العمليات (Activity Logs)  
+{% endblock %} 
+
+
+    <!-- الفلاتر -->
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <label class="form-label">نوع العملية</label>
+            <select id="filter-action" class="form-select">
+                <option value="">الكل</option>
+                <option value="create">إضافة</option>
+                <option value="update">تعديل</option>
+                <option value="delete">حذف</option>
+                <option value="login">دخول</option>
+                <option value="logout">خروج</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">اسم الجدول</label>
+            <input id="filter-table" type="text" class="form-control" placeholder="documents / users / branches">
+        </div>
+
+        
+    </div>
+
+    <!-- جدول السجلات -->
+
+
+
+                        <div class="table-responsive">
+                            <table
+                                id="actionLogTable"
+                                class="table table-striped table-bordered"
+                                dir="rtl"
+                                data-toggle="table"
+                                data-ajax="ajaxRequest"
+                                data-pagination="true"
+                                data-side-pagination="server"
+                                data-page-list="[10, 20, 50, 100]"
+                                data-search="true"
+                                data-search-align="right"
+                                data-show-refresh="true"
+                                data-show-toggle="true"
+                                data-show-columns="true"
+                                data-sort-name="id"
+                                data-sort-order="desc"
+                                data-locale="ar-SA"
+                                >
+                                
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="text-center py-2 px-3"
+                                            data-field="id" 
+                                            data-align="center"
+                                            data-sortable="true">#</th>
+
+
+                                        <th class="text-center py-2 px-3"
+                                            data-field="record_id" 
+                                            data-sortable="true"
+                                            data-align="center">رقم السجل</th>
+                   
+                        
+                                        <th class="text-center py-2 px-3"
+                                            data-field="user_name" 
+                                            data-sortable="true"
+                                            data-align="center">الموظف</th>                                        <th class="text-center py-2 px-3"
+                                            data-field="table_name" 
+                                            data-align="center"
+                                            data-formatter="actionsTable"
+                                            data-sortable="true">
+                                          الجدول 
+                                        </th>
+                            
+                                        <th class="text-center py-2 px-3"
+                                            data-field="action" 
+                                            data-align="center"
+                                            data-formatter="actionsType"
+                                            data-sortable="true">
+                                          نوع العملية
+                                        </th>
+                                        <th class="text-center py-2 px-3"
+                                            data-field="created_at" 
+                                            data-align="center"
+                                            
+                                            data-sortable="true">التاريخ</th>
+                                        <th class="text-center py-2 px-3"
+                                            data-align="center"
+                                            data-formatter="actionsDevice"
+                                            
+                                            width="180px">
+                                          الجهاز
+                                        </th>
+                                        <th class="text-center py-2 px-3"
+                                            data-align="center"
+                                            data-formatter="actionsFormatter"
+                                            
+                                            width="180px">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+<!-- Modal التفاصيل -->
+<div class="modal fade" id="detailsModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">تفاصيل العملية</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <h6 class="text-danger">البيانات القديمة (Old Data):</h6>
+                <pre id="oldData" class="bg-light p-3 rounded"></pre>
+
+                <h6 class="text-success mt-3">البيانات الجديدة (New Data):</h6>
+                <pre id="newData" class="bg-light p-3 rounded"></pre>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+  
+  function actionsTable(value, row) {
+    return [` <span class="badge bg-info">${row.table_name}</span>`];
+  }
+  function actionsDevice(value, row) {
+    return [` <span class="badge bg-info">${row.device_type}</span><span
+    class="badge bg-info">${row.os}</span><span class="badge
+    bg-info">${row.browser}</span>`];
+
+  }
+  function actionsType(value, row) {
+    return [` <span class="badge bg-info">${row.action}</span>`];
+  }
+  function actionsFormatter(value, row) {
+    return [
+        `<button      data-bs-toggle="modal"
+                            data-bs-target="#detailsModal"
+                            onclick="showDetails(${row.old_data },${
+                            row.new_data})" class="btn btn-sm
+                            btn-outline-primary me-1" title="عرض المستند">
+            <i class="fas fa-eye"></i>
+        </button>`,
+        `<button class="btn btn-sm btn-outline-warning me-1" title="تعديل المستند">
+            <i class="fas fa-edit"></i>
+        </button>`,
+        `<button class="btn btn-sm btn-outline-danger" title="حذف المستند">
+            <i class="fas fa-trash"></i>
+        </button>`
+    ].join('');
+}
+
+    function showDetails(oldData, newData) {
+        document.getElementById("oldData").textContent = oldData || "لا يوجد";
+        document.getElementById("newData").textContent = newData || "لا يوجد";
+    }
+window.ajaxRequest = function (params) {
+    if (!params.data) {
+        params.data = {};
+    }
+/*
+    // إضافة الفلاتر
+    if (document_type > 0) {
+        params.data['document_type'] = document_type;
+    }
+    if (document_status) {
+        params.data['status'] = document_status;
+    }
+    if (is_signature) {
+        params.data['is_signature'] = is_signature;
+    }
+*/
+    const url = "{{ url_for('admin_blueprint.getactivitylogs') }}";
+
+    //toggleLoading(true);
+
+    $.get(`${url}?${$.param(params.data)}`)
+        .then(function (res) {
+            params.success(res);
+           // toggleLoading(false);
+        })
+        .catch(function (err) {
+            console.error("Error fetching documents:", err);
+            showAlert('error', 'خطأ', 'حدث خطأ أثناء تحميل البيانات');
+            //toggleLoading(false);
+        });
+};
+
+    // تطبيق الفلاتر
+    document.getElementById("filter-action").onchange = applyFilters;
+    document.getElementById("filter-table").onkeyup = applyFilters;
+    document.getElementById("filter-device").onchange = applyFilters;
+
+    function applyFilters() {
+        let action = document.getElementById("filter-action").value.trim();
+        let table = document.getElementById("filter-table").value.trim();
+        let device = document.getElementById("filter-device").value.trim();
+
+        let rows = document.querySelectorAll("#logsTable tbody tr");
+
+        rows.forEach(row => {
+            let rowAction = row.children[2].innerText.trim();
+            let rowTable = row.children[3].innerText.trim();
+            let rowDevice = row.children[5].innerText.trim();
+
+            let show = true;
+
+            if (action && rowAction !== action) show = false;
+            if (table && !rowTable.includes(table)) show = false;
+            if (device && !rowDevice.includes(device)) show = false;
+
+            row.style.display = show ? "" : "none";
+        });
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
