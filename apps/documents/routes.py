@@ -72,11 +72,16 @@ def documents():
 @blueprint.route('/create_document')
 @login_required
 def create_document():
+    if not current_user.has_permission("add_document"):
+      return render_template('permissions/no_permission.html')
+        #return "❌ لا تملك صلاحية رفع المستندات", 403
     #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('documents/create_document.html')
 
 @blueprint.route('/document/<int:doc_id>')
 def document_profile(doc_id):
+    if not current_user.has_permission("view_document"):
+      return render_template('permissions/no_permission.html')
     document = Document.query.get_or_404(doc_id)
     return render_template('documents/document_profile.html', document=document)
 

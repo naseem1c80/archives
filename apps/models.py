@@ -264,8 +264,13 @@ class Users(db.Model, UserMixin):
 
     readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
     def has_permission(self, perm):
-        return perm in self.role.permissions
-
+        return perm in self.permissions
+    def has_perm(self, perm):
+        if not self.permissions:
+            return False
+        perms = [p.strip() for p in self.permissions.split(",")]
+        return perm in perms
+        
     def to_dict(self):
         return {
             'id': self.id,

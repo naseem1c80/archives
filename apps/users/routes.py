@@ -119,6 +119,23 @@ def add_user():
      return jsonify({'success': False, 'message': str(e)})
 
 
+@blueprint.route('/api/users/<int:user_id>/disable', methods=['POST'])
+@login_required
+def update_active_user(user_id):
+    user = Users.query.get_or_404(user_id)
+
+    # قلب الحالة
+    user.active = not user.active
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "status": "success",
+        "active": user.active,
+        "message": "تم تغيير حالة المستخدم بنجاح"
+    })
+
 
 @blueprint.route('/user/<int:user_id>/permissions', methods=['POST'])
 @login_required

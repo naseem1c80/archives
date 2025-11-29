@@ -312,7 +312,7 @@
 
                 <div class="text-end my-4">
                     <button type="button" class="btn btn-outline-primary me-2" id="add-doc">
-                        <i class="fas fa-plus-circle me-1"></i> إضافة مستند جديد
+                        <i class="fas fa-plus-circle me-1"></i> إضافة مرفق جديد
                     </button>
                 </div>
 
@@ -807,8 +807,13 @@ function createDocBlock(index) {
                     اسكانير    
                     <i class="fas fas fa-scanner"></i>
                     <i class="fas fa-scanner-keyboard"></i>
-                    🖨️
+                  <i class="fas fa-print"></i>
                 </span>
+                
+                            <span class="btn btn-sm btn-outline-info"
+            onclick="clickPaste(${index})">Screen Shot 
+            <i class="fas fa-cut"></i>
+            </span>
             </div>
             
             <input type="text" id="file-path-${index}" required readonly
@@ -840,6 +845,7 @@ function createDocBlock(index) {
     </div>
 </div>
 
+
         <div class="mb-2 mt-4">
             <label class="form-label fw-bold">تفاصيل المستند</label>
             <span class="btn btn-sm btn-outline-info" onclick="toggleDetails(${index}, this)">عرض التفاصيل</span>
@@ -857,6 +863,50 @@ function createDocBlock(index) {
     </div>
     `;
 }
+
+
+
+// عند الضغط على زر اللصق
+//document.getElementById("pasteBtn").addEventListener("click", async () => {
+  async  function clickPaste(index) {
+    
+    try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+            for (const type of item.types) {
+                if (type.startsWith("image/")) {
+                const blob = item.getAsFile();
+             //   loadFilePreview(blob, index);
+                uploadFileBlob(blob, "pasted_image.png", index);
+                break;
+                
+                /*
+                    const blob = await item.getType(type);
+                    pastedImage = blob;
+
+                    // عرض معاينة
+                    const img = document.getElementById("preview");
+                    img.src = URL.createObjectURL(blob);
+                    img.style.display = "block";
+
+                    // رفع تلقائي
+                    upload_pasted_image();
+                    return;*/
+                }
+            }
+        }
+
+        alert("⚠ لا توجد صورة في الحافظة!");
+    } catch (err) {
+        alert("المتصفح منع الوصول للحافظة. يجب النقر بالماوس داخل الصفحة ثم إعادة المحاولة.");
+    }
+}
+
+
+
+
+
+
 
 function initPasteArea(index) {
     const pasteArea = document.getElementById(`pasteArea-${index}`);
