@@ -10,13 +10,12 @@ from apps.docs.insert import addDocument
 from PIL import Image
 import pytesseract
 #from scanner import scan_document
-import mysql.connector
 import os
 import uuid
 
 from apps import db, login_manager
 from flask_cors import cross_origin
-import PyPDF2
+
 from pdf2image import convert_from_bytes
 from flask import render_template, request,  jsonify
 from flask_login import  current_user
