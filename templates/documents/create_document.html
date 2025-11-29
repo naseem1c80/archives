@@ -476,7 +476,7 @@ async function loaddocuments_type() {
     try {
         if(documents_type.length < 1){
             doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-            const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}");
+            const response = await fetch("{{ url_for('doc_blueprint.getdocument_types') }}");
             documents_type = await response.json();
         }
         
@@ -869,14 +869,23 @@ function createDocBlock(index) {
 // عند الضغط على زر اللصق
 //document.getElementById("pasteBtn").addEventListener("click", async () => {
   async  function clickPaste(index) {
-    
+        let ok = await requestClipboardPermission();
+    if (!ok) return;
+
     try {
         const items = await navigator.clipboard.read();
+
         for (const item of items) {
             for (const type of item.types) {
+                       // alert(item+"");
                 if (type.startsWith("image/")) {
-                const blob = item.getAsFile();
-             //   loadFilePreview(blob, index);
+                       const blob = await item.getType(type);
+              //  const blob = item.getAsFile();
+ $(`#preview-${index}`).html(`<img src="${URL.createObjectURL(blob)}" class="img-fluid rounded">`);
+              
+             
+               // img.style.display = "block";
+               //loadFilePreview(blob, index);
                 uploadFileBlob(blob, "pasted_image.png", index);
                 break;
                 
@@ -896,7 +905,7 @@ function createDocBlock(index) {
             }
         }
 
-        alert("⚠ لا توجد صورة في الحافظة!");
+     //   alert("⚠ لا توجد صورة في الحافظة!");
     } catch (err) {
         alert("المتصفح منع الوصول للحافظة. يجب النقر بالماوس داخل الصفحة ثم إعادة المحاولة.");
     }
@@ -906,6 +915,23 @@ function createDocBlock(index) {
 
 
 
+async function requestClipboardPermission() {
+    try {
+        const permission = await navigator.permissions.query({
+            name: "clipboard-read"
+        });
+
+        if (permission.state === "denied") {
+            alert("يجب السماح بالوصول للحافظة من إعدادات المتصفح.");
+            return false;
+        }
+
+        return true;
+
+    } catch (e) {
+        return true; // بعض المتصفحات لا تدعم permissions API
+    }
+}
 
 
 function initPasteArea(index) {

@@ -263,7 +263,23 @@ class Users(db.Model, UserMixin):
 
 
     readonly_fields = ["id", "phone", "full_name", "oauth_github", "oauth_google"]
+    
+    
     def has_permission(self, perm):
+      perms = self.permissions
+
+      if not perms:
+        return False
+    
+      # إذا مخزن كـ نص JSON
+      if isinstance(perms, str):
+          try:
+              perms = json.loads(perms)
+          except:
+              return False
+    
+      return perm in perms
+    def has_permission2(self, perm):
         return perm in self.permissions
     def has_perm(self, perm):
         if not self.permissions:

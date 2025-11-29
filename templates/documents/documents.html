@@ -327,7 +327,7 @@ async function loadDocumentTypes() {
     try {
         if (documents_type.length < 1) {
             doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-            const response = await fetch("{{ url_for('documents_blueprint.getdocument_types') }}");
+            const response = await fetch("{{ url_for('doc_blueprint.getdocument_types') }}");
             documents_type = await response.json();
         }
         
@@ -390,7 +390,7 @@ window.ajaxRequest = function (params) {
         params.data['is_signature'] = is_signature;
     }
 
-    const url = "{{ url_for('documents_blueprint.getdocuments') }}";
+    const url = "{{ url_for('doc_blueprint.getdocuments') }}";
 
     toggleLoading(true);
 
