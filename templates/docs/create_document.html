@@ -1054,34 +1054,6 @@ viewpath(j.url,index);
     });
 }
 
-/*
-async function uploadFileBlob(blob, filename, index) {
-    const fd = new FormData();
-    fd.append('screenshot', blob, filename);
-
-    const status = document.getElementById(`pre-${index}`);
-    status.textContent = "جاري الرفع...";
-
-    try {
-        const res = await fetch('/upload_screenshot', {
-            method: 'POST',
-            body: fd
-        });
-
-        const j = await res.json();
-        if (res.ok && j.ok) {
-                 $(`input[name="docs[${index}][path]"]`).val(j.url);
-                        $(`#preview-${index}`).html(`<img src="${j.url}" alt="Preview">`);
-            status.innerHTML = `✔ تم الرفع: <a href="${j.url}" target="_blank">${j.filename}</a>`;
-        } else {
-            status.textContent = "❌ خطأ: " + (j.error || res.statusText);
-        }
-    } catch (err) {
-        status.textContent = "❌ خطأ بالشبكة";
-    }
-}
-*/
-
 /**
  * فتح الكاميرا لالتقاط صورة
  * @param {number} index - فهرس المستند
