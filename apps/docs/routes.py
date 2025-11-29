@@ -3,10 +3,10 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from apps.documents import blueprint
+from apps.docs import blueprint
 
 from apps.models import Document,Files,Branch,Users,DocumentType,Notification
-from apps.documents.insert import addDocument
+from apps.docs.insert import addDocument
 from PIL import Image
 import pytesseract
 #from scanner import scan_document
@@ -62,11 +62,11 @@ def save_cropped():
         return jsonify({'success': True, 'url': f"{path}"})
     return jsonify({'success': False, 'error': 'No image received'})
 
-@blueprint.route('/documents')
+@blueprint.route('/docs')
 @login_required
-def documents():
-    #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
-    return render_template('documents/documents.html')
+def docs():
+    #docs = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
+    return render_template('docs/docs.html')
 
 
 @blueprint.route('/create_document')
@@ -75,15 +75,15 @@ def create_document():
     if not current_user.has_permission("add_document"):
       return render_template('permissions/no_permission.html')
         #return "❌ لا تملك صلاحية رفع المستندات", 403
-    #documents = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
-    return render_template('documents/create_document.html')
+    #docs = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
+    return render_template('docs/create_document.html')
 
 @blueprint.route('/document/<int:doc_id>')
 def document_profile(doc_id):
     if not current_user.has_permission("view_document"):
       return render_template('permissions/no_permission.html')
     document = Document.query.get_or_404(doc_id)
-    return render_template('documents/document_profile.html', document=document)
+    return render_template('docs/document_profile.html', document=document)
 
 @blueprint.route('/verify-document/<int:doc_id>', methods=['POST'])
 @login_required
@@ -96,9 +96,9 @@ def verify_document(doc_id):
 
 
 
-@blueprint.route('/getdocuments', methods=['GET', 'OPTIONS'])
+@blueprint.route('/getdocs', methods=['GET', 'OPTIONS'])
 @cross_origin()
-def getdocuments():
+def getdocs():
     try:
         # التحقق من وجود وسائط الطلب وتعيين القيم الافتراضية
         limit = min(request.args.get('limit', default=10, type=int), 100)  # حد أقصى 100 سجل
@@ -167,7 +167,7 @@ def getdocuments():
 
         # تطبيق التقسيم الصفحي
         print(f'*****sql{query}*****')
-        documents = query.offset(offset).limit(limit).all()
+        docs = query.offset(offset).limit(limit).all()
 
         # بناء الاستجابة
         response = {
@@ -190,7 +190,7 @@ def getdocuments():
                 "verify_user": doc.verify_user,
                 "status": doc.status,
                 "created_at": doc.created_at.strftime('%Y-%m-%d %H:%M')  if doc.created_at else None
-            } for doc in documents],
+            } for doc in docs],
             "limit": limit,
             "offset": offset,
             "total": total
@@ -199,7 +199,7 @@ def getdocuments():
         return jsonify(response)
 
     except Exception as e:
-        current_app.logger.error(f"Error in getdocuments: {str(e)}", exc_info=True)
+        current_app.logger.error(f"Error in getdocs: {str(e)}", exc_info=True)
         return jsonify({"error": f"Internal server error {e}"}), 500
     
     
@@ -378,8 +378,8 @@ def save_docs():
   return res
 
 
-@blueprint.route("/report/documents", methods=["GET"])
-def get_documents_report():
+@blueprint.route("/report/docs", methods=["GET"])
+def get_docs_report():
     try:
         counts = (
             db.session.query(Document.status, func.count(Document.id))
@@ -389,7 +389,7 @@ def get_documents_report():
         )
         #all=db.session.query(Document.status, func.count(Document.id)).all()
         # إجمالي كل المستندات (بغض النظر عن الحالة)
-        total_documents = db.session.query(func.count(Document.id)).scalar()
+        total_docs = db.session.query(func.count(Document.id)).scalar()
         # تحويل النتائج إلى dict
         result = {0: 0, 1: 0, 2: 0}  # تأكد من ظهور كلا الحالتين حتى لو إحداهما صفر
         for status, count in counts:
@@ -397,7 +397,7 @@ def get_documents_report():
 
         return jsonify({
             'success': True,
-            'status_all_count': total_documents,
+            'status_all_count': total_docs,
             'status_0_count': result[0],
             'status_1_count': result[1],
             'status_2_count': result[2]

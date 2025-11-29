@@ -141,7 +141,7 @@ async function loaddocuments_type() {
     try {
       if(users.length<1){
             doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const response = await fetch("{{ url_for('doc_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
+      const response = await fetch("{{ url_for('docs_blueprint.getdocument_types') }}"); // غيّر الرابط حسب API الخاص بك
        documents_type = await response.json();
 
       }

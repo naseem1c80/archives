@@ -79,7 +79,7 @@
 
                         <div class="table-responsive">
                             <table
-                                id="documentsTable"
+                                id="docsTable"
                                 class="table table-striped table-bordered"
                                 dir="rtl"
                                 data-toggle="table"
@@ -195,7 +195,7 @@
 let document_type = 0;
 let document_status = "";
 let is_signature = "";
-let documents_type = [];
+let docs_type = [];
 
 // تهيئة الجدول
 function actionsFormatter(value, row) {
@@ -325,14 +325,14 @@ async function loadDocumentTypes() {
     const doctypSelect = document.getElementById('document_type');
     
     try {
-        if (documents_type.length < 1) {
+        if (docs_type.length < 1) {
             doctypSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-            const response = await fetch("{{ url_for('doc_blueprint.getdocument_types') }}");
-            documents_type = await response.json();
+            const response = await fetch("{{ url_for('docs_blueprint.getdocument_types') }}");
+            docs_type = await response.json();
         }
         
         doctypSelect.innerHTML = '<option value="0">كل الأنواع</option>';
-        documents_type.forEach(type => {
+        docs_type.forEach(type => {
             const option = document.createElement('option');
             option.value = type.id;
             option.textContent = type.name;
@@ -347,17 +347,17 @@ async function loadDocumentTypes() {
 // فلترة البيانات
 function change_document_type(e) {
     document_type = e.value;
-    $('#documentsTable').bootstrapTable('refresh');
+    $('#docsTable').bootstrapTable('refresh');
 }
 
 function change_document_status(e) {
     document_status = e.value;
-    $('#documentsTable').bootstrapTable('refresh');
+    $('#docsTable').bootstrapTable('refresh');
 }
 
 function change_signature_status(e) {
     is_signature = e.value;
-    $('#documentsTable').bootstrapTable('refresh');
+    $('#docsTable').bootstrapTable('refresh');
 }
 
 
@@ -370,7 +370,7 @@ function resetFilters() {
     document.getElementById('docStatus').value = "";
     document.getElementById('signatureStatus').value = "";
     
-    $('#documentsTable').bootstrapTable('refresh');
+    $('#docsTable').bootstrapTable('refresh');
 }
 
 // AJAX Request للجدول
@@ -390,7 +390,7 @@ window.ajaxRequest = function (params) {
         params.data['is_signature'] = is_signature;
     }
 
-    const url = "{{ url_for('doc_blueprint.getdocuments') }}";
+    const url = "{{ url_for('docs_blueprint.getdocs') }}";
 
     toggleLoading(true);
 
@@ -400,7 +400,7 @@ window.ajaxRequest = function (params) {
             toggleLoading(false);
         })
         .catch(function (err) {
-            console.error("Error fetching documents:", err);
+            console.error("Error fetching docs:", err);
             showAlert('error', 'خطأ', 'حدث خطأ أثناء تحميل البيانات');
             toggleLoading(false);
         });
@@ -450,9 +450,9 @@ function deleteDocument(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             toggleLoading(true);
-            axios.post(`/documents/${id}/delete`)
+            axios.post(`/docs/${id}/delete`)
                 .then(() => {
-                    $('#documentsTable').bootstrapTable('refresh');
+                    $('#docsTable').bootstrapTable('refresh');
                     showAlert('success', 'تم الحذف', 'تم حذف المستند بنجاح');
                 })
                 .catch(error => {
@@ -474,13 +474,13 @@ function printDocument() {
     document.body.innerHTML = printContent;
     window.print();
     document.body.innerHTML = originalContent;
-    $('#documentsTable').bootstrapTable('refresh');
+    $('#docsTable').bootstrapTable('refresh');
 }
 
 // تهيئة الصفحة
 $(document).ready(function() {
     loadDocumentTypes();
-    $('#documentsTable').bootstrapTable();
+    $('#docsTable').bootstrapTable();
 });
 
 // إضافة فلترة حالة التوقيع
