@@ -1,25 +1,16 @@
 from apps.models import Document,Files,Branch,Users,DocumentType
-from PIL import Image
 import pytesseract
 #from scanner import scan_document
-import mysql.connector
 import os
 import uuid
 
 from apps import db, login_manager
-from flask_cors import cross_origin
 import PyPDF2
-from pdf2image import convert_from_bytes
-from flask import render_template, request, redirect, url_for, flash, jsonify, session,send_from_directory
+from flask import request,jsonify
 from flask_login import  current_user
-from flask_login import login_required
+
 
 from datetime import datetime
-from flask import current_app
-from apps.inc.Convert import convert_pdf_to_images
-from werkzeug.utils import secure_filename
-from sqlalchemy import func
-from apps.inc.scanner import scan_document
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):

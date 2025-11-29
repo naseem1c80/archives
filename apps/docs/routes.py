@@ -18,18 +18,16 @@ from apps import db, login_manager
 from flask_cors import cross_origin
 import PyPDF2
 from pdf2image import convert_from_bytes
-from flask import render_template, request, redirect, url_for, flash, jsonify, session,send_from_directory
+from flask import render_template, request,  jsonify
 from flask_login import  current_user
 from flask_login import login_required
 
 from datetime import datetime
 from flask import current_app
-from apps.inc.Convert import convert_pdf_to_images
-from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from apps.inc.scanner import scan_document
 import base64
-doc_print = Blueprint('docs_blueprint',__name__,url_prefix='/docs')
+doc_print = Blueprint('docs_blueprint',__name__,url_prefix='/')
 SCAN_IMAGE = 'static/scan_image'
 if os.name == 'nt':  # 'nt' يعني Windows
     #SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
