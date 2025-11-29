@@ -3,8 +3,8 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from apps.docs import blueprint
-
+#from apps.docs import doc_print
+from flask import Blueprint
 from apps.models import Document,Files,Branch,Users,DocumentType,Notification
 from apps.docs.insert import addDocument
 from PIL import Image
@@ -29,7 +29,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from apps.inc.scanner import scan_document
 import base64
-
+doc_print = Blueprint('docs_blueprint',__name__,url_prefix='/docs')
 SCAN_IMAGE = 'static/scan_image'
 if os.name == 'nt':  # 'nt' يعني Windows
     #SCAN_IMAGE='E:\scan_image' # استخدم r لجعل السلسلة raw لتجنب مشاكل الـ backslash
@@ -41,7 +41,7 @@ if os.name == 'nt':  # 'nt' يعني Windows
 UPLOAD_FOLDER = 'static/uploads_cropped'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@blueprint.route('/save-cropped', methods=['POST'])
+@doc_print.route('/save-cropped', methods=['POST'])
 def save_cropped():
     image = request.files.get('cropped_image')
     if image:
@@ -62,14 +62,14 @@ def save_cropped():
         return jsonify({'success': True, 'url': f"{path}"})
     return jsonify({'success': False, 'error': 'No image received'})
 
-@blueprint.route('/docs')
+@doc_print.route('/docs')
 @login_required
 def docs():
     #docs = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('docs/docs.html')
 
 
-@blueprint.route('/create_document')
+@doc_print.route('/create_document')
 @login_required
 def create_document():
     if not current_user.has_permission("add_document"):
@@ -78,14 +78,14 @@ def create_document():
     #docs = [{'name': document.name, 'user_id': document.user_id} for document in Document.get_list()]
     return render_template('docs/create_document.html')
 
-@blueprint.route('/document/<int:doc_id>')
+@doc_print.route('/document/<int:doc_id>')
 def document_profile(doc_id):
     if not current_user.has_permission("view_document"):
       return render_template('permissions/no_permission.html')
     document = Document.query.get_or_404(doc_id)
     return render_template('docs/document_profile.html', document=document)
 
-@blueprint.route('/verify-document/<int:doc_id>', methods=['POST'])
+@doc_print.route('/verify-document/<int:doc_id>', methods=['POST'])
 @login_required
 def verify_document(doc_id):
     document = Document.query.get_or_404(doc_id)
@@ -96,7 +96,7 @@ def verify_document(doc_id):
 
 
 
-@blueprint.route('/getdocs', methods=['GET', 'OPTIONS'])
+@doc_print.route('/getdocs', methods=['GET', 'OPTIONS'])
 @cross_origin()
 def getdocs():
     try:
@@ -204,7 +204,7 @@ def getdocs():
     
     
 
-@blueprint.route('/update-document-status/<int:doc_id>', methods=['POST'])
+@doc_print.route('/update-document-status/<int:doc_id>', methods=['POST'])
 def update_document_status(doc_id):
     data = request.get_json()
     status = int(data.get('status'))
@@ -227,7 +227,7 @@ def notify_user(from_user,user_id, message,doc_id=0):
     db.session.commit()
 
 
-@blueprint.route('/sign-document/<int:doc_id>', methods=['POST'])
+@doc_print.route('/sign-document/<int:doc_id>', methods=['POST'])
 def sign_document(doc_id):
     document = Document.query.get_or_404(doc_id)
 
@@ -266,7 +266,7 @@ def sign_document(doc_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
-@blueprint.route('/scan', methods=['POST','GET'])
+@doc_print.route('/scan', methods=['POST','GET'])
 def scan():
     name =""# request.form.get('name', '')
     doc_id =""# request.form.get('doc_id', '')
@@ -289,7 +289,7 @@ def scan():
         })
         return jsonify({'success': False, 'error': str(e)})
 
-@blueprint.route('/read-doc', methods=['POST'])
+@doc_print.route('/read-doc', methods=['POST'])
 def read_doc():
   
     if  request.form.get('path'):
@@ -372,13 +372,13 @@ ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@blueprint.route('/save-docs', methods=['POST'])
+@doc_print.route('/save-docs', methods=['POST'])
 def save_docs():
   res=addDocument()
   return res
 
 
-@blueprint.route("/report/docs", methods=["GET"])
+@doc_print.route("/report/docs", methods=["GET"])
 def get_docs_report():
     try:
         counts = (
@@ -415,9 +415,9 @@ def get_docs_report():
 #from flask import Blueprint, render_template, request, jsonify
 #from .models import db, 
 
-#blueprint = Blueprint("document_types", __name__)
+#doc_print = Blueprint("document_types", __name__)
 
-@blueprint.route("/getdocument_types", methods=["GET"])
+@doc_print.route("/getdocument_types", methods=["GET"])
 def getdocument_types():
   types = DocumentType.query.all()
   response = []
@@ -427,11 +427,11 @@ def getdocument_types():
           "name": doc.name})
   return response          
   
-@blueprint.route("/document_types", methods=["GET"])
+@doc_print.route("/document_types", methods=["GET"])
 def view_document_types():
     return render_template("document_types/document_types.html")
 
-@blueprint.route("/document_types/add", methods=["POST"])
+@doc_print.route("/document_types/add", methods=["POST"])
 def add_document_type():
     try:
         data = request.json
@@ -445,7 +445,7 @@ def add_document_type():
     except Exception as e:
         return jsonify(success=False, message=str(e))
 
-@blueprint.route("/document_types/update/<int:type_id>", methods=["POST"])
+@doc_print.route("/document_types/update/<int:type_id>", methods=["POST"])
 def update_document_type(type_id):
     try:
         data = request.json
