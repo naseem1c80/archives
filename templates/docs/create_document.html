@@ -976,7 +976,19 @@ function initPasteArea(index) {
         }
     });
 }
-
+function viewpath(path, index) {
+    if (path.toLowerCase().endsWith('.pdf')) {
+        // عرض PDF داخل iframe
+        $(`#preview-${index}`).html(`
+            <iframe src="${path}" class="w-full h-96 rounded border"></iframe>
+        `);
+    } else {
+        // عرض صورة
+        $(`#preview-${index}`).html(`
+            <img src="${path}" class="img-fluid rounded border" />
+        `);
+    }
+}
 
 async function uploadFileBlob(blob, filename, index) {
 
@@ -1019,8 +1031,8 @@ async function uploadFileBlob(blob, filename, index) {
                     $(`input[name="docs[${index}][path]"]`).val(j.url);
 
                     // عرض الصورة في المعاينة
-                    $(`#preview-${index}`).html(`<img src="${j.url}" class="img-fluid rounded">`);
-
+                 //   $(`#preview-${index}`).html(`<img src="${j.url}" class="img-fluid rounded">`);
+viewpath(j.url,index);
                     status.innerHTML = `✔ تم الرفع: <a href="${j.url}" target="_blank">${j.filename}</a>`;
                     resolve(j);
                 } else {
