@@ -1,4 +1,4 @@
-from apps.upload_file import blueprint
+from flask import Blueprint
 from flask import jsonify, render_template, redirect, request, url_for
 from apps import db
 from apps.models import Device, License, Section,ActivityLog
@@ -11,7 +11,7 @@ from datetime import datetime
 UPLOAD_FOLDER = 'static/uploads_cropped'
 SCAN_IMAGE = 'static/scan_image'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
+upload_print = Blueprint('upload_blueprint',__name__,url_prefix='/')
 def save_file_storage(file_storage):
     # file_storage: werkzeug.datastructures.FileStorage
     ext = os.path.splitext(file_storage.filename)[1] or ".png"
@@ -20,12 +20,12 @@ def save_file_storage(file_storage):
     file_storage.save(path)
     return filename, path
 
-@blueprint.route('/upload_document')
+@upload_print.route('/upload_document')
 def index():
     # صفحة الاختبار: يمكنك أيضاً تقديم ملف HTML ثابت
     return render_template("documents/upload_document.html")
 
-@blueprint.route('/upload_screenshot', methods=['POST'])
+@upload_print.route('/upload_screenshot', methods=['POST'])
 def upload_screenshot():
     """
     يستقبل ملف من نوع multipart/form-data باسم الحقل 'screenshot'
@@ -65,7 +65,7 @@ def upload_screenshot():
 
 
 
-@blueprint.route('/save-cropped', methods=['POST'])
+@upload_print.route('/save-cropped', methods=['POST'])
 def save_cropped():
     image = request.files.get('cropped_image')
     if image:
@@ -80,6 +80,6 @@ def save_cropped():
         return jsonify({'success': True, 'url': f"{path}"})
     return jsonify({'success': False, 'error': 'No image received'})
 
-@blueprint.route('/uploads/<path:filename>')
+@upload_print.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)

@@ -45,7 +45,7 @@ def register_extensions(app):
 def register_blueprints(app):
     # تسجيل البلوبيرنتس الأساسية - تأكد من وجود textract في القائمة
     for module_name in ('authentication', 'home', 'dyn_dt', 'charts', 'users',
-                      'branchs','settings','customers','admin','textract','gemini_ocr','upload_file'):
+                      'branchs','settings','customers','admin','textract','gemini_ocr'):
         try:
             module = import_module('apps.{}.routes'.format(module_name))
             app.register_blueprint(module.blueprint)
@@ -55,6 +55,9 @@ def register_blueprints(app):
     
     from apps.docs.routes import doc_print
     app.register_blueprint(doc_print)
+    
+    from apps.upload_file.routes import upload_print
+    app.register_blueprint(upload_print)
     # تسجيل بلوبيرنت نظام الترخيص
     try:
         from apps.license.routes import license_bp
