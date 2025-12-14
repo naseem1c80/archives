@@ -286,11 +286,17 @@ class Users(db.Model, UserMixin):
             return False
         perms = [p.strip() for p in self.permissions.split(",")]
         return perm in perms
-        
+        '''
+            'role': {
+                'id': self.role.id,
+                'name': self.role.name,
+                'permissions': self.role.permissions
+            } if self.role else None,
+        '''
     def to_dict(self):
         return {
             'id': self.id,
-            'role_id':self.role_id,
+            #'role_id':self.role_id,
             'phone': self.phone,
             'permissions_count': len(self.permissions) if self.permissions else None,
             'full_name': self.full_name,
@@ -299,11 +305,6 @@ class Users(db.Model, UserMixin):
             'created_at': self.created_at,
             'active': self.active,
             'permissions':self.permissions,
-            'role': {
-                'id': self.role.id,
-                'name': self.role.name,
-                'permissions': self.role.permissions
-            } if self.role else None,
             'branch': {
                 'id': self.brnach.id,
                 'name': self.brnach.name
@@ -313,8 +314,8 @@ class Users(db.Model, UserMixin):
                 'name': self.section.name
             } if self.section else None,
              'job': {
-                'id': self.role.id,
-                'name': self.role.name
+                'id': self.job.id,
+                'name': self.job.name
             } if self.job else None
         }
     def __init__(self, **kwargs):

@@ -22,10 +22,15 @@
                     <div class="card-header bg-white border-0 py-3" dir="rtl">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 text-primary font-weight-bold">قائمة الفروع</h5>
+                            
+                            
+{% if current_user.has_permission("add_branch") %}
+                    
                             <button class="btn btn-success d-flex align-items-center" onclick="openAddModal()">
                                 <i class="feather icon-plus me-2"></i>
                                 إضافة فرع جديد
                             </button>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-body">
@@ -106,9 +111,11 @@
 // تهيئة جدول Bootstrap Table
 function operateFormatter(value, row, index) {
     return [
-        `<button class="btn btn-sm btn-outline-primary me-1" title="تعديل">
+        `        
+{% if current_user.has_permission("edit_branch") %}
+                    <button class="btn btn-sm btn-outline-primary me-1" title="تعديل">
             <i class="fas fa-edit"></i>
-        </button>`,
+        </button>{% endif %}`,
         `<button class="btn btn-sm btn-outline-danger" title="حذف">
             <i class="fas fa-trash"></i>
         </button>`

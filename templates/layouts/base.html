@@ -286,18 +286,24 @@ src="/static/assets/select2.min.js"></script>
                                     <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
                                 </a>
                                 <ul class="submenu pl-4 mt-1 space-y-1">
+                                    
+{% if current_user.has_permission("view_document_customers") %}
                                     <li>
                                         <a href="{{ url_for('customers_blueprint.customers') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-xs text-gray-600 hover:bg-gray-100">
                                             <i class="fas fa-eye text-xs"></i>
                                             <span>عرض العملاء</span>
                                         </a>
                                     </li>
+{% endif %}
+
+{% if current_user.has_permission("add_document_customer") %}                                    
                                     <li>
                                         <a href="{{ url_for('customers_blueprint.add_customerdocument') }}" class="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-xs text-gray-600 hover:bg-gray-100">
                                             <i class="fas fa-plus text-xs"></i>
                                             <span>إضافة وثيقة عميل</span>
                                         </a>
                                     </li>
+                                    {% endif %}
                                 </ul>
                             </li>
 
@@ -307,6 +313,8 @@ src="/static/assets/select2.min.js"></script>
                         الإدارة
                     </li>
 
+{% if current_user.has_permission("users") %}
+                    
                     <!-- الموظفين -->
                     <li class="nav-item">
                         <a href="{{ url_for('users_blueprint.users') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
@@ -314,7 +322,10 @@ src="/static/assets/select2.min.js"></script>
                             <span>الموظفين</span>
                         </a>
                     </li>
+{% endif %}
 
+{% if current_user.has_permission("view_branchs") %}
+                    
                     <!-- الفروع -->
                     <li class="nav-item">
                         <a href="{{ url_for('branchs_blueprint.branchs') }}" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
@@ -322,7 +333,10 @@ src="/static/assets/select2.min.js"></script>
                             <span>الفروع</span>
                         </a>
                     </li>
+                    {% endif %}
 
+{% if current_user.has_permission("view_document_types") %}
+                    
                     <!-- أنواع المستندات -->
                     <li class="nav-item">
                         <a href="/document_types" class="flex items-center space-x-3 space-x-reverse p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100">
@@ -330,6 +344,7 @@ src="/static/assets/select2.min.js"></script>
                             <span>أنواع المستندات</span>
                         </a>
                     </li>
+{% endif %}
 
                     <!-- الأقسام -->
                     <li class="nav-item">
