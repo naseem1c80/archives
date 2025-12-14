@@ -23,10 +23,14 @@
                     <div class="card-header bg-white border-0 py-3" dir="rtl">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 text-primary font-weight-bold">قائمة المستندات</h5>
+                        
+{% if current_user.has_permission("add_document") %}
                             <a href="/create_document" class="btn btn-success d-flex align-items-center" target="_blank">
                                 <i class="feather icon-plus me-2"></i>
                                 إضافة مستند جديد
                             </a>
+                            {% endif %}
+
                         </div>
                     </div>
                     
@@ -150,7 +154,6 @@
                                         <th class="text-center py-2 px-3"
                                             data-align="center"
                                             data-formatter="actionsFormatter"
-                                            data-events="actionsEvents"
                                             width="180px">الإجراءات</th>
                                     </tr>
                                 </thead>
@@ -200,15 +203,22 @@ let docs_type = [];
 // تهيئة الجدول
 function actionsFormatter(value, row) {
     return [
-        `<button class="btn btn-sm btn-outline-primary me-1" title="عرض المستند">
+        `
+{% if current_user.has_permission("view_document") %}
+<button class="btn btn-sm btn-outline-primary me-1" title="عرض المستند">
             <i class="fas fa-eye"></i>
-        </button>`,
-        `<button class="btn btn-sm btn-outline-warning me-1" title="تعديل المستند">
+        </button>{% endif %}
+`,
+        `{% if current_user.has_permission("view_document") %}
+        <button class="btn btn-sm btn-outline-warning me-1" title="تعديل المستند">
             <i class="fas fa-edit"></i>
-        </button>`,
-        `<button class="btn btn-sm btn-outline-danger" title="حذف المستند">
+        </button>{% endif %}
+`,
+        `{% if current_user.has_permission("delete_document") %}
+        <button class="btn btn-sm btn-outline-danger" title="حذف المستند">
             <i class="fas fa-trash"></i>
-        </button>`
+        </button>{% endif %}
+`
     ].join('');
 }
 

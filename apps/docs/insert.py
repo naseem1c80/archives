@@ -124,7 +124,7 @@ def save_document():
             account_number=request.form.get('account_number', '000'),
             user_id=current_user.id if current_user.is_authenticated else 0,
             branch_id=current_user.branch_id if current_user.is_authenticated else 0,
-            verify_user=0,
+            verify_user=None,
             description=request.form.get('description', ''),
             document_type_id=request.form.get('document_type_id', '1'),
             user_signature=user_signature,
@@ -141,6 +141,7 @@ def save_document():
         }
 
     except Exception as e:
+        print(f"Error in save_document: {str(e)}")
         return {
             "success": False,
             "message": "حدث خطأ أثناء الحفظ",
