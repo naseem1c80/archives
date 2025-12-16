@@ -203,12 +203,9 @@ let docs_type = [];
 // تهيئة الجدول
 function actionsFormatter(value, row) {
     return [
-        `
-{% if current_user.has_permission("view_document") %}
-<button class="btn btn-sm btn-outline-primary me-1" title="عرض المستند">
+        `{% if current_user.has_permission("view_document") %}<button onclick="viewDocument(${row.id})" class="btn btn-sm btn-outline-primary me-1" title="عرض المستند">
             <i class="fas fa-eye"></i>
-        </button>{% endif %}
-`,
+        </button> {% endif %}`,/*
         `{% if current_user.has_permission("view_document") %}
         <button class="btn btn-sm btn-outline-warning me-1" title="تعديل المستند">
             <i class="fas fa-edit"></i>
@@ -218,7 +215,7 @@ function actionsFormatter(value, row) {
         <button class="btn btn-sm btn-outline-danger" title="حذف المستند">
             <i class="fas fa-trash"></i>
         </button>{% endif %}
-`
+`*/
     ].join('');
 }
 
