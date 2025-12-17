@@ -12,7 +12,8 @@ import time
 import shutil
 from PIL import Image
 import pytesseract
-
+import uuid
+from pdf2image import convert_from_path
 # Load environment variables
 load_dotenv()
 
@@ -21,6 +22,7 @@ blueprint = Blueprint('gemini_ocr', __name__, url_prefix='/gemini-ocr', template
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
+SCAN_IMAGE_PDF="static/scan_pdf"
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff', 'tif', 'webp'}
 
 # Create upload folder if it doesn't exist
@@ -466,8 +468,8 @@ def analyze_text_quality_gemini(text):
 def index():
     return render_template('admin/gemini_ocr.html')
 
-@blueprint.route('/upload', methods=['POST'])
-def upload_file():
+@blueprint.route('/upload55', methods=['POST'])
+def upload_file55():
     """
     معالجة الملفات المرفوعة أو من المسار المباشر
     يدعم كلاً من:
@@ -527,6 +529,13 @@ def upload_file():
             
             # الحصول على اسم الملف من المسار
             filename = os.path.basename(file_path)
+            ext = os.path.splitext(filename)[1].lower()
+            if ext == '.pdf':
+              res=ispdf(os.path.join(file_path))
+              if res.success:
+                file_path=res.path
+              else:
+                return res
             
             # نسخ الملف إلى المجلد المؤقت إذا لزم الأمر
             if not file_path.startswith(UPLOAD_FOLDER):
@@ -554,6 +563,7 @@ def upload_file():
         
         result = {
             'success': True,
+            'ext':ext,
             'filename': filename,
             'file_path': file_path if not is_temp_file else None,
             'service_used': [],
@@ -606,6 +616,173 @@ def upload_file():
             'success': False,
             'error': f'خطأ في معالجة الملف: {str(e)}'
         }), 500
+
+
+@blueprint.route('/upload', methods=['POST'])
+def upload_file():
+    """
+    معالجة الملفات المرفوعة أو من المسار المباشر
+    يدعم:
+    - رفع ملف مباشر (file)
+    - مسار ملف موجود (path)
+    """
+
+    try:
+        # التحقق من وجود ملف مرفوع أو مسار ملف
+        if 'file' not in request.files and 'path' not in request.form:
+            return jsonify({'success': False, 'error': 'لم يتم اختيار ملف أو تقديم مسار ملف'}), 400
+
+        file_path = None
+        filename = None
+        ext = None
+        is_temp_file = False
+
+        # الحالة 1: معالجة ملف مرفوع
+        if 'file' in request.files:
+            file = request.files['file']
+
+            if file.filename == '':
+                return jsonify({'success': False, 'error': 'لم يتم اختيار ملف'}), 400
+
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                is_temp_file = True
+            else:
+                return jsonify({'success': False, 'error': 'نوع الملف غير مدعوم'}), 400
+
+        # الحالة 2: معالجة ملف موجود في مسار
+        else:
+            file_path = request.form['path']
+
+            if not os.path.exists(file_path):
+                return jsonify({'success': False, 'error': 'الملف غير موجود في المسار المحدد'}), 400
+
+            if not os.path.isfile(file_path):
+                return jsonify({'success': False, 'error': 'المسار المحدد ليس ملفاً صالحاً'}), 400
+
+            filename = os.path.basename(file_path)
+
+        # استخراج الامتداد
+        ext = os.path.splitext(filename)[1].lower()
+
+        # إذا كان PDF يتم تحويله مباشرة
+        if ext == '.pdf':
+            resp = ispdf(file_path)      # إرسال المسار مباشرة لدالة التحويل
+            data = resp.get_json()
+
+            if data and data.get('success'):
+                file_path = data['path']  # استخدام الصورة الناتجة
+                filename = os.path.basename(file_path)
+                ext = '.png'
+            else:
+                return resp  # إعادة الخطأ من ispdf كما هو
+
+        # نقل الملف للمجلد المؤقت إذا كان خارج UPLOAD_FOLDER
+        if not file_path.startswith(UPLOAD_FOLDER):
+            temp_filename = f"temp_{int(time.time())}_{filename}"
+            temp_file_path = os.path.join(UPLOAD_FOLDER, temp_filename)
+            shutil.copy2(file_path, temp_file_path)
+            file_path = temp_file_path
+            is_temp_file = True
+
+        # التأكد من أن الملف جاهز
+        if not os.path.exists(file_path):
+            return jsonify({'success': False, 'error': 'تعذر الوصول إلى الملف'}), 400
+
+        # خيارات المعالجة
+        prompt_type = request.form.get('prompt_type', 'general')
+        use_gemini = request.form.get('use_gemini', 'true').lower() == 'true'
+        use_pytesseract = request.form.get('use_pytesseract', 'true').lower() == 'true'
+
+        if prompt_type == 'auto':
+            prompt_type = detect_document_type(filename, file_path)
+
+        result = {
+            'success': True,
+            'ext': ext,
+            'filename': filename,
+            'file_path': file_path if not is_temp_file else None,
+            'service_used': [],
+            'processing_time': 0
+        }
+
+        start_time = time.time()
+
+        # OCR عبر PyTesseract
+        if use_pytesseract:
+            try:
+                pytesseract_result = process_with_pytesseract(file_path)
+                result.update(pytesseract_result)
+                result['service_used'].append('PyTesseract')
+            except Exception as e:
+                logging.error(f"PyTesseract Error: {e}")
+                result['pytesseract_error'] = str(e)
+
+        # Gemini AI
+        if use_gemini:
+            try:
+                gemini_result = process_with_gemini(file_path, prompt_type)
+                result.update(gemini_result)
+                result['service_used'].append('Gemini AI')
+            except Exception as e:
+                logging.error(f"Gemini Error: {e}")
+                result['gemini_error'] = str(e)
+
+        result['processing_time'] = round(time.time() - start_time, 2)
+
+        # حذف الملف المؤقت
+        if is_temp_file and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
+        return jsonify(result)
+
+    except Exception as e:
+        # تنظيف الملف في حالة الخطأ
+        if 'file_path' in locals() and is_temp_file and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
+        logging.error(f"General Error: {e}")
+        return jsonify({'success': False, 'error': f'خطأ في معالجة الملف: {e}'}), 500
+
+def ispdf(file_path):  # هنا نستقبل المسار وليس ملف
+    try:
+        # تحويل PDF إلى صور مباشرة من المسار
+        if os.name == 'nt':
+            images = convert_from_path(
+                file_path,
+                dpi=200,
+                fmt='png',
+                poppler_path=r'C:\poppler\Library\bin'
+            )
+        else:
+            images = convert_from_path(
+                file_path,
+                dpi=200,
+                fmt='png'
+            )
+
+        if not images:
+            return jsonify({'success': False, 'error': 'لم يتمكن من تحويل PDF إلى صورة'})
+
+        # حفظ أول صفحة فقط
+        image = images[0]
+        filename = f"{uuid.uuid4()}.png"
+        path = os.path.join(SCAN_IMAGE_PDF, filename)
+        image.save(path, 'PNG')
+
+        return jsonify({'success': True, 'path': path})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 
 @blueprint.route('/upload2', methods=['POST'])
 def upload_file2():

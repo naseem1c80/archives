@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCO - Powering Your Life</title>
+    <script src="tailwindcss.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- شريط التنقل -->
+    <nav class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">A</span>
+                </div>
+                <span class="text-xl font-bold text-blue-600">ARCO</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 space-x-reverse">
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition">الرئيسية</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition">المنتجات</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition">عن الشركة</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 transition">اتصل بنا</a>
+            </div>
+            
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    تسجيل الدخول
+                </button>
+                <button class="md:hidden text-gray-700">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- قسم الهيرو -->
+    <section class="bg-gradient-to-l from-blue-500 to-blue-700 text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">ARCO</h1>
+            <h2 class="text-2xl md:text-3xl mb-6">تشغيل حياتك</h2>
+            <p class="text-xl mb-8">الإلكترونيات الذكية وأنظمة الطاقة الشمسية المستدامة</p>
+            
+            <div class="bg-yellow-400 text-blue-900 inline-block px-6 py-3 rounded-lg font-bold text-lg mb-8">
+                خصم يصل إلى ٣٠٪ هذا الشهر!
+            </div>
+            
+            <div class="flex justify-center space-x-4 space-x-reverse">
+                <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition">
+                    تسوق الآن
+                </button>
+                <button class="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:text-blue-600 transition">
+                    تعرف أكثر
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- المنتجات المميزة -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">المنتجات المميزة</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- المنتج 1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
+                        <i class="fas fa-plug text-white text-6xl"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Major Employees</h3>
+                        <p class="text-gray-600 mb-4">منتج مبتكر لتلبية احتياجاتك اليومية</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-600 font-bold text-lg">SE5398</span>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- المنتج 2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                        <i class="fas fa-blender text-white text-6xl"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Small Appliquered</h3>
+                        <p class="text-gray-600 mb-4">أجهزة صغيرة بتصميم أنيق وأداء متميز</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-600 font-bold text-lg">SE5990</span>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- المنتج 3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-lightbulb text-white text-6xl"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Iris Jules</h3>
+                        <p class="text-gray-600 mb-4">إضاءة ذكية لتجربة فريدة من نوعها</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-600 font-bold text-lg">SE5941</span>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- المنتج 4 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <div class="h-48 bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center">
+                        <i class="fas fa-solar-panel text-white text-6xl"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">All Confessions</h3>
+                        <p class="text-gray-600 mb-4">حلول طاقة شمسية مستدامة ومبتكرة</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-blue-600 font-bold text-lg">SE5991</span>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                أضف للسلة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم الطاقة الشمسية -->
+    <section class="py-16 bg-gradient-to-l from-green-50 to-blue-50">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1472&q=80" 
+                         alt="الطاقة الشمسية" class="rounded-xl shadow-lg">
+                </div>
+                <div class="md:w-1/2 md:pr-8">
+                    <h2 class="text-3xl font-bold mb-6 text-gray-800">أنظمة الطاقة الشمسية المستدامة</h2>
+                    <p class="text-gray-600 mb-6 text-lg">
+                        نقدم حلول طاقة شمسية مبتكرة ومستدامة تساعدك على توفير الطاقة وتقليل فواتير الكهرباء. 
+                        أنظمتنا مصممة لتلبية احتياجات المنازل والشركات مع ضمان كفاءة عالية وأداء متميز.
+                    </p>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 ml-3"></i>
+                            <span>توفير يصل إلى ٧٠٪ من فاتورة الكهرباء</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 ml-3"></i>
+                            <span>حلول صديقة للبيئة ومستدامة</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 ml-3"></i>
+                            <span>تركيب سريع مع ضمان طويل الأمد</span>
+                        </li>
+                    </ul>
+                    <button class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition">
+                        اكتشف المزيد عن الطاقة الشمسية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم الإلكترونيات الذكية -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row-reverse items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                         alt="الإلكترونيات الذكية" class="rounded-xl shadow-lg">
+                </div>
+                <div class="md:w-1/2 md:pl-8">
+                    <h2 class="text-3xl font-bold mb-6 text-gray-800">الإلكترونيات الذكية</h2>
+                    <p class="text-gray-600 mb-6 text-lg">
+                        اكتشف مجموعة منتجاتنا الذكية المصممة لتحسين جودة حياتك. من أجهزة المنزل الذكي 
+                        إلى الأجهزة الإلكترونية المتطورة، نقدم لك أحدث التقنيات بأسعار تنافسية.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <i class="fas fa-home text-blue-600 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-gray-800">منزل ذكي</h3>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <i class="fas fa-thermometer-half text-blue-600 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-gray-800">أجهزة استشعار</h3>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <i class="fas fa-tv text-blue-600 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-gray-800">شاشات ذكية</h3>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <i class="fas fa-volume-up text-blue-600 text-2xl mb-2"></i>
+                            <h3 class="font-bold text-gray-800">أنظمة صوت</h3>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition">
+                        استعرض الإلكترونيات الذكية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم العروض الخاصة -->
+    <section class="py-16 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-4">خصم يصل إلى ٣٠٪ هذا الشهر!</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">
+                استفد من عروضنا الخاصة لهذا الشهر على مجموعة واسعة من المنتجات. 
+                عروض محدودة، فلا تفوت فرصة الحصول على أفضل المنتجات بأسعار مذهلة.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6 space-x-reverse">
+                <div class="bg-white text-blue-600 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-2">الإلكترونيات الذكية</h3>
+                    <p class="mb-4">خصم يصل إلى ٢٥٪</p>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        تسوق الآن
+                    </button>
+                </div>
+                <div class="bg-white text-blue-600 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-2">الطاقة الشمسية</h3>
+                    <p class="mb-4">خصم يصل إلى ٣٠٪</p>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        استفد من العرض
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- تذييل الصفحة -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 space-x-reverse mb-4">
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold">A</span>
+                        </div>
+                        <span class="text-xl font-bold">ARCO</span>
+                    </div>
+                    <p class="text-gray-400">
+                        شركة رائدة في مجال الإلكترونيات الذكية وأنظمة الطاقة الشمسية المستدامة.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">روابط سريعة</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">الرئيسية</a></li>
+                        <li><a href="#" class="hover:text-white transition">المنتجات</a></li>
+                        <li><a href="#" class="hover:text-white transition">عروض خاصة</a></li>
+                        <li><a href="#" class="hover:text-white transition">اتصل بنا</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">منتجاتنا</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">الإلكترونيات الذكية</a></li>
+                        <li><a href="#" class="hover:text-white transition">أنظمة الطاقة الشمسية</a></li>
+                        <li><a href="#" class="hover:text-white transition">الأجهزة المنزلية</a></li>
+                        <li><a href="#" class="hover:text-white transition">ملحقات إلكترونية</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">اتصل بنا</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt ml-2"></i>
+                            <span>الرياض، المملكة العربية السعودية</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone ml-2"></i>
+                            <span>+966 123 456 789</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope ml-2"></i>
+                            <span>info@arco.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2023 ARCO. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
